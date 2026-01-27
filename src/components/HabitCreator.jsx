@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, Calendar, Clock, Palette, Sparkles } from 'lucide-react'
+import { X, Check, Calendar, Clock, Palette, Sparkles, Trash2, Save } from 'lucide-react' // Añadido Trash2 y Save
 import { supabase } from '../lib/supabaseClient'
 
 const COLORS = [
@@ -13,13 +13,34 @@ const DAYS = [
   { id: 'J', label: 'J' }, { id: 'V', label: 'V' }, { id: 'S', label: 'S' }, { id: 'D', label: 'D' }
 ]
 
-export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }) {
+// Añadimos prop 'initialData' para cuando vamos a editar
+export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, initialData = null }) {
   const [title, setTitle] = useState('')
   const [selectedDays, setSelectedDays] = useState(['L', 'M', 'X', 'J', 'V'])
   const [timeOfDay, setTimeOfDay] = useState('night')
   const [selectedColor, setSelectedColor] = useState(COLORS[0])
   const [selectedIcon, setSelectedIcon] = useState(ICONS[0])
   const [loading, setLoading] = useState(false)
+
+  // Efecto para rellenar datos si estamos editando
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setTitle(initialData.title)
+        setSelectedDays(initialData.frequency || [])
+        setTimeOfDay(initialData.time_of_day || 'night')
+        setSelectedColor(initialData.color || COLORS[0])
+        setSelectedIcon(initialData.icon || ICONS[0])
+      } else {
+        // Reset si es nuevo
+        setTitle('')
+        setSelectedDays(['L', 'M', 'X', 'J', 'V'])
+        setTimeOfDay('night')
+        setSelectedColor(COLORS[0])
+        setSelectedIcon(ICONS[0])
+      }
+    }
+  }, [isOpen, initialData])
 
   const toggleDay = (dayId) => {
     if (selectedDays.includes(dayId)) {
@@ -35,7 +56,8 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
     e.preventDefault()
     if (!title.trim()) return
     setLoading(true)
-    const { error } = await supabase.from('habits').insert({
+
+    const habitData = {
       user_id: userId,
       title: title.trim(),
       frequency: selectedDays,
@@ -43,12 +65,48 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
       color: selectedColor,
       icon: selectedIcon,
       is_active: true
-    })
+    }
+
+    let error
+    
+    if (initialData) {
+      // MODO EDICIÓN: Update
+      const { error: updateError } = await supabase
+        .from('habits')
+        .update(habitData)
+        .eq('id', initialData.id)
+      error = updateError
+    } else {
+      // MODO CREACIÓN: Insert
+      const { error: insertError } = await supabase
+        .from('habits')
+        .insert(habitData)
+      error = insertError
+    }
+
     setLoading(false)
     if (error) {
       alert('Error: ' + error.message)
     } else {
-      setTitle('')
+      onHabitCreated() // Refrescar lista
+      onClose()
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('¿Seguro que quieres borrar este hábito y todo su historial?')) return
+
+    setLoading(true)
+    // Primero borramos logs para evitar errores de llave foránea (si no hay cascada configurada)
+    await supabase.from('daily_logs').delete().eq('habit_id', initialData.id)
+    
+    // Luego borramos el hábito
+    const { error } = await supabase.from('habits').delete().eq('id', initialData.id)
+    
+    setLoading(false)
+    if (error) {
+      alert('Error al borrar: ' + error.message)
+    } else {
       onHabitCreated()
       onClose()
     }
@@ -59,33 +117,40 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
-        
-        {/* FONDO OSCURO (Z-0) */}
         <motion.div 
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-auto z-0"
           onClick={onClose}
         />
 
-        {/* PANEL (Z-10 y Relative para estar ENCIMA) */}
         <motion.div
           initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="relative z-10 bg-neutral-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 border-t border-neutral-700 shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
         >
-          {/* Cabecera */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Sparkles className="text-yellow-400" size={20} />
-              <span className="text-white">Nuevo Hábito</span>
+              {initialData ? <Palette className="text-blue-400" size={20} /> : <Sparkles className="text-yellow-400" size={20} />}
+              <span className="text-white">{initialData ? 'Editar Hábito' : 'Nuevo Hábito'}</span>
             </h2>
-            <button onClick={onClose} className="p-2 bg-neutral-700 rounded-full text-neutral-300 hover:text-white transition-colors">
-              <X size={20} />
-            </button>
+            
+            <div className="flex gap-2">
+              {initialData && (
+                <button 
+                  onClick={handleDelete}
+                  className="p-2 bg-red-900/30 rounded-full text-red-400 hover:bg-red-900/50 transition-colors"
+                  type="button"
+                >
+                  <Trash2 size={20} />
+                </button>
+              )}
+              <button onClick={onClose} className="p-2 bg-neutral-700 rounded-full text-neutral-300 hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            
             {/* Título e Icono */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">¿Qué quieres lograr?</label>
@@ -98,11 +163,9 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
                   placeholder="Ej. Leer, Gym..." 
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  // HE QUITADO EL AUTO FOCUS AQUÍ
                   className="flex-1 bg-neutral-900 border border-neutral-600 rounded-2xl px-4 text-white text-lg placeholder-neutral-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
-              
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide pt-2">
                 {ICONS.map(icon => (
                   <button
@@ -149,11 +212,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
                 <Clock size={14} /> Momento
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'morning', label: 'Mañana' },
-                  { id: 'afternoon', label: 'Tarde' },
-                  { id: 'night', label: 'Noche' }
-                ].map(time => (
+                {[ { id: 'morning', label: 'Mañana' }, { id: 'afternoon', label: 'Tarde' }, { id: 'night', label: 'Noche' } ].map(time => (
                   <button
                     key={time.id}
                     type="button"
@@ -192,9 +251,8 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
               disabled={loading || !title}
               className="w-full bg-white text-black font-bold py-4 rounded-xl text-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
             >
-              {loading ? 'Creando...' : 'Crear Hábito'}
+              {loading ? 'Guardando...' : initialData ? <><Save size={20} /> Guardar Cambios</> : <><Check size={20} /> Crear Hábito</>}
             </button>
-
           </form>
         </motion.div>
       </div>

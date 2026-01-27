@@ -1,9 +1,13 @@
 import { useState } from 'react'
-import { Check, X, Circle, Menu, Plus } from 'lucide-react' // <--- AÑADIDO 'Plus'
+import { Check, X, Circle, Menu, Plus, Pencil } from 'lucide-react'
 import Sidebar from './Sidebar'
 import SettingsModal from './SettingsModal'
-import HabitCreator from './HabitCreator' // <--- IMPORTANTE
+import HabitCreator from './HabitCreator'
 import { supabase } from '../lib/supabaseClient'
+
+// --- CONSTANTE DE ADMINISTRADOR ---
+const ADMIN_EMAIL = 'hemmings.nacho@gmail.com' // <--- PON TU EMAIL AQUÍ
+// ---------------------------------
 
 function CircularProgress({ percentage }) {
   const radius = 70
@@ -33,7 +37,10 @@ function CircularProgress({ percentage }) {
 function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false)
   const [isSettingsOpen, setSettingsOpen] = useState(false)
-  const [isCreatorOpen, setCreatorOpen] = useState(false) // <--- NUEVO ESTADO
+  
+  // Estado para el modal de Crear/Editar
+  const [isCreatorOpen, setCreatorOpen] = useState(false)
+  const [editingHabit, setEditingHabit] = useState(null) // Para guardar el hábito que estamos editando
 
   const logsMap = new Map()
   todayLogs.forEach((log) => logsMap.set(log.habit_id, log.status))
@@ -62,15 +69,24 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   }
 
   const handleHabitCreated = () => {
-    // Recargar la página para ver el nuevo hábito
-    // Idealmente haríamos un refetch, pero reload es rápido y seguro por ahora
     window.location.reload()
+  }
+
+  // Función para abrir el modal en modo EDICIÓN
+  const handleEditHabit = (habit) => {
+    setEditingHabit(habit)
+    setCreatorOpen(true)
+  }
+
+  // Función para abrir el modal en modo NUEVO
+  const handleNewHabit = () => {
+    setEditingHabit(null)
+    setCreatorOpen(true)
   }
 
   return (
     <div className="min-h-screen bg-neutral-900 px-4 py-8 relative">
       
-      {/* Botón Menú */}
       <button 
         onClick={() => setSidebarOpen(true)}
         className="absolute top-6 left-4 text-white p-2 hover:bg-neutral-800 rounded-full transition-colors"
@@ -78,7 +94,6 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         <Menu size={28} />
       </button>
 
-      {/* --- Componentes Modales --- */}
       <Sidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -93,25 +108,29 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         user={user}
       />
 
-      {/* EL CREADOR DE HÁBITOS */}
+      {/* MODAL INTELIGENTE (Sirve para Crear y Editar) */}
       <HabitCreator
         isOpen={isCreatorOpen}
-        onClose={() => setCreatorOpen(false)}
+        onClose={() => {
+            setCreatorOpen(false)
+            setEditingHabit(null)
+        }}
         userId={user.id}
         onHabitCreated={handleHabitCreated}
+        initialData={editingHabit} // <--- Pasamos los datos si estamos editando
       />
 
-      <div className="mx-auto w-full max-w-md mt-6 pb-20"> {/* pb-20 para que el botón flotante no tape contenido */}
+      <div className="mx-auto w-full max-w-md mt-6 pb-20">
         
-        {/* Botón Reset Dev */}
-        {onResetToday && (
+        {/* --- BOTÓN RESET (SOLO ADMIN) --- */}
+        {onResetToday && user.email === ADMIN_EMAIL && (
           <div className="mb-4 flex justify-end">
             <button
               type="button"
               onClick={onResetToday}
-              className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-xs text-neutral-400 hover:bg-neutral-700 hover:text-neutral-200"
+              className="rounded-lg border border-red-900/50 bg-red-900/20 px-3 py-1.5 text-xs text-red-400 hover:bg-red-900/40"
             >
-              Reset (Dev)
+              🛠️ Reset (Admin)
             </button>
           </div>
         )}
@@ -127,7 +146,6 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
           <CircularProgress percentage={percentage} />
         </div>
 
-        {/* Lista de Hábitos */}
         <div className="mb-6 space-y-3">
           {habits.length === 0 ? (
             <div className="text-center p-8 border border-dashed border-neutral-700 rounded-2xl">
@@ -140,26 +158,38 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
               const isCompleted = status === 'completed'
               const isSkipped = status === 'skipped'
               return (
+                // --- TARJETA CLICABLE PARA EDITAR ---
                 <div
                   key={habit.id}
-                  className={`flex items-center gap-3 rounded-xl border p-4 ${
+                  onClick={() => handleEditHabit(habit)} // <--- CLICK ABRE EDICIÓN
+                  className={`relative group flex items-center gap-3 rounded-xl border p-4 cursor-pointer transition-all active:scale-98 ${
                     isCompleted ? 'border-emerald-700 bg-emerald-900/20'
                     : isSkipped ? 'border-red-700 bg-red-900/20'
-                    : 'border-neutral-700 bg-neutral-800'
+                    : 'border-neutral-700 bg-neutral-800 hover:border-neutral-500'
                   }`}
                 >
                   <div className={`flex h-10 w-10 items-center justify-center rounded-full ${habit.color}`}>
                     <span className="text-xl">{habit.icon}</span>
                   </div>
+                  
                   <div className="flex-1">
-                    <p className="font-medium text-white">{habit.title}</p>
+                    <div className="flex items-center gap-2">
+                        <p className="font-medium text-white">{habit.title}</p>
+                        {/* Pequeño indicador de edición */}
+                        <Pencil size={12} className="text-neutral-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    
                     {isSkipped && todayLogs.find((l) => l.habit_id === habit.id)?.note && (
                       <p className="mt-1 text-xs text-neutral-400">
                         {todayLogs.find((l) => l.habit_id === habit.id)?.note}
                       </p>
                     )}
                   </div>
-                  {getStatusIcon(habit.id)}
+                  
+                  {/* Importante: El icono de estado NO debe disparar la edición */}
+                  <div onClick={(e) => e.stopPropagation()}>
+                    {getStatusIcon(habit.id)}
+                  </div>
                 </div>
               )
             })
@@ -185,9 +215,8 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         )}
       </div>
 
-      {/* --- BOTÓN FLOTANTE (+) --- */}
       <button
-        onClick={() => setCreatorOpen(true)}
+        onClick={handleNewHabit} // <--- Usa la nueva función
         className="fixed bottom-6 right-6 h-14 w-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-900/50 flex items-center justify-center active:scale-90 transition-all z-40"
       >
         <Plus size={32} strokeWidth={2.5} />
