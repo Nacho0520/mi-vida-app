@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { X } from 'lucide-react'
+import NotificationManager from './NotificationManager' // <--- IMPORTADO AQUÍ
 
 export default function SettingsModal({ isOpen, onClose, user }) {
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || '')
@@ -71,10 +72,17 @@ export default function SettingsModal({ isOpen, onClose, user }) {
             />
           </div>
 
+          {/* --- AQUÍ ESTÁ EL PASO 5 INTEGRADO --- */}
+          <div className="pt-2 border-t border-neutral-700 mt-4">
+            <p className="text-xs text-neutral-400 mb-2">Permisos del Sistema</p>
+            <NotificationManager userId={user.id} />
+          </div>
+          {/* ------------------------------------- */}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50 mt-4"
           >
             {loading ? 'Guardando...' : 'Guardar Cambios'}
           </button>
