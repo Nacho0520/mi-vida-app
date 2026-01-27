@@ -60,18 +60,18 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
         
-        {/* FONDO: Ahora es negro puro con 70% de opacidad para resaltar el modal */}
+        {/* FONDO OSCURO (Z-0) */}
         <motion.div 
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-auto"
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-auto z-0"
           onClick={onClose}
         />
 
-        {/* PANEL: Cambiado a bg-neutral-800 para que sea más claro que el fondo */}
+        {/* PANEL (Z-10 y Relative para estar ENCIMA) */}
         <motion.div
           initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="bg-neutral-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 border-t border-neutral-700 shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
+          className="relative z-10 bg-neutral-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 border-t border-neutral-700 shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
         >
           {/* Cabecera */}
           <div className="flex justify-between items-center mb-6">
@@ -79,7 +79,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
               <Sparkles className="text-yellow-400" size={20} />
               <span className="text-white">Nuevo Hábito</span>
             </h2>
-            <button onClick={onClose} className="p-2 bg-neutral-700 rounded-full text-neutral-300 hover:text-white">
+            <button onClick={onClose} className="p-2 bg-neutral-700 rounded-full text-neutral-300 hover:text-white transition-colors">
               <X size={20} />
             </button>
           </div>
@@ -98,8 +98,8 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
                   placeholder="Ej. Leer, Gym..." 
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  // HE QUITADO EL AUTO FOCUS AQUÍ
                   className="flex-1 bg-neutral-900 border border-neutral-600 rounded-2xl px-4 text-white text-lg placeholder-neutral-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  autoFocus
                 />
               </div>
               
