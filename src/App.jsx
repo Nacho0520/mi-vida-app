@@ -5,9 +5,9 @@ import Dashboard from './components/Dashboard'
 import Auth from './components/Auth'
 import { supabase } from './lib/supabaseClient'
 import ReminderPopup from './components/ReminderPopup'
-import TopBanner from './components/TopBanner' // <--- NUEVO IMPORT
+import TopBanner from './components/TopBanner'
+import MaintenanceScreen from './components/MaintenanceScreen' // <--- IMPORTANTE
 
-// ... (Tus funciones auxiliares getDefaultIconForTitle y getDefaultColorForIndex siguen igual aquí) ...
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
   const lower = title.toLowerCase()
@@ -27,10 +27,8 @@ function getDefaultColorForIndex(index) {
   ]
   return colors[index % colors.length]
 }
-// ... 
 
 function App() {
-  // ... (Tus estados siguen igual) ...
   const [currentIndex, setCurrentIndex] = useState(0)
   const [swipeStatus, setSwipeStatus] = useState(null)
   const [results, setResults] = useState([])
@@ -56,7 +54,26 @@ function App() {
 
   const currentHabit = habits[currentIndex]
 
-  // ... (Tus funciones fetchTodayLogs, handleResetToday, handleStartReview, useEffects... TODO IGUAL) ...
+  // Estado para el modo mantenimiento
+  const [isMaintenance, setIsMaintenance] = useState(false)
+
+  // --- NUEVO: Comprobar si hay mantenimiento activo ---
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'maintenance_mode')
+        .single()
+      
+      if (data) {
+        setIsMaintenance(data.value)
+      }
+    }
+    checkMaintenance()
+  }, [])
+  // ----------------------------------------------------
+
   const getTodayDateString = () => {
       const today = new Date()
       return today.toISOString().split('T')[0]
@@ -168,7 +185,7 @@ function App() {
   }, [session])
 
   useEffect(() => {
-    if (!session) return // Quitamos el check de habits.length para evitar bucles si está vacío
+    if (!session) return 
     fetchTodayLogs()
   }, [session, habits, fetchTodayLogs])
 
@@ -260,17 +277,28 @@ function App() {
     )
   }
 
+  // --- NUEVO: LÓGICA DE BLOQUEO DE MANTENIMIENTO ---
+  // IMPORTANTE: Pon aquí tu email real para poder entrar
+  const ADMIN_EMAIL = 'hemmings.nacho@gmail.com' 
+
+  // Si hay mantenimiento y NO eres tú, bloqueamos
+  if (isMaintenance && session?.user?.email !== ADMIN_EMAIL) {
+    return <MaintenanceScreen />
+  }
+  // ------------------------------------------------
+
   // SI NO HAY SESIÓN, MOSTRAMOS LOGIN
   if (!session) {
+    // Si hay mantenimiento, también bloqueamos el login a extraños
+    if (isMaintenance) return <MaintenanceScreen />
+    
     return (
         <>
-            <TopBanner /> {/* Opcional: mostrar aviso incluso en login */}
+            <TopBanner /> 
             <Auth />
         </>
     )
   }
-
-  // >>> AQUÍ ESTABA EL BUG: HE BORRADO EL IF(!habits.length) return ... <<<
 
   // Modo Dashboard
   if (mode === 'dashboard') {
@@ -282,7 +310,6 @@ function App() {
       )
     }
 
-    // Si hay error al cargar
     if (dataError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-neutral-900 px-4">
@@ -293,10 +320,9 @@ function App() {
       )
     }
 
-    // Renderizamos Dashboard (que ahora maneja el estado vacío internamente)
     return (
       <>
-        <TopBanner /> {/* <--- AÑADIDO AQUÍ */}
+        <TopBanner />
         <Dashboard
           user={session.user}
           habits={habits}
@@ -317,13 +343,11 @@ function App() {
 
         {dataError && <p className="mb-3 text-center text-sm text-red-400">{dataError}</p>}
         
-        {/* Lógica de renderizado de tarjetas... */}
         {loadingHabits ? (
           <div className="mt-6 flex h-64 items-center justify-center rounded-2xl bg-neutral-800">
             <p className="text-neutral-300">Cargando hábitos...</p>
           </div>
         ) : !habits.length ? (
-           // Esto no debería pasar en modo reviewing si venimos del dashboard, pero por seguridad:
           <div className="mt-6 flex h-64 items-center justify-center rounded-2xl bg-neutral-800">
             <p className="text-center text-neutral-300">No hay hábitos configurados.</p>
           </div>
@@ -337,7 +361,6 @@ function App() {
             {saveSuccess && <p className="mb-2 text-center text-sm text-emerald-400">{saveSuccess}</p>}
             
             <div className="mt-3 space-y-4 text-sm text-neutral-100">
-               {/* Resumen... */}
                <div>
                 <h2 className="mb-1 text-sm font-semibold text-emerald-300">Hechos</h2>
                 {completed.length ? (
@@ -346,10 +369,23 @@ function App() {
                   </ul>
                 ) : <p className="text-neutral-400">Ninguno.</p>}
               </div>
-              {/* ... */}
+              
+              <div>
+                <h2 className="mb-1 text-sm font-semibold text-red-300">No hechos</h2>
+                {skipped.length ? (
+                  <ul className="list-inside list-disc space-y-1 text-red-100">
+                    {skipped.map((item) => (
+                      <li key={item.id}>
+                        <span className="font-medium">{item.title}</span>
+                        {item.note && <span className="ml-1 text-xs text-neutral-300">— {item.note}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p className="text-neutral-400">Ninguno.</p>}
+              </div>
             </div>
             
-            <button onClick={() => setMode('dashboard')} className="mt-6 w-full py-3 bg-neutral-700 rounded-xl text-white">
+            <button onClick={() => setMode('dashboard')} className="mt-6 w-full py-3 bg-neutral-700 rounded-xl text-white hover:bg-neutral-600 transition-colors">
                 Volver al inicio
             </button>
           </div>

@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, Calendar, Clock, Palette, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 
-// Opciones predefinidas para hacerlo fácil
 const COLORS = [
   'bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 
   'bg-orange-600', 'bg-pink-600', 'bg-red-600', 'bg-cyan-600'
@@ -16,15 +15,14 @@ const DAYS = [
 
 export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }) {
   const [title, setTitle] = useState('')
-  const [selectedDays, setSelectedDays] = useState(['L', 'M', 'X', 'J', 'V']) // Por defecto L-V
-  const [timeOfDay, setTimeOfDay] = useState('night') // Por defecto Noche (tu enfoque original)
+  const [selectedDays, setSelectedDays] = useState(['L', 'M', 'X', 'J', 'V'])
+  const [timeOfDay, setTimeOfDay] = useState('night')
   const [selectedColor, setSelectedColor] = useState(COLORS[0])
   const [selectedIcon, setSelectedIcon] = useState(ICONS[0])
   const [loading, setLoading] = useState(false)
 
   const toggleDay = (dayId) => {
     if (selectedDays.includes(dayId)) {
-      // Evitar dejarlo vacío (al menos 1 día)
       if (selectedDays.length > 1) {
         setSelectedDays(prev => prev.filter(d => d !== dayId))
       }
@@ -36,10 +34,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim()) return
-
     setLoading(true)
-    
-    // Insertar en Supabase
     const { error } = await supabase.from('habits').insert({
       user_id: userId,
       title: title.trim(),
@@ -49,15 +44,12 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
       icon: selectedIcon,
       is_active: true
     })
-
     setLoading(false)
-
     if (error) {
-      alert('Error al crear: ' + error.message)
+      alert('Error: ' + error.message)
     } else {
-      // Resetear formulario y cerrar
       setTitle('')
-      onHabitCreated() // Avisar al dashboard para que recargue
+      onHabitCreated()
       onClose()
     }
   }
@@ -67,60 +59,57 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
-        {/* Fondo oscuro */}
+        
+        {/* FONDO: Ahora es negro puro con 70% de opacidad para resaltar el modal */}
         <motion.div 
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/80 backdrop-blur-sm pointer-events-auto"
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-auto"
           onClick={onClose}
         />
 
-        {/* Panel Deslizante */}
+        {/* PANEL: Cambiado a bg-neutral-800 para que sea más claro que el fondo */}
         <motion.div
           initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="bg-neutral-900 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 border-t sm:border border-neutral-800 shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
+          className="bg-neutral-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 border-t border-neutral-700 shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
         >
           {/* Cabecera */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Sparkles className="text-yellow-400" size={20} />
-              Nuevo Hábito
+              <span className="text-white">Nuevo Hábito</span>
             </h2>
-            <button onClick={onClose} className="p-2 bg-neutral-800 rounded-full text-neutral-400 hover:text-white">
+            <button onClick={onClose} className="p-2 bg-neutral-700 rounded-full text-neutral-300 hover:text-white">
               <X size={20} />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             
-            {/* 1. Título e Icono */}
+            {/* Título e Icono */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">¿Qué quieres lograr?</label>
+              <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">¿Qué quieres lograr?</label>
               <div className="flex gap-3">
-                <button 
-                  type="button"
-                  className={`h-12 w-12 flex items-center justify-center rounded-xl text-2xl bg-neutral-800 border border-neutral-700`}
-                >
+                <button type="button" className="h-14 w-14 flex items-center justify-center rounded-2xl text-3xl bg-neutral-700 border border-neutral-600">
                   {selectedIcon}
                 </button>
                 <input 
                   type="text" 
-                  placeholder="Ej. Leer 15 min, Gym..." 
+                  placeholder="Ej. Leer, Gym..." 
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 text-white focus:border-blue-500 focus:outline-none"
+                  className="flex-1 bg-neutral-900 border border-neutral-600 rounded-2xl px-4 text-white text-lg placeholder-neutral-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
                   autoFocus
                 />
               </div>
               
-              {/* Selector Rápido de Iconos */}
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide pt-2">
                 {ICONS.map(icon => (
                   <button
                     key={icon}
                     type="button"
                     onClick={() => setSelectedIcon(icon)}
-                    className={`min-w-[40px] h-10 rounded-lg text-lg transition-colors ${selectedIcon === icon ? 'bg-blue-600/20 border border-blue-500' : 'bg-neutral-800 hover:bg-neutral-700'}`}
+                    className={`min-w-[44px] h-11 rounded-xl text-xl transition-colors flex items-center justify-center ${selectedIcon === icon ? 'bg-blue-600/30 border-2 border-blue-500' : 'bg-neutral-700/50 hover:bg-neutral-700'}`}
                   >
                     {icon}
                   </button>
@@ -128,12 +117,12 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
               </div>
             </div>
 
-            {/* 2. Frecuencia (Días) */}
+            {/* Frecuencia */}
             <div className="space-y-3">
-              <label className="flex items-center gap-2 text-xs font-bold text-neutral-500 uppercase tracking-wider">
+              <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider">
                 <Calendar size={14} /> Frecuencia
               </label>
-              <div className="flex justify-between">
+              <div className="flex justify-between bg-neutral-900 p-2 rounded-2xl border border-neutral-700">
                 {DAYS.map((day) => {
                   const isSelected = selectedDays.includes(day.id)
                   return (
@@ -141,10 +130,10 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
                       key={day.id}
                       type="button"
                       onClick={() => toggleDay(day.id)}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
                         isSelected 
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50 scale-110' 
-                          : 'bg-neutral-800 text-neutral-500 hover:bg-neutral-700'
+                          ? 'bg-blue-500 text-white shadow-lg shadow-blue-900/50' 
+                          : 'text-neutral-500 hover:text-white'
                       }`}
                     >
                       {day.label}
@@ -154,9 +143,9 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
               </div>
             </div>
 
-            {/* 3. Momento del día */}
+            {/* Momento */}
             <div className="space-y-3">
-              <label className="flex items-center gap-2 text-xs font-bold text-neutral-500 uppercase tracking-wider">
+              <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider">
                 <Clock size={14} /> Momento
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -171,8 +160,8 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
                     onClick={() => setTimeOfDay(time.id)}
                     className={`py-2 rounded-xl text-sm font-medium border transition-colors ${
                       timeOfDay === time.id 
-                        ? 'bg-neutral-100 text-black border-white' 
-                        : 'bg-neutral-800 text-neutral-400 border-transparent hover:bg-neutral-700'
+                        ? 'bg-white text-black border-white' 
+                        : 'bg-neutral-700 text-neutral-300 border-transparent hover:bg-neutral-600'
                     }`}
                   >
                     {time.label}
@@ -181,30 +170,29 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated }
               </div>
             </div>
 
-            {/* 4. Color */}
+            {/* Color */}
             <div className="space-y-3">
-              <label className="flex items-center gap-2 text-xs font-bold text-neutral-500 uppercase tracking-wider">
+              <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider">
                 <Palette size={14} /> Color
               </label>
-              <div className="flex gap-3 justify-center">
+              <div className="flex gap-3 justify-center bg-neutral-900 p-3 rounded-2xl border border-neutral-700">
                 {COLORS.map(color => (
                   <button
                     key={color}
                     type="button"
                     onClick={() => setSelectedColor(color)}
-                    className={`w-8 h-8 rounded-full ${color} transition-transform ${selectedColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-neutral-900 scale-110' : 'opacity-60 hover:opacity-100'}`}
+                    className={`w-8 h-8 rounded-full ${color} transition-transform ${selectedColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-neutral-900 scale-110' : 'opacity-50 hover:opacity-100'}`}
                   />
                 ))}
               </div>
             </div>
 
-            {/* Botón Guardar */}
             <button
               type="submit"
               disabled={loading || !title}
-              className="w-full bg-white text-black font-bold py-4 rounded-xl text-lg hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+              className="w-full bg-white text-black font-bold py-4 rounded-xl text-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
             >
-              {loading ? 'Creando...' : <><Check size={20} /> Crear Hábito</>}
+              {loading ? 'Creando...' : 'Crear Hábito'}
             </button>
 
           </form>
