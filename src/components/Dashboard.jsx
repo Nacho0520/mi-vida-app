@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabaseClient'
 import confetti from 'canvas-confetti' // <--- IMPORTAMOS LA FIESTA
 
 // --- CONSTANTE DE ADMINISTRADOR ---
-const ADMIN_EMAIL = 'tu_email_real@gmail.com' 
+const ADMIN_EMAIL = 'hemmings.nacho@gmail.com' 
 // ---------------------------------
 
 function CircularProgress({ percentage }) {
