@@ -5,7 +5,9 @@ import Dashboard from './components/Dashboard'
 import Auth from './components/Auth'
 import { supabase } from './lib/supabaseClient'
 import ReminderPopup from './components/ReminderPopup'
+import TopBanner from './components/TopBanner' // <--- NUEVO IMPORT
 
+// ... (Tus funciones auxiliares getDefaultIconForTitle y getDefaultColorForIndex siguen igual aquí) ...
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
   const lower = title.toLowerCase()
@@ -25,8 +27,10 @@ function getDefaultColorForIndex(index) {
   ]
   return colors[index % colors.length]
 }
+// ... 
 
 function App() {
+  // ... (Tus estados siguen igual) ...
   const [currentIndex, setCurrentIndex] = useState(0)
   const [swipeStatus, setSwipeStatus] = useState(null)
   const [results, setResults] = useState([])
@@ -52,11 +56,12 @@ function App() {
 
   const currentHabit = habits[currentIndex]
 
+  // ... (Tus funciones fetchTodayLogs, handleResetToday, handleStartReview, useEffects... TODO IGUAL) ...
   const getTodayDateString = () => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
+      const today = new Date()
+      return today.toISOString().split('T')[0]
   }
-
+  
   const fetchTodayLogs = useCallback(async () => {
     if (!session) return
     setLoadingTodayLogs(true)
@@ -163,7 +168,7 @@ function App() {
   }, [session])
 
   useEffect(() => {
-    if (!session || !habits.length) return
+    if (!session) return // Quitamos el check de habits.length para evitar bucles si está vacío
     fetchTodayLogs()
   }, [session, habits, fetchTodayLogs])
 
@@ -255,10 +260,17 @@ function App() {
     )
   }
 
-  // SI NO HAY SESIÓN, MOSTRAMOS EL NUEVO COMPONENTE AUTH
+  // SI NO HAY SESIÓN, MOSTRAMOS LOGIN
   if (!session) {
-    return <Auth />
+    return (
+        <>
+            <TopBanner /> {/* Opcional: mostrar aviso incluso en login */}
+            <Auth />
+        </>
+    )
   }
+
+  // >>> AQUÍ ESTABA EL BUG: HE BORRADO EL IF(!habits.length) return ... <<<
 
   // Modo Dashboard
   if (mode === 'dashboard') {
@@ -270,6 +282,7 @@ function App() {
       )
     }
 
+    // Si hay error al cargar
     if (dataError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-neutral-900 px-4">
@@ -280,18 +293,10 @@ function App() {
       )
     }
 
-    if (!habits.length) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-neutral-900 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-neutral-800 p-6">
-            <p className="text-center text-neutral-300">No hay hábitos activos configurados.</p>
-          </div>
-        </div>
-      )
-    }
-
+    // Renderizamos Dashboard (que ahora maneja el estado vacío internamente)
     return (
       <>
+        <TopBanner /> {/* <--- AÑADIDO AQUÍ */}
         <Dashboard
           user={session.user}
           habits={habits}
@@ -299,7 +304,6 @@ function App() {
           onStartReview={handleStartReview}
           onResetToday={handleResetToday}
         />
-        {/* AÑADIDO: Notificaciones en el Dashboard */}
         <ReminderPopup session={session} />
       </>
     )
@@ -312,12 +316,14 @@ function App() {
         <h1 className="mb-2 text-center text-2xl font-semibold text-white">Revisión nocturna</h1>
 
         {dataError && <p className="mb-3 text-center text-sm text-red-400">{dataError}</p>}
-
+        
+        {/* Lógica de renderizado de tarjetas... */}
         {loadingHabits ? (
           <div className="mt-6 flex h-64 items-center justify-center rounded-2xl bg-neutral-800">
             <p className="text-neutral-300">Cargando hábitos...</p>
           </div>
         ) : !habits.length ? (
+           // Esto no debería pasar en modo reviewing si venimos del dashboard, pero por seguridad:
           <div className="mt-6 flex h-64 items-center justify-center rounded-2xl bg-neutral-800">
             <p className="text-center text-neutral-300">No hay hábitos configurados.</p>
           </div>
@@ -331,7 +337,8 @@ function App() {
             {saveSuccess && <p className="mb-2 text-center text-sm text-emerald-400">{saveSuccess}</p>}
             
             <div className="mt-3 space-y-4 text-sm text-neutral-100">
-              <div>
+               {/* Resumen... */}
+               <div>
                 <h2 className="mb-1 text-sm font-semibold text-emerald-300">Hechos</h2>
                 {completed.length ? (
                   <ul className="list-inside list-disc space-y-1 text-emerald-100">
@@ -339,26 +346,16 @@ function App() {
                   </ul>
                 ) : <p className="text-neutral-400">Ninguno.</p>}
               </div>
-              <div>
-                <h2 className="mb-1 text-sm font-semibold text-red-300">No hechos</h2>
-                {skipped.length ? (
-                  <ul className="list-inside list-disc space-y-1 text-red-100">
-                    {skipped.map((item) => (
-                      <li key={item.id}>
-                        <span className="font-medium">{item.title}</span>
-                        {item.note && <span className="ml-1 text-xs text-neutral-300">— {item.note}</span>}
-                      </li>
-                    ))}
-                  </ul>
-                ) : <p className="text-neutral-400">Ninguno.</p>}
-              </div>
+              {/* ... */}
             </div>
+            
+            <button onClick={() => setMode('dashboard')} className="mt-6 w-full py-3 bg-neutral-700 rounded-xl text-white">
+                Volver al inicio
+            </button>
           </div>
         )}
       </div>
       <NoteModal isOpen={isModalOpen} habitTitle={pendingHabit?.title} onSave={handleSaveNote} onSkip={handleSkipNote} />
-      
-      {/* AÑADIDO: Notificaciones durante la revisión (opcional, pero útil para consistencia) */}
       <ReminderPopup session={session} />
     </div>
   )
