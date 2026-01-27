@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Check, X, Circle, Menu } from 'lucide-react' // Importamos Menu
-import Sidebar from './Sidebar' // Importamos los nuevos componentes
+import { Check, X, Circle, Menu, Plus } from 'lucide-react' // <--- AÑADIDO 'Plus'
+import Sidebar from './Sidebar'
 import SettingsModal from './SettingsModal'
+import HabitCreator from './HabitCreator' // <--- IMPORTANTE
 import { supabase } from '../lib/supabaseClient'
 
 function CircularProgress({ percentage }) {
@@ -32,6 +33,7 @@ function CircularProgress({ percentage }) {
 function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false)
   const [isSettingsOpen, setSettingsOpen] = useState(false)
+  const [isCreatorOpen, setCreatorOpen] = useState(false) // <--- NUEVO ESTADO
 
   const logsMap = new Map()
   todayLogs.forEach((log) => logsMap.set(log.habit_id, log.status))
@@ -59,10 +61,16 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
     window.location.reload()
   }
 
+  const handleHabitCreated = () => {
+    // Recargar la página para ver el nuevo hábito
+    // Idealmente haríamos un refetch, pero reload es rápido y seguro por ahora
+    window.location.reload()
+  }
+
   return (
     <div className="min-h-screen bg-neutral-900 px-4 py-8 relative">
       
-      {/* Botón Menú (Hamburguesa) - Arriba a la izquierda */}
+      {/* Botón Menú */}
       <button 
         onClick={() => setSidebarOpen(true)}
         className="absolute top-6 left-4 text-white p-2 hover:bg-neutral-800 rounded-full transition-colors"
@@ -70,7 +78,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         <Menu size={28} />
       </button>
 
-      {/* Componentes Flotantes */}
+      {/* --- Componentes Modales --- */}
       <Sidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -85,7 +93,15 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         user={user}
       />
 
-      <div className="mx-auto w-full max-w-md mt-6"> {/* mt-6 para dar espacio al menú */}
+      {/* EL CREADOR DE HÁBITOS */}
+      <HabitCreator
+        isOpen={isCreatorOpen}
+        onClose={() => setCreatorOpen(false)}
+        userId={user.id}
+        onHabitCreated={handleHabitCreated}
+      />
+
+      <div className="mx-auto w-full max-w-md mt-6 pb-20"> {/* pb-20 para que el botón flotante no tape contenido */}
         
         {/* Botón Reset Dev */}
         {onResetToday && (
@@ -111,35 +127,43 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
           <CircularProgress percentage={percentage} />
         </div>
 
+        {/* Lista de Hábitos */}
         <div className="mb-6 space-y-3">
-          {habits.map((habit) => {
-            const status = logsMap.get(habit.id)
-            const isCompleted = status === 'completed'
-            const isSkipped = status === 'skipped'
-            return (
-              <div
-                key={habit.id}
-                className={`flex items-center gap-3 rounded-xl border p-4 ${
-                  isCompleted ? 'border-emerald-700 bg-emerald-900/20'
-                  : isSkipped ? 'border-red-700 bg-red-900/20'
-                  : 'border-neutral-700 bg-neutral-800'
-                }`}
-              >
-                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${habit.color}`}>
-                  <span className="text-xl">{habit.icon}</span>
+          {habits.length === 0 ? (
+            <div className="text-center p-8 border border-dashed border-neutral-700 rounded-2xl">
+              <p className="text-neutral-400 mb-2">Aún no tienes rutina.</p>
+              <p className="text-sm text-neutral-500">Dale al botón + para empezar.</p>
+            </div>
+          ) : (
+            habits.map((habit) => {
+              const status = logsMap.get(habit.id)
+              const isCompleted = status === 'completed'
+              const isSkipped = status === 'skipped'
+              return (
+                <div
+                  key={habit.id}
+                  className={`flex items-center gap-3 rounded-xl border p-4 ${
+                    isCompleted ? 'border-emerald-700 bg-emerald-900/20'
+                    : isSkipped ? 'border-red-700 bg-red-900/20'
+                    : 'border-neutral-700 bg-neutral-800'
+                  }`}
+                >
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full ${habit.color}`}>
+                    <span className="text-xl">{habit.icon}</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-white">{habit.title}</p>
+                    {isSkipped && todayLogs.find((l) => l.habit_id === habit.id)?.note && (
+                      <p className="mt-1 text-xs text-neutral-400">
+                        {todayLogs.find((l) => l.habit_id === habit.id)?.note}
+                      </p>
+                    )}
+                  </div>
+                  {getStatusIcon(habit.id)}
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium text-white">{habit.title}</p>
-                  {isSkipped && todayLogs.find((l) => l.habit_id === habit.id)?.note && (
-                    <p className="mt-1 text-xs text-neutral-400">
-                      {todayLogs.find((l) => l.habit_id === habit.id)?.note}
-                    </p>
-                  )}
-                </div>
-                {getStatusIcon(habit.id)}
-              </div>
-            )
-          })}
+              )
+            })
+          )}
         </div>
 
         {hasPending && (
@@ -160,6 +184,15 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
           </div>
         )}
       </div>
+
+      {/* --- BOTÓN FLOTANTE (+) --- */}
+      <button
+        onClick={() => setCreatorOpen(true)}
+        className="fixed bottom-6 right-6 h-14 w-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-900/50 flex items-center justify-center active:scale-90 transition-all z-40"
+      >
+        <Plus size={32} strokeWidth={2.5} />
+      </button>
+
     </div>
   )
 }
