@@ -4,8 +4,6 @@ import Sidebar from './Sidebar'
 import SettingsModal from './SettingsModal'
 import HabitCreator from './HabitCreator'
 import { supabase } from '../lib/supabaseClient'
-import Confetti from 'react-confetti'        // <--- NUEVO
-import { useWindowSize } from 'react-use'    // <--- NUEVO
 
 function CircularProgress({ percentage }) {
   const radius = 70
@@ -45,9 +43,9 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
 
   const completedCount = habits.filter((h) => logsMap.get(h.id) === 'completed').length
   const totalCount = habits.length
-  // Evitar NaN si no hay hábitos
-  const percentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
-  const hasPending = habits.some((h) => !logsMap.has(h.id))
+  // CAMBIO 1: Usamos Math.round para evitar decimales raros
+  const rawPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
+  const percentage = Math.round(rawPercentage) // Redondeamos aquí
 
   const getStatusIcon = (habitId) => {
     const status = logsMap.get(habitId)
@@ -82,11 +80,11 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         <Confetti
           width={width}
           height={height}
-          recycle={false} // Para que explote una vez y pare
-          numberOfPieces={500}
+          recycle={false} 
+          numberOfPieces={800} // Aumenté un poco la cantidad
           gravity={0.2}
-          colors={['#10B981', '#34D399', '#6EE7B7', '#FFFFFF']} // Tonos esmeralda y blanco
-          style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }}
+          colors={['#10B981', '#34D399', '#6EE7B7', '#FFFFFF']}
+          style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }} // zIndex alto vital
         />
       )}
 
