@@ -1,6 +1,6 @@
 import { useState } from "react";
-// Añadimos RotateCcw para el efecto visual de desmarcar
-import { Check, X, Circle, Menu, Plus, Trash2, Settings, ChevronLeft, RotateCcw } from "lucide-react";
+// Mantenemos los mismos iconos para consistencia
+import { Check, X, Circle, Menu, Plus, Trash2, Settings, ChevronLeft } from "lucide-react";
 import Sidebar from "./Sidebar";
 import SettingsModal from "./SettingsModal";
 import HabitCreator from "./HabitCreator";
@@ -42,7 +42,6 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   const safeHabits = habits || [];
   const safeLogs = todayLogs || [];
   
-  // MODIFICACIÓN: Guardamos tanto el estado como el ID del log para poder borrarlo
   const logsMap = new Map();
   safeLogs.forEach((log) => { 
     if (log?.habit_id) logsMap.set(log.habit_id, { status: log.status, logId: log.id }); 
@@ -53,7 +52,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const hasPending = safeHabits.some((h) => !logsMap.has(h.id));
 
-  // --- NUEVA ACCIÓN: DESMARCAR ESTADO ---
+  // --- ACCIÓN: DESMARCAR ESTADO ---
   const handleClearStatus = async (habitId) => {
     const logData = logsMap.get(habitId);
     if (!logData) return;
@@ -65,7 +64,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         .eq('id', logData.logId);
       
       if (error) throw error;
-      window.location.reload(); // Recarga para actualizar Dashboard y Círculo
+      window.location.reload(); 
     } catch (error) {
       console.error("Error al desmarcar:", error);
     }
@@ -90,9 +89,11 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
     onStartReview();
   };
 
-  // MODIFICACIÓN: El icono ahora es un botón interactivo para desmarcar
+  // MODIFICACIÓN "OPCIÓN B": Tap directo intuitivo
   const getStatusIcon = (habitId) => {
     const logData = logsMap.get(habitId);
+    
+    // Si está pendiente, mostramos el círculo neutral de siempre
     if (!logData) return <Circle className="h-6 w-6 text-neutral-600" />;
 
     return (
@@ -101,18 +102,13 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
           e.stopPropagation();
           handleClearStatus(habitId);
         }}
-        className="group/status relative flex h-8 w-8 items-center justify-center rounded-full transition-all active:scale-90"
+        // Estilo: Área de contacto mayor (h-10 w-10) y efecto de rebote al tocar (active:scale-75)
+        className="flex h-10 w-10 items-center justify-center rounded-full transition-all active:scale-75 active:bg-white/5"
       >
         {logData.status === "completed" ? (
-          <>
-            <Check className="h-6 w-6 text-emerald-500 group-hover/status:opacity-0 transition-opacity" />
-            <RotateCcw className="absolute h-5 w-5 text-emerald-400 opacity-0 group-hover/status:opacity-100 transition-opacity" />
-          </>
+          <Check className="h-7 w-7 text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
         ) : (
-          <>
-            <X className="h-6 w-6 text-red-500 group-hover/status:opacity-0 transition-opacity" />
-            <RotateCcw className="absolute h-5 w-5 text-red-400 opacity-0 group-hover/status:opacity-100 transition-opacity" />
-          </>
+          <X className="h-7 w-7 text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.3)]" />
         )}
       </button>
     );
