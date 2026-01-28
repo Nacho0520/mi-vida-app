@@ -7,7 +7,11 @@ import { supabase } from './lib/supabaseClient'
 import ReminderPopup from './components/ReminderPopup'
 import TopBanner from './components/TopBanner'
 import MaintenanceScreen from './components/MaintenanceScreen'
-import { X } from 'lucide-react' // Asegúrate de importar X para el botón salir
+import { X } from 'lucide-react'
+
+// --- CONFIGURACIÓN DE VERSIÓN ---
+// Aumenta este número cuando subas cambios importantes (ej: '1.0.1')
+const CURRENT_SOFTWARE_VERSION = '1.0.0'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
@@ -35,39 +39,69 @@ function App() {
   const [results, setResults] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [pendingHabit, setPendingHabit] = useState(null)
-
   const [session, setSession] = useState(null)
   const [loadingSession, setLoadingSession] = useState(true)
-
   const [habits, setHabits] = useState([])
   const [loadingHabits, setLoadingHabits] = useState(false)
   const [dataError, setDataError] = useState(null)
-
   const [todayLogs, setTodayLogs] = useState([])
   const [loadingTodayLogs, setLoadingTodayLogs] = useState(false)
-
   const [mode, setMode] = useState('dashboard')
-
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
   const [saveSuccess, setSaveSuccess] = useState(null)
   const [hasSaved, setHasSaved] = useState(false)
-
-  const currentHabit = habits[currentIndex]
   const [isMaintenance, setIsMaintenance] = useState(false)
   const ADMIN_EMAIL = 'hemmings.nacho@gmail.com' 
 
+  const currentHabit = habits[currentIndex]
+
+  // --- LÓGICA DE AUTO-ACTUALIZACIÓN Y MANTENIMIENTO ---
   useEffect(() => {
-    const checkMaintenance = async () => {
+    const handleVersionCheck = (dbVersion) => {
+      // Si la versión en la DB es distinta a la de este código, forzamos recarga
+      if (dbVersion && dbVersion !== CURRENT_SOFTWARE_VERSION) {
+        console.log('Nueva versión detectada:', dbVersion);
+        window.location.reload(true);
+      }
+    };
+
+    const initSettings = async () => {
+      // 1. Carga inicial de Mantenimiento y Versión
       const { data } = await supabase
         .from('app_settings')
-        .select('value')
-        .eq('key', 'maintenance_mode')
-        .single()
-      if (data) setIsMaintenance(data.value)
-    }
-    checkMaintenance()
-  }, [])
+        .select('key, value');
+      
+      if (data) {
+        const maint = data.find(s => s.key === 'maintenance_mode');
+        const vers = data.find(s => s.key === 'app_version');
+        
+        if (maint) setIsMaintenance(maint.value === 'true' || maint.value === true);
+        if (vers) handleVersionCheck(vers.value);
+      }
+
+      // 2. Suscripción Realtime para cambios instantáneos
+      const subscription = supabase
+        .channel('settings_realtime')
+        .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'app_settings' 
+        }, (payload) => {
+          if (payload.new.key === 'maintenance_mode') {
+            setIsMaintenance(payload.new.value === 'true' || payload.new.value === true);
+          }
+          if (payload.new.key === 'app_version') {
+            handleVersionCheck(payload.new.value);
+          }
+        })
+        .subscribe();
+
+      return () => subscription.unsubscribe();
+    };
+
+    initSettings();
+  }, []);
 
   const getTodayDateString = () => {
       const today = new Date()
@@ -320,11 +354,9 @@ function App() {
     )
   }
 
-  // --- MODO REVIEWING (CON BOTÓN SALIR ACTUALIZADO) ---
+  // --- MODO REVIEWING ---
   return (
     <div className={`min-h-screen flex items-center justify-center ${bgColorClass} transition-colors duration-300 relative`}>
-      
-      {/* BOTÓN SALIR: Visible durante todo el proceso de deslizar tarjetas */}
       <button
         onClick={() => window.location.reload()}
         className="fixed top-6 right-6 z-[100] flex items-center gap-1 px-4 py-2 bg-neutral-800/80 backdrop-blur-md border border-neutral-700 rounded-full text-neutral-400 hover:text-white transition-all shadow-lg"
