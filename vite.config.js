@@ -8,9 +8,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       workbox: {
-        // 👇 AÑADE ESTA LÍNEA AQUÍ:
-        importScripts: ["/custom-sw.js"], 
-        // 👆 FIN DE LA LÍNEA NUEVA
+        importScripts: ["/custom-sw.js"],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,

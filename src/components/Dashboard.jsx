@@ -1,14 +1,11 @@
 import { useState } from 'react'
-import { Check, X, Circle, Menu, Plus, Pencil } from 'lucide-react'
+import { Check, X, Circle, Menu, Plus } from 'lucide-react'
 import Sidebar from './Sidebar'
 import SettingsModal from './SettingsModal'
 import HabitCreator from './HabitCreator'
 import { supabase } from '../lib/supabaseClient'
-import confetti from 'canvas-confetti' // <--- IMPORTAMOS LA FIESTA
-
-// --- CONSTANTE DE ADMINISTRADOR ---
-const ADMIN_EMAIL = 'hemmings.nacho@gmail.com' 
-// ---------------------------------
+import Confetti from 'react-confetti'        // <--- NUEVO
+import { useWindowSize } from 'react-use'    // <--- NUEVO
 
 function CircularProgress({ percentage }) {
   const radius = 70
@@ -39,25 +36,24 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false)
   const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [isCreatorOpen, setCreatorOpen] = useState(false)
-  const [editingHabit, setEditingHabit] = useState(null)
-  const [loadingAction, setLoadingAction] = useState(null) // Para evitar doble click
+  
+  // 1. OBTENER TAMAÑO DE PANTALLA
+  const { width, height } = useWindowSize() 
 
   const logsMap = new Map()
   todayLogs.forEach((log) => logsMap.set(log.habit_id, log.status))
 
   const completedCount = habits.filter((h) => logsMap.get(h.id) === 'completed').length
   const totalCount = habits.length
+  // Evitar NaN si no hay hábitos
   const percentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
   const hasPending = habits.some((h) => !logsMap.has(h.id))
 
   const getStatusIcon = (habitId) => {
-    // Si estamos cargando ESTE hábito específico, mostramos un spinner o opacidad
-    if (loadingAction === habitId) return <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-
     const status = logsMap.get(habitId)
     if (status === 'completed') return <Check className="h-5 w-5 text-emerald-500" />
     if (status === 'skipped') return <X className="h-5 w-5 text-red-500" />
-    return <Circle className="h-5 w-5 text-neutral-500 group-hover:text-white transition-colors" />
+    return <Circle className="h-5 w-5 text-neutral-500" />
   }
 
   const getUserDisplayName = () => {
@@ -75,107 +71,26 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
     window.location.reload()
   }
 
-  const handleEditHabit = (habit) => {
-    setEditingHabit(habit)
-    setCreatorOpen(true)
-  }
-
-  const handleNewHabit = () => {
-    setEditingHabit(null)
-    setCreatorOpen(true)
-  }
-
-  // --- NUEVA FUNCIÓN: TOGGLE RÁPIDO ---
-  const handleToggleHabit = async (e, habit) => {
-    e.stopPropagation() // IMPORTANTE: Para que no se abra el editor al hacer click en el círculo
-    
-    if (loadingAction) return // Evitar doble click rapido
-
-    // 1. VIBRACIÓN HÁPTICA (Crunch!)
-    if (navigator.vibrate) {
-        navigator.vibrate(15) // Vibración corta y seca
-    }
-
-    setLoadingAction(habit.id)
-
-    const currentStatus = logsMap.get(habit.id)
-    const isCompletedNow = currentStatus === 'completed'
-
-    let error = null
-
-    if (isCompletedNow) {
-        // SI YA ESTÁ HECHO -> LO BORRAMOS (Undo)
-        const { error: delError } = await supabase
-            .from('daily_logs')
-            .delete()
-            .eq('habit_id', habit.id)
-            .eq('user_id', user.id)
-            .gte('created_at', new Date().toISOString().split('T')[0] + 'T00:00:00.000Z')
-        error = delError
-    } else {
-        // SI NO ESTÁ HECHO -> LO MARCAMOS (Do)
-        const { error: insError } = await supabase
-            .from('daily_logs')
-            .insert({
-                user_id: user.id,
-                habit_id: habit.id,
-                status: 'completed',
-                note: 'Marcado rápido',
-                created_at: new Date().toISOString()
-            })
-        error = insError
-
-        // --- LÓGICA DE CONFETI ---
-        // Si al marcar este, completamos todos...
-        // completedCount es el conteo ANTES de marcar este. Así que sumamos 1.
-        if (!error && (completedCount + 1) === totalCount) {
-            triggerConfetti()
-        }
-    }
-
-    if (error) {
-        alert('Error: ' + error.message)
-        setLoadingAction(null)
-    } else {
-        // Recargar para ver cambios. 
-        // Nota: Si lanzamos confeti, esperamos un pelín antes de recargar para que se vea
-        if (!isCompletedNow && (completedCount + 1) === totalCount) {
-             setTimeout(() => window.location.reload(), 1500) 
-        } else {
-             window.location.reload()
-        }
-    }
-  }
-
-  const triggerConfetti = () => {
-      // Vibración larga de victoria
-      if (navigator.vibrate) navigator.vibrate([100, 50, 100])
-      
-      const duration = 3 * 1000
-      const animationEnd = Date.now() + duration
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 }
-
-      const randomInRange = (min, max) => Math.random() * (max - min) + min
-
-      const interval = setInterval(function() {
-        const timeLeft = animationEnd - Date.now()
-
-        if (timeLeft <= 0) {
-          return clearInterval(interval)
-        }
-
-        const particleCount = 50 * (timeLeft / duration)
-        
-        // Confeti desde dos lados
-        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } })
-        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } })
-      }, 250)
-  }
-  // ------------------------------------
-
   return (
     <div className="min-h-screen bg-neutral-900 px-4 py-8 relative">
       
+      {/* --- CONFETTI AQUÍ --- 
+          Solo aparece si es 100%, hay hábitos y no está cargando 
+          Use zIndex alto para que salga POR ENCIMA de todo
+      */}
+      {percentage === 100 && totalCount > 0 && (
+        <Confetti
+          width={width}
+          height={height}
+          recycle={false} // Para que explote una vez y pare
+          numberOfPieces={500}
+          gravity={0.2}
+          colors={['#10B981', '#34D399', '#6EE7B7', '#FFFFFF']} // Tonos esmeralda y blanco
+          style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }}
+        />
+      )}
+
+      {/* Botón Menú */}
       <button 
         onClick={() => setSidebarOpen(true)}
         className="absolute top-6 left-4 text-white p-2 hover:bg-neutral-800 rounded-full transition-colors"
@@ -183,6 +98,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         <Menu size={28} />
       </button>
 
+      {/* --- Componentes Modales --- */}
       <Sidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -199,25 +115,21 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
 
       <HabitCreator
         isOpen={isCreatorOpen}
-        onClose={() => {
-            setCreatorOpen(false)
-            setEditingHabit(null)
-        }}
+        onClose={() => setCreatorOpen(false)}
         userId={user.id}
         onHabitCreated={handleHabitCreated}
-        initialData={editingHabit} 
       />
 
       <div className="mx-auto w-full max-w-md mt-6 pb-20">
         
-        {onResetToday && user.email === ADMIN_EMAIL && (
+        {onResetToday && (
           <div className="mb-4 flex justify-end">
             <button
               type="button"
               onClick={onResetToday}
-              className="rounded-lg border border-red-900/50 bg-red-900/20 px-3 py-1.5 text-xs text-red-400 hover:bg-red-900/40"
+              className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-xs text-neutral-400 hover:bg-neutral-700 hover:text-neutral-200"
             >
-              🛠️ Reset (Admin)
+              Reset (Dev)
             </button>
           </div>
         )}
@@ -233,6 +145,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
           <CircularProgress percentage={percentage} />
         </div>
 
+        {/* Lista de Hábitos */}
         <div className="mb-6 space-y-3">
           {habits.length === 0 ? (
             <div className="text-center p-8 border border-dashed border-neutral-700 rounded-2xl">
@@ -247,37 +160,24 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
               return (
                 <div
                   key={habit.id}
-                  onClick={() => handleEditHabit(habit)} // Click en la tarjeta -> EDITAR
-                  className={`relative group flex items-center gap-3 rounded-xl border p-4 cursor-pointer transition-all active:scale-98 ${
+                  className={`flex items-center gap-3 rounded-xl border p-4 ${
                     isCompleted ? 'border-emerald-700 bg-emerald-900/20'
                     : isSkipped ? 'border-red-700 bg-red-900/20'
-                    : 'border-neutral-700 bg-neutral-800 hover:border-neutral-500'
+                    : 'border-neutral-700 bg-neutral-800'
                   }`}
                 >
                   <div className={`flex h-10 w-10 items-center justify-center rounded-full ${habit.color}`}>
                     <span className="text-xl">{habit.icon}</span>
                   </div>
-                  
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                        <p className="font-medium text-white">{habit.title}</p>
-                        <Pencil size={12} className="text-neutral-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    
+                    <p className="font-medium text-white">{habit.title}</p>
                     {isSkipped && todayLogs.find((l) => l.habit_id === habit.id)?.note && (
                       <p className="mt-1 text-xs text-neutral-400">
                         {todayLogs.find((l) => l.habit_id === habit.id)?.note}
                       </p>
                     )}
                   </div>
-                  
-                  {/* BOTÓN INTERACTIVO: Click en el círculo -> MARCAR/DESMARCAR */}
-                  <div 
-                    onClick={(e) => handleToggleHabit(e, habit)}
-                    className="p-2 -mr-2 rounded-full hover:bg-white/5 active:scale-90 transition-transform"
-                  >
-                    {getStatusIcon(habit.id)}
-                  </div>
+                  {getStatusIcon(habit.id)}
                 </div>
               )
             })
@@ -295,8 +195,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         )}
 
         {!hasPending && totalCount > 0 && (
-          <div className="rounded-xl border border-emerald-700 bg-emerald-900/20 p-4 text-center animate-pulse">
-             {/* Animación de pulso para celebrar */}
+          <div className="rounded-xl border border-emerald-700 bg-emerald-900/20 p-4 text-center">
             <p className="text-sm font-medium text-emerald-300">
               ¡Has completado tu revisión de hoy! 🌙
             </p>
@@ -305,7 +204,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
       </div>
 
       <button
-        onClick={handleNewHabit}
+        onClick={() => setCreatorOpen(true)}
         className="fixed bottom-6 right-6 h-14 w-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-900/50 flex items-center justify-center active:scale-90 transition-all z-40"
       >
         <Plus size={32} strokeWidth={2.5} />
