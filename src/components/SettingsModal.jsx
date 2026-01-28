@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { X } from 'lucide-react'
-import NotificationManager from './NotificationManager' // <--- IMPORTADO AQUÍ
+import NotificationManager from './NotificationManager'
 
 export default function SettingsModal({ isOpen, onClose, user }) {
+  // BLINDAJE 1: Safari puede fallar si intentamos usar user.user_metadata inmediatamente
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || '')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,7 +18,8 @@ export default function SettingsModal({ isOpen, onClose, user }) {
     setMessage(null)
 
     const updates = {}
-    if (fullName) updates.data = { full_name: fullName }
+    // Solo actualizar si hay datos para evitar errores de red en móvil
+    if (fullName.trim()) updates.data = { full_name: fullName }
     if (password) updates.password = password
 
     const { error } = await supabase.auth.updateUser(updates)
@@ -29,7 +31,7 @@ export default function SettingsModal({ isOpen, onClose, user }) {
       if (password) setMessage({ type: 'success', text: 'Contraseña cambiada. Vuelve a iniciar sesión.' })
       setTimeout(() => {
         onClose()
-        window.location.reload() // Recargar para ver cambios
+        window.location.reload()
       }, 1500)
     }
     setLoading(false)
@@ -72,10 +74,15 @@ export default function SettingsModal({ isOpen, onClose, user }) {
             />
           </div>
 
-          {/* --- AQUÍ ESTÁ EL PASO 5 INTEGRADO --- */}
+          {/* --- BLINDAJE PARA IPHONE (SAFARI) --- */}
           <div className="pt-2 border-t border-neutral-700 mt-4">
             <p className="text-xs text-neutral-400 mb-2">Permisos del Sistema</p>
-            <NotificationManager userId={user.id} />
+            {/* Solo cargamos el manager si existe el ID del usuario para evitar el error 500 en Safari */}
+            {user?.id ? (
+              <NotificationManager userId={user.id} />
+            ) : (
+              <p className="text-xs text-neutral-500 italic">Cargando permisos...</p>
+            )}
           </div>
           {/* ------------------------------------- */}
 
