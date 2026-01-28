@@ -76,7 +76,7 @@ export default function Auth() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 className="w-full rounded-xl border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-white placeholder-neutral-500 focus:border-blue-500 focus:outline-none transition-colors"
-                placeholder="Ej. Nacho"
+                placeholder="Ej. Paco"
               />
             </div>
           )}

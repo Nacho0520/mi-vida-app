@@ -1,7 +1,18 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, LogOut, Settings, User } from 'lucide-react'
+import { X, LogOut, Settings } from 'lucide-react'
 
 export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSettings }) {
+  // Lógica segura para obtener datos sin romper la app
+  const displayName = user?.user_metadata?.full_name || 'Usuario'
+  const email = user?.email || ''
+  
+  // Obtenemos la inicial con seguridad extra
+  const getInitial = () => {
+    if (user?.user_metadata?.full_name) return user.user_metadata.full_name[0].toUpperCase()
+    if (user?.email) return user.email[0].toUpperCase()
+    return 'U'
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -30,16 +41,18 @@ export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSetting
               </button>
             </div>
 
-            {/* Info Usuario */}
+            {/* Info Usuario - Blindada contra nulos */}
             <div className="flex items-center gap-3 mb-8 p-3 bg-neutral-800 rounded-xl">
-              <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
-                {user?.user_metadata?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+              <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                {getInitial()}
               </div>
               <div className="overflow-hidden">
                 <p className="text-sm font-bold text-white truncate">
-                  {user?.user_metadata?.full_name || 'Usuario'}
+                  {displayName}
                 </p>
-                <p className="text-xs text-neutral-400 truncate">{user?.email}</p>
+                <p className="text-xs text-neutral-400 truncate">
+                  {email}
+                </p>
               </div>
             </div>
 
@@ -60,7 +73,7 @@ export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSetting
 
               <button
                 onClick={onLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-900/20 rounded-xl transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-900/20 rounded-xl transition-colors text-left"
               >
                 <LogOut size={20} />
                 <span>Cerrar Sesión</span>
