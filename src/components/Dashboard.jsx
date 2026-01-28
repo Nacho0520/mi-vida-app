@@ -1,6 +1,5 @@
 import { useState } from "react";
-// 1. Añadimos Trash2 y Settings para recuperar las acciones
-import { Check, X, Circle, Menu, Plus, Trash2, Settings } from "lucide-react";
+import { Check, X, Circle, Menu, Plus, Trash2, Settings, ChevronLeft } from "lucide-react";
 import Sidebar from "./Sidebar";
 import SettingsModal from "./SettingsModal";
 import HabitCreator from "./HabitCreator";
@@ -36,7 +35,8 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [isCreatorOpen, setCreatorOpen] = useState(false);
-  const [editHabit, setEditHabit] = useState(null); // Para editar
+  const [editHabit, setEditHabit] = useState(null);
+  const [isReviewMode, setIsReviewMode] = useState(false); // <--- ESTADO PARA EL BOTÓN SALIR
 
   const safeHabits = habits || [];
   const safeLogs = todayLogs || [];
@@ -48,13 +48,28 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const hasPending = safeHabits.some((h) => !logsMap.has(h.id));
 
-  // --- ACCIÓN: ELIMINAR HÁBITO ---
+  // --- ACCIÓN: ELIMINAR HÁBITO (CORREGIDO PARA TODOS LOS CASOS) ---
   const handleDeleteHabit = async (habitId) => {
-    if (confirm("¿Estás seguro de que quieres eliminar este hábito? Se borrará todo su historial.")) {
-      const { error } = await supabase.from('habits').delete().eq('id', habitId);
-      if (error) alert("Error al eliminar");
-      else window.location.reload();
+    if (confirm("¿Eliminar este hábito y todo su historial? Esta acción no se puede deshacer.")) {
+      try {
+        // 1. Borramos primero los logs (registros) para evitar el error de clave foránea
+        await supabase.from('daily_logs').delete().eq('habit_id', habitId);
+        
+        // 2. Ahora borramos el hábito
+        const { error } = await supabase.from('habits').delete().eq('id', habitId);
+        
+        if (error) throw error;
+        window.location.reload();
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+        alert("No se pudo eliminar el hábito.");
+      }
     }
+  };
+
+  const handleStartReviewInternal = () => {
+    setIsReviewMode(true);
+    onStartReview(); // Llamamos a la función original que tenías en App.jsx
   };
 
   const getStatusIcon = (habitId) => {
@@ -67,49 +82,55 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   return (
     <div className="min-h-screen bg-neutral-900 px-4 py-8 relative">
       
-      {/* BOTÓN SALIR: Ahora sale DURANTE el proceso (cuando hay pendientes) */}
-      {hasPending && totalCount > 0 && (
+      {/* BOTÓN SALIR: Solo aparece si el usuario está en modo revisión */}
+      {isReviewMode && (
         <button
-          onClick={() => window.location.reload()}
-          className="absolute top-6 right-6 text-neutral-500 hover:text-white p-2 z-50 flex items-center gap-2 text-xs"
+          onClick={() => {
+            setIsReviewMode(false);
+            window.location.reload(); // Recargamos para "volver atrás" de verdad
+          }}
+          className="absolute top-6 right-6 text-neutral-400 hover:text-white p-2 z-50 flex items-center gap-1 text-sm font-medium bg-neutral-800/50 rounded-full px-4 py-2 border border-neutral-700 backdrop-blur-md"
         >
+          <ChevronLeft size={18} />
           <span>Salir</span>
-          <X size={20} />
         </button>
       )}
 
-      {/* Menú Hamburguesa */}
-      <button onClick={() => setSidebarOpen(true)} className="absolute top-6 left-4 text-white p-2 hover:bg-neutral-800 rounded-full transition-colors">
-        <Menu size={28} />
-      </button>
+      {/* Menú Hamburguesa (Oculto en revisión para limpiar interfaz) */}
+      {!isReviewMode && (
+        <button onClick={() => setSidebarOpen(true)} className="absolute top-6 left-4 text-white p-2 hover:bg-neutral-800 rounded-full transition-colors">
+          <Menu size={28} />
+        </button>
+      )}
 
       <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} user={user} onLogout={() => supabase.auth.signOut().then(() => window.location.reload())} onOpenSettings={() => setSettingsOpen(true)} />
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setSettingsOpen(false)} user={user} />
 
-      {/* Creador / Editor de Hábitos */}
       <HabitCreator 
         isOpen={isCreatorOpen || !!editHabit} 
         onClose={() => { setCreatorOpen(false); setEditHabit(null); }} 
         userId={user?.id} 
-        habitToEdit={editHabit} // Le pasamos el hábito si estamos editando
+        habitToEdit={editHabit}
         onHabitCreated={() => window.location.reload()} 
       />
 
       <div className="mx-auto w-full max-w-md mt-6 pb-20">
         <header className="mb-8 text-center">
-          <h2 className="text-xl font-light text-neutral-400">Hola,</h2>
-          <h1 className="text-3xl font-bold text-white capitalize">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'}</h1>
+          <h2 className="text-xl font-light text-neutral-400 italic">Hola,</h2>
+          <h1 className="text-3xl font-bold text-white tracking-tight capitalize">
+            {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'}
+          </h1>
         </header>
 
         <div className="mb-8 flex justify-center">
           <CircularProgress percentage={percentage} />
         </div>
 
-        {/* LISTA DE HÁBITOS CON ACCIONES RECUPERADAS */}
+        {/* LISTA DE HÁBITOS ESTILO APPLE */}
         <div className="mb-6 space-y-3">
           {safeHabits.length === 0 ? (
-            <div className="text-center p-8 border border-dashed border-neutral-700 rounded-2xl">
-              <p className="text-neutral-400">Aún no tienes rutina.</p>
+            <div className="text-center p-12 border border-dashed border-neutral-800 rounded-3xl bg-neutral-900/50">
+              <p className="text-neutral-500 text-sm">Empieza añadiendo tu primer hábito.</p>
             </div>
           ) : (
             safeHabits.map((habit) => {
@@ -118,29 +139,26 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
               const isSkipped = status === "skipped";
 
               return (
-                <div key={habit.id} className={`group flex items-center gap-3 rounded-xl border p-4 transition-all ${
-                  isCompleted ? "border-emerald-700 bg-emerald-900/20" : 
-                  isSkipped ? "border-red-700 bg-red-900/20" : "border-neutral-700 bg-neutral-800"
-                }`}>
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-full ${habit.color} flex-shrink-0`}>
-                    <span className="text-xl">{habit.icon}</span>
+                <div key={habit.id} className="group relative flex items-center gap-3 rounded-2xl border border-neutral-800 bg-neutral-800/40 p-4 backdrop-blur-sm transition-all hover:bg-neutral-800/60">
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-full ${habit.color} shadow-inner flex-shrink-0`}>
+                    <span className="text-2xl">{habit.icon}</span>
                   </div>
                   
                   <div className="flex-1 overflow-hidden">
-                    <p className="font-medium text-white truncate">{habit.title}</p>
+                    <p className="font-semibold text-white truncate text-base">{habit.title}</p>
                   </div>
 
-                  {/* ACCIONES (Solo visibles si no se ha marcado hoy o al pasar el ratón) */}
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setEditHabit(habit)} className="p-1 text-neutral-500 hover:text-blue-400">
+                  {/* ACCIONES: Visibles al pasar el ratón o siempre en móvil de forma discreta */}
+                  <div className="flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity pr-2">
+                    <button onClick={() => setEditHabit(habit)} className="p-2 text-neutral-400 hover:text-blue-400 rounded-lg hover:bg-blue-400/10 transition-colors">
                       <Settings size={18} />
                     </button>
-                    <button onClick={() => handleDeleteHabit(habit.id)} className="p-1 text-neutral-500 hover:text-red-500">
+                    <button onClick={() => handleDeleteHabit(habit.id)} className="p-2 text-neutral-400 hover:text-red-500 rounded-lg hover:bg-red-500/10 transition-colors">
                       <Trash2 size={18} />
                     </button>
                   </div>
 
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 ml-2">
                     {getStatusIcon(habit.id)}
                   </div>
                 </div>
@@ -149,22 +167,32 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
           )}
         </div>
 
-        {hasPending && (
-          <button onClick={onStartReview} className="w-full rounded-full bg-white px-6 py-4 text-lg font-semibold text-neutral-900 shadow-lg active:scale-95 transition-all">
+        {hasPending && !isReviewMode && (
+          <button 
+            onClick={handleStartReviewInternal} 
+            className="w-full rounded-2xl bg-white px-6 py-5 text-lg font-bold text-neutral-950 shadow-[0_10px_30px_rgba(255,255,255,0.1)] active:scale-95 transition-all"
+          >
             Comenzar Revisión Nocturna
           </button>
         )}
 
         {!hasPending && totalCount > 0 && (
-          <div className="rounded-xl border border-emerald-700 bg-emerald-900/20 p-4 text-center">
-            <p className="text-sm font-medium text-emerald-300">¡Día completado! 🌙</p>
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 text-center backdrop-blur-sm">
+            <p className="text-sm font-semibold text-emerald-400">
+              Has completado tu revisión de hoy. 🌙
+            </p>
           </div>
         )}
       </div>
 
-      <button onClick={() => setCreatorOpen(true)} className="fixed bottom-6 right-6 h-14 w-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-all z-40">
-        <Plus size={32} />
-      </button>
+      {!isReviewMode && (
+        <button 
+          onClick={() => setCreatorOpen(true)} 
+          className="fixed bottom-8 right-6 h-16 w-16 bg-blue-600 text-white rounded-2xl shadow-[0_10px_25px_rgba(37,99,235,0.4)] flex items-center justify-center active:scale-90 transition-all z-40"
+        >
+          <Plus size={36} strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   );
 }
