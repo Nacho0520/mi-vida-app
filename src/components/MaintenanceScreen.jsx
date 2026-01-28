@@ -8,7 +8,7 @@ export default function MaintenanceScreen() {
       </div>
       <h1 className="text-3xl font-bold text-white mb-2">En Mantenimiento</h1>
       <p className="text-neutral-400 max-w-sm">
-        Estamos aplicando mejoras importantes en la aplicación. Volveremos en unos minutos.
+        Estamos aplicando mejoras importantes en la aplicación. Gracias por su espera.
       </p>
       <div className="mt-8 text-xs text-neutral-600 font-mono">
         Error Code: 503_SERVICE_UNAVAILABLE
