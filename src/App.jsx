@@ -10,7 +10,7 @@ import MaintenanceScreen from './components/MaintenanceScreen'
 import AdminPanel from './components/AdminPanel' 
 import { X } from 'lucide-react'
 
-const CURRENT_SOFTWARE_VERSION = '1.0.1'; 
+const CURRENT_SOFTWARE_VERSION = '1.0.0'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
