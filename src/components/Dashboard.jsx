@@ -5,10 +5,14 @@ import SettingsModal from './SettingsModal'
 import HabitCreator from './HabitCreator'
 import { supabase } from '../lib/supabaseClient'
 
+// NOTA: He quitado Confetti y useWindowSize para limpiar
+
 function CircularProgress({ percentage }) {
   const radius = 70
   const circumference = 2 * Math.PI * radius
-  const offset = circumference - (percentage / 100) * circumference
+  // Protección: Si percentage es NaN o null, usar 0
+  const safePercentage = percentage || 0
+  const offset = circumference - (safePercentage / 100) * circumference
 
   return (
     <div className="relative flex h-48 w-48 items-center justify-center">
@@ -22,7 +26,7 @@ function CircularProgress({ percentage }) {
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-4xl font-bold text-white">{Math.round(percentage)}%</p>
+          <p className="text-4xl font-bold text-white">{Math.round(safePercentage)}%</p>
           <p className="mt-1 text-xs text-neutral-400">Completado</p>
         </div>
       </div>
@@ -35,14 +39,21 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [isCreatorOpen, setCreatorOpen] = useState(false)
 
-  const logsMap = new Map()
-  todayLogs.forEach((log) => logsMap.set(log.habit_id, log.status))
+  // BLINDAJE 1: Asegurarnos de que habits y todayLogs sean arrays, aunque vengan null
+  const safeHabits = habits || []
+  const safeLogs = todayLogs || []
 
-  const completedCount = habits.filter((h) => logsMap.get(h.id) === 'completed').length
-  const totalCount = habits.length
-  // CAMBIO 1: Usamos Math.round para evitar decimales raros
-  const rawPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
-  const percentage = Math.round(rawPercentage) // Redondeamos aquí
+  const logsMap = new Map()
+  safeLogs.forEach((log) => {
+    if (log && log.habit_id) logsMap.set(log.habit_id, log.status)
+  })
+
+  const completedCount = safeHabits.filter((h) => logsMap.get(h.id) === 'completed').length
+  const totalCount = safeHabits.length
+  
+  // Cálculo seguro del porcentaje
+  const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+  const hasPending = safeHabits.some((h) => !logsMap.has(h.id))
 
   const getStatusIcon = (habitId) => {
     const status = logsMap.get(habitId)
@@ -52,6 +63,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
   }
 
   const getUserDisplayName = () => {
+    // BLINDAJE 2: Proteger acceso a user_metadata
     if (user?.user_metadata?.full_name) return user.user_metadata.full_name
     if (user?.email) return user.email.split('@')[0]
     return 'Usuario'
@@ -68,6 +80,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
 
   return (
     <div className="min-h-screen bg-neutral-900 px-4 py-8 relative">
+      
       {/* Botón Menú */}
       <button 
         onClick={() => setSidebarOpen(true)}
@@ -76,7 +89,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         <Menu size={28} />
       </button>
 
-      {/* --- Componentes Modales --- */}
+      {/* Modales */}
       <Sidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -91,12 +104,14 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
         user={user}
       />
 
-      <HabitCreator
-        isOpen={isCreatorOpen}
-        onClose={() => setCreatorOpen(false)}
-        userId={user.id}
-        onHabitCreated={handleHabitCreated}
-      />
+      {user && ( // BLINDAJE 3: Solo renderizar creador si hay usuario
+        <HabitCreator
+          isOpen={isCreatorOpen}
+          onClose={() => setCreatorOpen(false)}
+          userId={user.id}
+          onHabitCreated={handleHabitCreated}
+        />
+      )}
 
       <div className="mx-auto w-full max-w-md mt-6 pb-20">
         
@@ -125,16 +140,19 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
 
         {/* Lista de Hábitos */}
         <div className="mb-6 space-y-3">
-          {habits.length === 0 ? (
+          {safeHabits.length === 0 ? (
             <div className="text-center p-8 border border-dashed border-neutral-700 rounded-2xl">
               <p className="text-neutral-400 mb-2">Aún no tienes rutina.</p>
               <p className="text-sm text-neutral-500">Dale al botón + para empezar.</p>
             </div>
           ) : (
-            habits.map((habit) => {
+            safeHabits.map((habit) => {
               const status = logsMap.get(habit.id)
               const isCompleted = status === 'completed'
               const isSkipped = status === 'skipped'
+              // BLINDAJE 4: Proteger acceso a logs en la búsqueda
+              const note = safeLogs.find((l) => l.habit_id === habit.id)?.note
+
               return (
                 <div
                   key={habit.id}
@@ -149,9 +167,9 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday }) {
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-white">{habit.title}</p>
-                    {isSkipped && todayLogs.find((l) => l.habit_id === habit.id)?.note && (
+                    {isSkipped && note && (
                       <p className="mt-1 text-xs text-neutral-400">
-                        {todayLogs.find((l) => l.habit_id === habit.id)?.note}
+                        {note}
                       </p>
                     )}
                   </div>
