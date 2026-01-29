@@ -9,7 +9,6 @@ export default function Stats({ user }) {
   const [totalCompleted, setTotalCompleted] = useState(0)
   const [weeklyData, setWeeklyData] = useState([])
   
-  // Función auxiliar para formatear fechas locales (YYYY-MM-DD)
   const formatDate = (date) => {
     const d = new Date(date)
     return d.toISOString().split('T')[0]
@@ -19,7 +18,6 @@ export default function Stats({ user }) {
     async function calculateStats() {
       if (!user) return
 
-      // 1. Obtenemos TODOS los logs completados del usuario (solo fechas y estado)
       const { data: logs, error } = await supabase
         .from('daily_logs')
         .select('created_at, status')
@@ -33,68 +31,68 @@ export default function Stats({ user }) {
       }
 
       // --- CÁLCULO DE RACHA (STREAK) ---
-      // Creamos un Set con las fechas únicas donde hubo al menos un hábito completado
       const activeDays = new Set(logs.map(log => formatDate(log.created_at)))
       
       let currentStreak = 0
       const today = new Date()
-      // Empezamos a contar desde hoy (o ayer si hoy no ha hecho nada aún pero no ha roto racha)
+      const todayStr = formatDate(today)
       let checkDate = new Date(today)
       
-      // Ajuste: si hoy no ha marcado nada, miramos si ayer sí marcó para mantener la racha viva
-      const todayStr = formatDate(today)
       if (!activeDays.has(todayStr)) {
-         // Si hoy está vacío, la racha depende de ayer
          checkDate.setDate(checkDate.getDate() - 1)
-         // Si ayer tampoco hizo nada, la racha es 0 (o lo que haya durado antes)
          if (!activeDays.has(formatDate(checkDate))) {
             currentStreak = 0
          } else {
-            // Si ayer sí hizo, empezamos a contar
             currentStreak = 1
-            checkDate.setDate(checkDate.getDate() - 1) // Retrocedemos para el bucle
+            checkDate.setDate(checkDate.getDate() - 1)
          }
       } else {
-         // Si hoy ya hizo algo, empezamos en 1
          currentStreak = 1
          checkDate.setDate(checkDate.getDate() - 1)
       }
 
-      // Bucle hacia atrás
-      while (currentStreak > 0) { // Solo entramos si la racha está viva
+      while (currentStreak > 0) {
         if (activeDays.has(formatDate(checkDate))) {
           currentStreak++
           checkDate.setDate(checkDate.getDate() - 1)
         } else {
-          break // Se rompió la racha
+          break
         }
       }
       
       setStreak(currentStreak)
-
-      // --- CÁLCULO TOTAL ---
       setTotalCompleted(logs.length)
 
-      // --- CÁLCULO SEMANAL (Últimos 7 días) ---
+      // --- CÁLCULO SEMANAL (Lunes a Domingo) --- [MODIFICADO]
       const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-      const last7Days = []
+      const currentWeekData = []
       
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date()
-        d.setDate(d.getDate() - i)
+      // 1. Encontrar el Lunes de la semana actual
+      const curr = new Date()
+      const currentDay = curr.getDay() // 0 (Domingo) a 6 (Sábado)
+      // Calculamos la distancia al lunes anterior. 
+      // Si es Domingo (0), restamos 6 días. Si es Lunes (1), restamos 0.
+      const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1
+      
+      const monday = new Date(curr)
+      monday.setDate(curr.getDate() - distanceToMonday)
+      
+      // 2. Generar los 7 días de la semana (Lunes -> Domingo)
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday)
+        d.setDate(monday.getDate() + i)
         const dateStr = formatDate(d)
         
-        // Contamos cuántos hábitos se completaron ese día específico
         const count = logs.filter(l => formatDate(l.created_at) === dateStr).length
         
-        last7Days.push({
-          day: days[d.getDay()],
+        currentWeekData.push({
+          day: days[d.getDay()], // Obtiene el nombre correcto (Lun, Mar...)
           date: dateStr,
           count: count,
           isToday: dateStr === todayStr
         })
       }
-      setWeeklyData(last7Days)
+      setWeeklyData(currentWeekData)
       setLoading(false)
     }
 
@@ -153,9 +151,8 @@ export default function Stats({ user }) {
         
         <div className="flex items-end justify-between h-32 gap-2">
           {weeklyData.map((d, i) => {
-            // Calculamos la altura relativa (max 100%)
             const max = Math.max(...weeklyData.map(w => w.count)) || 1
-            const height = d.count === 0 ? 5 : (d.count / max) * 100 // min 5% height
+            const height = d.count === 0 ? 5 : (d.count / max) * 100 
 
             return (
               <div key={i} className="flex flex-col items-center flex-1 group">
