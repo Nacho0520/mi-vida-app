@@ -67,6 +67,7 @@ export const translations = {
     afternoon: "Tarde",
     night: "Noche",
     color: "Color",
+    icon_label: "Icono", // <--- Nueva modificación
     create_habit_btn: "Crear Hábito",
     save_changes_btn: "Guardar Cambios",
     confirm_delete: "¿Seguro que quieres borrar este hábito y todo su historial?",
@@ -190,6 +191,7 @@ export const translations = {
     afternoon: "Afternoon",
     night: "Night",
     color: "Color",
+    icon_label: "Icon", // <--- Nueva modificación
     create_habit_btn: "Create Habit",
     save_changes_btn: "Save Changes",
     confirm_delete: "Are you sure you want to delete this habit and its history?",

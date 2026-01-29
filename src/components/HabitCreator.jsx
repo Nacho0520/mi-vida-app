@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, Calendar, Clock, Palette, Sparkles, Trash2, Save } from 'lucide-react'
+import { X, Check, Calendar, Clock, Palette, Sparkles, Trash2, Save, Smile } from 'lucide-react' // Añadido Smile
 import { supabase } from '../lib/supabaseClient'
 import { useLanguage } from '../context/LanguageContext'
 
 const COLORS = ['bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-orange-600', 'bg-pink-600', 'bg-red-600', 'bg-cyan-600']
-const ICONS = ['📚', '💧', '🏃', '🧘', '💊', '💤', '📝', '🧹', '🥦', '💰', '🎸', '📵']
+
+// BIBLIOTECA DE ICONOS EXPANDIDA (+60 opciones)
+const ICONS = [
+  '📚', '💧', '🏃', '🧘', '💊', '💤', '📝', '🧹', '🥦', '💰', '🎸', '📵',
+  '🏋️', '🚴', '🏊', '🚶', '🍎', '🥗', '🥤', '🦷', '💻', '✍️', '🧠', '🎯',
+  '⏰', '📧', '💼', '🎓', '🧺', '🍳', '🪴', '🛁', '🛌', '🚿', '🧼', '🎨',
+  '🎮', '🎬', '📷', '🎧', '♟️', '🧶', '👫', '🐕', '🐈', '☕', '🍺', '🍦',
+  '✈️', '🛒', '👔', '🛠️', '🚗', '📈', '💎', '💡', '☀️', '🌑', '🌊', '⛰️',
+  '🌳', '🕯️', '✨', '🔓', '🚭', '💪', '🤳', '🧽'
+]
+
 const DAYS = [{ id: 'L', label: 'L' }, { id: 'M', label: 'M' }, { id: 'X', label: 'X' }, { id: 'J', label: 'J' }, { id: 'V', label: 'V' }, { id: 'S', label: 'S' }, { id: 'D', label: 'D' }]
 
 export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, habitToEdit = null }) {
@@ -79,7 +89,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-auto z-0" onClick={onClose} />
-        <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="relative z-10 bg-neutral-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 border-t border-neutral-700 shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto">
+        <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="relative z-10 bg-neutral-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 border-t border-neutral-700 shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               {habitToEdit ? <Palette className="text-blue-400" size={20} /> : <Sparkles className="text-yellow-400" size={20} />}
@@ -90,14 +100,38 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
               <button onClick={onClose} className="p-2 bg-neutral-700 rounded-full text-neutral-300 hover:text-white transition-colors"><X size={20} /></button>
             </div>
           </div>
+          
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Título e Icono Actual */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">{t('habit_name_label')}</label>
               <div className="flex gap-3">
-                <button type="button" className="h-14 w-14 flex items-center justify-center rounded-2xl text-3xl bg-neutral-700 border border-neutral-600">{selectedIcon}</button>
+                <div className="h-14 w-14 flex items-center justify-center rounded-2xl text-3xl bg-neutral-700 border border-neutral-600 shadow-inner">
+                  {selectedIcon}
+                </div>
                 <input type="text" placeholder={t('habit_placeholder')} value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 bg-neutral-900 border border-neutral-600 rounded-2xl px-4 text-white text-lg placeholder-neutral-500 focus:border-blue-500 focus:outline-none" />
               </div>
             </div>
+
+            {/* SELECCIÓN DE ICONO (MODIFICACIÓN) */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                <Smile size={14} /> {t('icon_label')}
+              </label>
+              <div className="grid grid-cols-6 gap-2 bg-neutral-900 p-3 rounded-2xl border border-neutral-700 max-h-40 overflow-y-auto custom-scrollbar shadow-inner">
+                {ICONS.map(icon => (
+                  <button
+                    key={icon}
+                    type="button"
+                    onClick={() => setSelectedIcon(icon)}
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl text-xl transition-all ${selectedIcon === icon ? 'bg-white/10 ring-2 ring-white scale-110 shadow-lg' : 'hover:bg-white/5 opacity-60 hover:opacity-100'}`}
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider"><Calendar size={14} /> {t('frequency')}</label>
               <div className="flex justify-between bg-neutral-900 p-2 rounded-2xl border border-neutral-700">
@@ -117,7 +151,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
               <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider"><Palette size={14} /> {t('color')}</label>
               <div className="flex gap-3 justify-center bg-neutral-900 p-3 rounded-2xl border border-neutral-700">{COLORS.map(color => (<button key={color} type="button" onClick={() => setSelectedColor(color)} className={`w-8 h-8 rounded-full ${color} transition-transform ${selectedColor === color ? 'ring-2 ring-white scale-110' : 'opacity-50 hover:opacity-100'}`} />))}</div>
             </div>
-            <button type="submit" disabled={loading || !title} className="w-full bg-white text-black font-bold py-4 rounded-xl text-lg hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center gap-2 mt-4">
+            <button type="submit" disabled={loading || !title} className="w-full bg-white text-black font-black py-4 rounded-xl text-lg hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center gap-2 mt-4 shadow-2xl active:scale-95 transition-all">
               {loading ? t('saving') : habitToEdit ? <><Save size={20} /> {t('save_changes_btn')}</> : <><Check size={20} /> {t('create_habit_btn')}</>}
             </button>
           </form>
