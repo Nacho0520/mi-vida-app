@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { Flame, Trophy, TrendingUp, Calendar, Loader2 } from 'lucide-react'
+import { Flame, Trophy, TrendingUp, Calendar, Loader2, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useLanguage } from '../context/LanguageContext'
 
@@ -9,11 +9,27 @@ export default function Stats({ user }) {
   const [streak, setStreak] = useState(0)
   const [totalCompleted, setTotalCompleted] = useState(0)
   const [weeklyData, setWeeklyData] = useState([])
+  const [protectorUses, setProtectorUses] = useState(() => {
+    try {
+      const raw = localStorage.getItem('mivida_streak_protector_uses')
+      const parsed = raw ? JSON.parse(raw) : []
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  })
+  const [isProtectorActive, setProtectorActive] = useState(false)
   const { t } = useLanguage()
+  const MAX_PROTECTORS_PER_MONTH = 2
   
   const formatDate = (date) => {
     const d = new Date(date)
     return d.toISOString().split('T')[0]
+  }
+  const getMonthKey = (date) => formatDate(date).slice(0, 7)
+  const getUsesThisMonth = (date) => {
+    const monthKey = getMonthKey(date)
+    return protectorUses.filter((d) => typeof d === 'string' && d.startsWith(monthKey)).length
   }
 
   useEffect(() => {
@@ -23,26 +39,51 @@ export default function Stats({ user }) {
       if (error || !logs) { setLoading(false); return }
 
       const activeDays = new Set(logs.map(log => formatDate(log.created_at)))
-      let currentStreak = 0
+      const protectedDays = new Set()
+      protectorUses.forEach((dateStr) => protectedDays.add(dateStr))
+
       const today = new Date()
       const todayStr = formatDate(today)
+      const usesThisMonth = getUsesThisMonth(today)
+      const yesterday = new Date(today)
+      yesterday.setDate(today.getDate() - 1)
+      const yesterdayStr = formatDate(yesterday)
+      const twoDaysAgo = new Date(today)
+      twoDaysAgo.setDate(today.getDate() - 2)
+      const twoDaysAgoStr = formatDate(twoDaysAgo)
+
+      const eligible = !activeDays.has(yesterdayStr) && activeDays.has(twoDaysAgoStr) && usesThisMonth < MAX_PROTECTORS_PER_MONTH
+      if (eligible) {
+        const nextUses = Array.from(new Set([...protectorUses, yesterdayStr]))
+        protectedDays.add(yesterdayStr)
+        try {
+          localStorage.setItem('mivida_streak_protector_uses', JSON.stringify(nextUses))
+        } catch {
+          // ignore
+        }
+        setProtectorUses(nextUses)
+      }
+
+      const isActive = (dateStr) => activeDays.has(dateStr) || protectedDays.has(dateStr)
+      let currentStreak = 0
       let checkDate = new Date(today)
-      
-      if (!activeDays.has(todayStr)) {
-         checkDate.setDate(checkDate.getDate() - 1)
-         if (!activeDays.has(formatDate(checkDate))) currentStreak = 0
-         else { currentStreak = 1; checkDate.setDate(checkDate.getDate() - 1) }
+
+      if (!isActive(todayStr)) {
+        checkDate.setDate(checkDate.getDate() - 1)
+        if (!isActive(formatDate(checkDate))) currentStreak = 0
+        else { currentStreak = 1; checkDate.setDate(checkDate.getDate() - 1) }
       } else {
-         currentStreak = 1; checkDate.setDate(checkDate.getDate() - 1)
+        currentStreak = 1; checkDate.setDate(checkDate.getDate() - 1)
       }
 
       while (currentStreak > 0) {
-        if (activeDays.has(formatDate(checkDate))) { currentStreak++; checkDate.setDate(checkDate.getDate() - 1) }
+        if (isActive(formatDate(checkDate))) { currentStreak++; checkDate.setDate(checkDate.getDate() - 1) }
         else break
       }
       
       setStreak(currentStreak)
       setTotalCompleted(logs.length)
+      setProtectorActive(protectedDays.has(yesterdayStr))
 
       const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
       const currentWeekData = []
@@ -63,7 +104,7 @@ export default function Stats({ user }) {
       setLoading(false)
     }
     calculateStats()
-  }, [user])
+  }, [user, protectorUses])
 
   if (loading) return <div className="flex h-full items-center justify-center min-h-[50vh]"><Loader2 className="animate-spin text-emerald-500" size={32} /></div>
 
@@ -72,12 +113,37 @@ export default function Stats({ user }) {
       <div className="relative overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-[2.5rem] p-8 text-center border border-white/5 shadow-2xl mb-6">
         <div className="absolute top-0 right-0 p-8 opacity-10"><Flame size={120} /></div>
         <div className="relative z-10">
-          <motion.div initial={{ scale: 0.5 }} animate={{ scale: 1 }} className="inline-flex items-center justify-center p-4 bg-orange-500/20 rounded-full mb-4 border border-orange-500/20 shadow-[0_0_30px_rgba(249,115,22,0.2)]">
-            <Flame size={32} className="text-orange-500 fill-orange-500" />
+          <motion.div initial={{ scale: 0.5 }} animate={{ scale: 1 }} className={`inline-flex items-center justify-center p-4 rounded-full mb-4 border shadow-[0_0_30px_rgba(249,115,22,0.2)] ${
+            isProtectorActive
+              ? 'bg-emerald-500/15 border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]'
+              : streak > 0
+                ? 'bg-orange-500/20 border-orange-500/20'
+                : 'bg-neutral-800/60 border-white/5'
+          }`}>
+            {isProtectorActive ? (
+              <Lock size={32} className="text-emerald-400" />
+            ) : (
+              <Flame size={32} className={streak > 0 ? 'text-orange-500 fill-orange-500' : 'text-neutral-600'} />
+            )}
           </motion.div>
           <h2 className="text-5xl font-black text-white tracking-tighter mb-1">{streak}</h2>
           <p className="text-xs font-bold text-neutral-400 uppercase tracking-[0.3em]">{t('streak_label')}</p>
         </div>
+      </div>
+
+      <div className="bg-neutral-800/40 p-5 rounded-[2rem] border border-white/5 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-bold text-white">{t('streak_protector_title')}</p>
+            <p className="text-[11px] text-neutral-500">{t('streak_protector_desc')}</p>
+          </div>
+          <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full border text-neutral-400 bg-white/5 border-white/5">
+            {t('streak_protector_monthly')} {getUsesThisMonth(new Date())}/{MAX_PROTECTORS_PER_MONTH}
+          </span>
+        </div>
+        <p className="mt-3 text-[11px] text-neutral-500">
+          {t('streak_protector_cooldown')}
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
