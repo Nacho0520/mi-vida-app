@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Check, X, Circle, Menu, Plus, Trash2, Settings, Star, Flame } from "lucide-react";
 import Sidebar from "./Sidebar";
 import SettingsModal from "./SettingsModal";
+import ProfileModal from "./ProfileModal";
 import HabitCreator from "./HabitCreator";
 import { supabase } from "../lib/supabaseClient";
 import { useLanguage } from "../context/LanguageContext"; // Importar hook
@@ -30,6 +31,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [isCreatorOpen, setCreatorOpen] = useState(false);
   const [editHabit, setEditHabit] = useState(null);
+  const [isProfileOpen, setProfileOpen] = useState(false);
   const [hardDayEnabled, setHardDayEnabled] = useState(() => {
     try {
       return localStorage.getItem("mivida_hard_day_enabled") === "true";
@@ -90,7 +92,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
 
   return (
     <div className="app-screen bg-neutral-900 px-4 relative">
-      {!isSidebarOpen && !isCreatorOpen && !editHabit && !isSettingsOpen && (
+      {!isSidebarOpen && !isCreatorOpen && !editHabit && !isSettingsOpen && !isProfileOpen && (
         <button onClick={() => setSidebarOpen(true)} className="absolute top-6 left-4 text-white p-2 hover:bg-neutral-800 rounded-full transition-colors z-[100]">
           <Menu size={28} />
         </button>
@@ -100,10 +102,12 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
         isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} user={user} 
         onLogout={() => supabase.auth.signOut().then(() => window.location.reload())} 
         onOpenSettings={() => setSettingsOpen(true)} version={version}
+        onOpenProfile={() => setProfileOpen(true)}
         onOpenAdmin={onOpenAdmin} 
       />
       
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setSettingsOpen(false)} user={user} />
+      <ProfileModal isOpen={isProfileOpen} onClose={() => setProfileOpen(false)} user={user} />
       <HabitCreator isOpen={isCreatorOpen || !!editHabit} onClose={() => { setCreatorOpen(false); setEditHabit(null); }} userId={user?.id} habitToEdit={editHabit} onHabitCreated={() => window.location.reload()} />
 
       <div className="mx-auto w-full max-w-md mt-6">

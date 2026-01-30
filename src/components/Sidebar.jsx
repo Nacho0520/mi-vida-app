@@ -1,8 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, LogOut, Settings, ShieldCheck, Heart } from 'lucide-react'
+import { X, LogOut, Settings, ShieldCheck, Heart, ChevronRight } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 
-export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSettings, version, onOpenAdmin }) {
+export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSettings, onOpenProfile, version, onOpenAdmin }) {
   const email = user?.email || ''
   const isAdmin = email === 'hemmings.nacho@gmail.com'
   const { t } = useLanguage()
@@ -18,13 +18,18 @@ export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSetting
                 <h2 className="text-xl font-black text-white uppercase tracking-tighter">{t('menu')}</h2>
                 <button onClick={onClose} className="text-neutral-500 hover:text-white transition-colors"> <X size={24} /> </button>
               </div>
-              <div className="flex items-center gap-3 mb-10 p-4 bg-neutral-800/50 rounded-2xl border border-white/5 text-white">
+              <button
+                onClick={() => { onOpenProfile(); onClose(); }}
+                className="w-full flex items-center gap-3 mb-10 p-4 bg-neutral-800/50 rounded-2xl border border-white/5 text-white hover:bg-neutral-800 transition-colors"
+              >
                 <div className="h-10 w-10 rounded-full bg-neutral-800 flex items-center justify-center font-black flex-shrink-0"> {email[0]?.toUpperCase() || 'U'} </div>
-                <div className="overflow-hidden">
+                <div className="overflow-hidden flex-1 text-left">
                   <p className="text-sm font-bold truncate tracking-tight">{user?.user_metadata?.full_name || 'Usuario'}</p>
                   <p className="text-[10px] text-neutral-500 truncate font-mono">{email}</p>
+                  <p className="mt-1 text-[10px] text-neutral-600 uppercase tracking-widest">{t('profile_hint')}</p>
                 </div>
-              </div>
+                <ChevronRight size={18} className="text-neutral-600" />
+              </button>
               <nav className="space-y-3 flex-1">
                 <button onClick={() => { onOpenSettings(); onClose(); }} className="w-full flex items-center gap-3 px-4 py-4 text-neutral-400 hover:bg-neutral-800 hover:text-white rounded-2xl transition-all font-medium text-sm" >
                   <Settings size={20} /> <span>{t('profile_settings')}</span>
