@@ -31,6 +31,9 @@ export const translations = {
     confirm_password: "Confirmar contraseña",
     reset_password_updated_hint: "Ya puedes iniciar sesión con tu nueva contraseña.",
     back_to_login: "Volver a iniciar sesión",
+    push_unavailable: "Notificaciones no disponibles. Reinstala la app y prueba de nuevo.",
+    push_requires_pwa: "Actívalas desde la app instalada en la pantalla de inicio.",
+    push_unavailable_alert: "Tu dispositivo no soporta notificaciones push. Reinstala la app desde Safari.",
     
     // Dashboard
     hello: "Hola,",
@@ -222,6 +225,9 @@ export const translations = {
     confirm_password: "Confirm password",
     reset_password_updated_hint: "You can now log in with your new password.",
     back_to_login: "Back to login",
+    push_unavailable: "Notifications unavailable. Reinstall the app and try again.",
+    push_requires_pwa: "Enable them from the installed Home Screen app.",
+    push_unavailable_alert: "Your device doesn't support push notifications. Reinstall from Safari.",
     
     // Dashboard
     hello: "Hello,",

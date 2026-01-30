@@ -22,7 +22,12 @@ export default function NotificationManager({ userId, appVersion }) {
   const [loading, setLoading] = useState(false)
   const [subscribed, setSubscribed] = useState(false)
   
-  const { language } = useLanguage() // <-- Obtenemos el idioma actual ('es' o 'en')
+  const { language, t } = useLanguage() // <-- Obtenemos el idioma actual ('es' o 'en')
+
+  const isStandalone = typeof window !== 'undefined'
+    && (window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator?.standalone)
+  const supportsNotifications = typeof window !== 'undefined' && 'Notification' in window
+  const supportsPush = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window
 
   useEffect(() => {
     // Verificamos el permiso solo cuando el componente se monta y con seguridad
@@ -53,8 +58,8 @@ export default function NotificationManager({ userId, appVersion }) {
 
   const handleSubscribe = async () => {
     // Comprobación de seguridad para navegadores antiguos o Safari sin PWA
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      return alert('Tu dispositivo no soporta notificaciones push. Asegúrate de añadir la App a la pantalla de inicio.')
+    if (!supportsPush || !supportsNotifications) {
+      return alert(t('push_unavailable_alert'))
     }
     
     setLoading(true)
@@ -108,10 +113,18 @@ export default function NotificationManager({ userId, appVersion }) {
   }
 
   // Si no hay soporte, mostramos un aviso sutil en lugar de romper la app
-  if (typeof window !== 'undefined' && !('Notification' in window)) {
+  if (!supportsNotifications) {
     return (
       <p className="text-[10px] text-neutral-500 mt-2 italic">
-        Notificaciones no disponibles en este navegador.
+        {t('push_unavailable')}
+      </p>
+    )
+  }
+  
+  if (!supportsPush || !isStandalone) {
+    return (
+      <p className="text-[10px] text-neutral-500 mt-2 italic">
+        {t('push_requires_pwa')}
       </p>
     )
   }
