@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import SwipeCard from './components/SwipeCard'
 import NoteModal from './components/NoteModal'
 import Dashboard from './components/Dashboard'
@@ -56,7 +56,21 @@ function App() {
   
   const { t } = useLanguage()
 
-  const currentHabit = habits[currentIndex]
+  const reviewHabits = useMemo(() => {
+    try {
+      const hardDayEnabled = localStorage.getItem('mivida_hard_day_enabled') === 'true'
+      if (!hardDayEnabled) return habits
+      const rawIds = localStorage.getItem('mivida_hard_day_ids')
+      const hardDayIds = rawIds ? JSON.parse(rawIds) : []
+      if (!Array.isArray(hardDayIds) || hardDayIds.length === 0) return habits
+      const allowed = new Set(hardDayIds)
+      return habits.filter(h => allowed.has(h.id))
+    } catch {
+      return habits
+    }
+  }, [habits])
+
+  const currentHabit = reviewHabits[currentIndex]
 
   useEffect(() => {
     const handleVersionCheck = (dbVersion) => {
@@ -144,7 +158,7 @@ function App() {
   useEffect(() => { if (session && mode !== 'tutorial') fetchTodayLogs() }, [session, habits, fetchTodayLogs, mode])
 
   useEffect(() => {
-    if (!session || !habits.length || mode !== 'reviewing' || currentIndex < habits.length || !results.length || hasSaved || saving) return
+    if (!session || !reviewHabits.length || mode !== 'reviewing' || currentIndex < reviewHabits.length || !results.length || hasSaved || saving) return
     const saveResults = async () => {
       setSaving(true); setSaveError(null);
       const payload = results.map(i => ({ user_id: session.user.id, habit_id: i.id, status: i.status, note: i.note || null, created_at: new Date().toISOString() }))
@@ -154,7 +168,7 @@ function App() {
       setSaving(false)
     }
     saveResults()
-  }, [session, habits, currentIndex, results, hasSaved, saving, mode])
+  }, [session, reviewHabits, currentIndex, results, hasSaved, saving, mode])
 
   if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white font-black italic tracking-tighter">MIVIDA...</div>
   if (isMaintenance && session?.user?.email !== ADMIN_EMAIL) return <MaintenanceScreen />
