@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, Calendar, Clock, Palette, Sparkles, Trash2, Save, Smile } from 'lucide-react' // Añadido Smile
+import { X, Check, Calendar, Clock, Palette, Sparkles, Trash2, Save, Smile, ChevronDown } from 'lucide-react' // Añadido Smile
 import { supabase } from '../lib/supabaseClient'
 import { useLanguage } from '../context/LanguageContext'
 
@@ -72,6 +72,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
   const [miniHabitIcon, setMiniHabitIcon] = useState(ICONS[0])
   const [miniHabitColor, setMiniHabitColor] = useState(COLORS[0])
   const [editingMiniIndex, setEditingMiniIndex] = useState(null)
+  const [showMiniHabits, setShowMiniHabits] = useState(false)
   const [loading, setLoading] = useState(false)
   const { t } = useLanguage()
 
@@ -88,6 +89,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
         setMiniHabitColor(COLORS[0])
         setMiniHabitInput('')
         setEditingMiniIndex(null)
+        setShowMiniHabits(normalizeMiniHabits(habitToEdit.mini_habits).length > 0)
       } else {
         setTitle('')
         setSelectedDays(['L', 'M', 'X', 'J', 'V'])
@@ -99,6 +101,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
         setMiniHabitIcon(ICONS[0])
         setMiniHabitColor(COLORS[0])
         setEditingMiniIndex(null)
+        setShowMiniHabits(false)
       }
     }
   }, [isOpen, habitToEdit])
@@ -246,88 +249,103 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">{t('mini_habits_title')}</label>
-              <div className="flex gap-2">
-                <div className={`h-11 w-11 rounded-2xl flex items-center justify-center text-xl shadow-inner border border-white/5 ${miniHabitColor}`}>
-                  {miniHabitIcon}
+              <button
+                type="button"
+                onClick={() => setShowMiniHabits((prev) => !prev)}
+                className="w-full flex items-center justify-between radius-card border border-white/5 bg-neutral-900/60 px-4 py-3 text-left"
+              >
+                <div>
+                  <p className="text-xs font-bold text-neutral-300 uppercase tracking-wider">{t('mini_habits_title')}</p>
+                  <p className="text-[11px] text-neutral-500">{t('mini_habits_hint')}</p>
                 </div>
-                <input
-                  type="text"
-                  value={miniHabitInput}
-                  onChange={(e) => setMiniHabitInput(e.target.value)}
-                  placeholder={t('mini_habits_placeholder')}
-                  className="flex-1 bg-neutral-900 border border-neutral-800/60 rounded-2xl px-4 py-3 text-white text-sm placeholder-neutral-500 focus:border-neutral-400/50 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddMiniHabit}
-                  className="px-4 rounded-2xl bg-white/10 text-white text-sm font-semibold border border-white/5 hover:bg-white/20"
-                >
-                  {editingMiniIndex !== null ? t('mini_habits_update') : t('mini_habits_add')}
-                </button>
-              </div>
-              {editingMiniIndex !== null && (
-                <button
-                  type="button"
-                  onClick={handleCancelEditMiniHabit}
-                  className="text-xs text-neutral-500 hover:text-neutral-300"
-                >
-                  {t('mini_habits_cancel_edit')}
-                </button>
-              )}
-              <div className="grid grid-cols-8 gap-2 bg-neutral-900 p-3 rounded-2xl border border-white/5 max-h-28 overflow-y-auto custom-scrollbar shadow-inner">
-                {ICONS.map(icon => (
-                  <button
-                    key={`mini-${icon}`}
-                    type="button"
-                    onClick={() => setMiniHabitIcon(icon)}
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg transition-all ${miniHabitIcon === icon ? 'bg-white/10 ring-2 ring-white scale-105 shadow-lg' : 'hover:bg-white/5 opacity-60 hover:opacity-100'}`}
-                  >
-                    {icon}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2 justify-center bg-neutral-900 p-2 rounded-2xl border border-white/5">
-                {COLORS.map(color => (
-                  <button
-                    key={`mini-${color}`}
-                    type="button"
-                    onClick={() => setMiniHabitColor(color)}
-                    className={`w-7 h-7 rounded-full ${color} transition-transform ${miniHabitColor === color ? 'ring-2 ring-white scale-110' : 'opacity-50 hover:opacity-100'}`}
-                  />
-                ))}
-              </div>
-              {miniHabits.length > 0 && (
-                <div className="space-y-2">
-                  {miniHabits.map((item, index) => (
-                    <div
-                      key={`${item.title}-${index}`}
-                      type="button"
-                      className="flex items-center gap-3 radius-card border border-white/5 bg-neutral-900/70 px-3 py-2 text-[11px] text-neutral-200"
-                    >
-                      <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${item.color}`}>
-                        <span className="text-base">{item.icon}</span>
-                      </div>
-                      <span className="font-semibold tracking-tight flex-1">{item.title}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleEditMiniHabit(item, index)}
-                        className="text-neutral-500 hover:text-blue-300"
-                        title={t('mini_habits_edit')}
-                      >
-                        <Settings size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveMiniHabit(item.title)}
-                        className="text-neutral-500 hover:text-white"
-                        title={t('mini_habits_remove')}
-                      >
-                        <X size={16} />
-                      </button>
+                <ChevronDown size={18} className={`text-neutral-500 transition-transform ${showMiniHabits ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showMiniHabits && (
+                <>
+                  <div className="flex gap-2">
+                    <div className={`h-11 w-11 rounded-2xl flex items-center justify-center text-xl shadow-inner border border-white/5 ${miniHabitColor}`}>
+                      {miniHabitIcon}
                     </div>
-                  ))}
-                </div>
+                    <input
+                      type="text"
+                      value={miniHabitInput}
+                      onChange={(e) => setMiniHabitInput(e.target.value)}
+                      placeholder={t('mini_habits_placeholder')}
+                      className="flex-1 bg-neutral-900 border border-neutral-800/60 rounded-2xl px-4 py-3 text-white text-sm placeholder-neutral-500 focus:border-neutral-400/50 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddMiniHabit}
+                      className="px-4 rounded-2xl bg-white/10 text-white text-sm font-semibold border border-white/5 hover:bg-white/20"
+                    >
+                      {editingMiniIndex !== null ? t('mini_habits_update') : t('mini_habits_add')}
+                    </button>
+                  </div>
+                  {editingMiniIndex !== null && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditMiniHabit}
+                      className="text-xs text-neutral-500 hover:text-neutral-300"
+                    >
+                      {t('mini_habits_cancel_edit')}
+                    </button>
+                  )}
+                  <div className="grid grid-cols-8 gap-2 bg-neutral-900 p-3 rounded-2xl border border-white/5 max-h-28 overflow-y-auto custom-scrollbar shadow-inner">
+                    {ICONS.map(icon => (
+                      <button
+                        key={`mini-${icon}`}
+                        type="button"
+                        onClick={() => setMiniHabitIcon(icon)}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg transition-all ${miniHabitIcon === icon ? 'bg-white/10 ring-2 ring-white scale-105 shadow-lg' : 'hover:bg-white/5 opacity-60 hover:opacity-100'}`}
+                      >
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 justify-center bg-neutral-900 p-2 rounded-2xl border border-white/5">
+                    {COLORS.map(color => (
+                      <button
+                        key={`mini-${color}`}
+                        type="button"
+                        onClick={() => setMiniHabitColor(color)}
+                        className={`w-7 h-7 rounded-full ${color} transition-transform ${miniHabitColor === color ? 'ring-2 ring-white scale-110' : 'opacity-50 hover:opacity-100'}`}
+                      />
+                    ))}
+                  </div>
+                  {miniHabits.length > 0 && (
+                    <div className="space-y-2">
+                      {miniHabits.map((item, index) => (
+                        <div
+                          key={`${item.title}-${index}`}
+                          type="button"
+                          className="flex items-center gap-3 radius-card border border-white/5 bg-neutral-900/70 px-3 py-2 text-[11px] text-neutral-200"
+                        >
+                          <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${item.color}`}>
+                            <span className="text-base">{item.icon}</span>
+                          </div>
+                          <span className="font-semibold tracking-tight flex-1">{item.title}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleEditMiniHabit(item, index)}
+                            className="text-neutral-500 hover:text-blue-300"
+                            title={t('mini_habits_edit')}
+                          >
+                            <Settings size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMiniHabit(item.title)}
+                            className="text-neutral-500 hover:text-white"
+                            title={t('mini_habits_remove')}
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
