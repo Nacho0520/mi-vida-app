@@ -24,8 +24,25 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
   const [timeOfDay, setTimeOfDay] = useState('night')
   const [selectedColor, setSelectedColor] = useState(COLORS[0])
   const [selectedIcon, setSelectedIcon] = useState(ICONS[0])
+  const [miniHabits, setMiniHabits] = useState([])
+  const [miniHabitInput, setMiniHabitInput] = useState('')
   const [loading, setLoading] = useState(false)
   const { t } = useLanguage()
+
+  const normalizeMiniHabits = (value) => {
+    if (!value) return []
+    if (Array.isArray(value)) return value.filter(Boolean)
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value)
+        if (Array.isArray(parsed)) return parsed.filter(Boolean)
+      } catch {
+        // Fallback to comma-separated strings
+      }
+      return value.split(',').map(v => v.trim()).filter(Boolean)
+    }
+    return []
+  }
 
   useEffect(() => {
     if (isOpen) {
@@ -35,12 +52,15 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
         setTimeOfDay(habitToEdit.time_of_day || 'night')
         setSelectedColor(habitToEdit.color || COLORS[0])
         setSelectedIcon(habitToEdit.icon || ICONS[0])
+        setMiniHabits(normalizeMiniHabits(habitToEdit.mini_habits))
       } else {
         setTitle('')
         setSelectedDays(['L', 'M', 'X', 'J', 'V'])
         setTimeOfDay('night')
         setSelectedColor(COLORS[0])
         setSelectedIcon(ICONS[0])
+        setMiniHabits([])
+        setMiniHabitInput('')
       }
     }
   }, [isOpen, habitToEdit])
@@ -57,18 +77,58 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
     e.preventDefault()
     if (!title.trim()) return
     setLoading(true)
-    const habitData = { user_id: userId, title: title.trim(), frequency: selectedDays, time_of_day: timeOfDay, color: selectedColor, icon: selectedIcon, is_active: true }
+    const habitData = {
+      user_id: userId,
+      title: title.trim(),
+      frequency: selectedDays,
+      time_of_day: timeOfDay,
+      color: selectedColor,
+      icon: selectedIcon,
+      is_active: true,
+      mini_habits: miniHabits.map(h => h.trim()).filter(Boolean)
+    }
     try {
       if (habitToEdit) {
         const { error } = await supabase.from('habits').update(habitData).eq('id', habitToEdit.id)
-        if (error) throw error
+        if (error) {
+          if (String(error.message || '').includes('mini_habits')) {
+            const { mini_habits, ...fallback } = habitData
+            const { error: fallbackError } = await supabase.from('habits').update(fallback).eq('id', habitToEdit.id)
+            if (fallbackError) throw fallbackError
+          } else {
+            throw error
+          }
+        }
       } else {
         const { error } = await supabase.from('habits').insert(habitData)
-        if (error) throw error
+        if (error) {
+          if (String(error.message || '').includes('mini_habits')) {
+            const { mini_habits, ...fallback } = habitData
+            const { error: fallbackError } = await supabase.from('habits').insert(fallback)
+            if (fallbackError) throw fallbackError
+          } else {
+            throw error
+          }
+        }
       }
       onHabitCreated()
       onClose()
     } catch (err) { alert('Error: ' + err.message) } finally { setLoading(false) }
+  }
+
+  const handleAddMiniHabit = () => {
+    const value = miniHabitInput.trim()
+    if (!value) return
+    if (miniHabits.includes(value)) {
+      setMiniHabitInput('')
+      return
+    }
+    setMiniHabits(prev => [...prev, value].slice(0, 8))
+    setMiniHabitInput('')
+  }
+
+  const handleRemoveMiniHabit = (value) => {
+    setMiniHabits(prev => prev.filter(item => item !== value))
   }
 
   const handleDelete = async () => {
@@ -111,6 +171,41 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
                 </div>
                 <input type="text" placeholder={t('habit_placeholder')} value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 bg-neutral-900 border border-neutral-800/60 rounded-2xl px-4 text-white text-lg placeholder-neutral-500 focus:border-neutral-400/50 focus:outline-none" />
               </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">{t('mini_habits_title')}</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={miniHabitInput}
+                  onChange={(e) => setMiniHabitInput(e.target.value)}
+                  placeholder={t('mini_habits_placeholder')}
+                  className="flex-1 bg-neutral-900 border border-neutral-800/60 rounded-2xl px-4 py-3 text-white text-sm placeholder-neutral-500 focus:border-neutral-400/50 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddMiniHabit}
+                  className="px-4 rounded-2xl bg-white/10 text-white text-sm font-semibold border border-white/5 hover:bg-white/20"
+                >
+                  {t('mini_habits_add')}
+                </button>
+              </div>
+              {miniHabits.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {miniHabits.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => handleRemoveMiniHabit(item)}
+                      className="px-3 py-1 rounded-full text-[11px] font-semibold bg-neutral-900/70 border border-white/5 text-neutral-200 hover:bg-neutral-800/70"
+                      title={t('mini_habits_remove')}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* SELECCIÓN DE ICONO (MODIFICACIÓN) */}

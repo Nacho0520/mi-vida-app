@@ -50,6 +50,21 @@ function normalizeFrequency(value) {
   return []
 }
 
+function normalizeMiniHabits(value) {
+  if (!value) return []
+  if (Array.isArray(value)) return value.filter(Boolean)
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      if (Array.isArray(parsed)) return parsed.filter(Boolean)
+    } catch {
+      // Fallback to comma-separated strings
+    }
+    return value.split(',').map(v => v.trim()).filter(Boolean)
+  }
+  return []
+}
+
 function App() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [swipeStatus, setSwipeStatus] = useState(null)
@@ -211,7 +226,12 @@ function App() {
           if (!freq || freq.length === 0) return true
           return freq.includes(todayCode)
         })
-        setHabits(filtered.map((h, i) => ({ ...h, icon: h.icon || getDefaultIconForTitle(h.title, i), color: h.color || getDefaultColorForIndex(i) })))
+        setHabits(filtered.map((h, i) => ({
+          ...h,
+          icon: h.icon || getDefaultIconForTitle(h.title, i),
+          color: h.color || getDefaultColorForIndex(i),
+          mini_habits: normalizeMiniHabits(h.mini_habits)
+        })))
       }
     }
     fetchHabits()
