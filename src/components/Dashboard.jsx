@@ -112,7 +112,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
           <h1 className="text-3xl font-black text-white tracking-tight capitalize leading-none">{user?.user_metadata?.full_name || 'Usuario'}</h1>
         </header>
 
-        <div className="mb-8 flex items-center justify-between rounded-2xl border border-neutral-800/60 bg-neutral-900/40 px-4 py-3">
+        <div className="mb-8 flex items-center justify-between radius-card border border-neutral-800/60 bg-neutral-900/40 px-4 py-3 shadow-apple-soft">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-xl bg-neutral-800/80 border border-neutral-700/60 flex items-center justify-center">
               <Flame className="text-neutral-400" size={16} />
@@ -147,7 +147,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
             const log = logsMap.get(habit.id);
             const isCritical = hardDayIds.includes(habit.id);
             return (
-              <div key={habit.id} className="group flex items-center gap-3 rounded-[2rem] border border-neutral-800 bg-neutral-800/30 p-4 backdrop-blur-md transition-all">
+              <div key={habit.id} className="group flex items-center gap-3 radius-card border border-white/5 bg-neutral-800/30 p-4 backdrop-blur-md transition-all shadow-apple-soft">
                 <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${habit.color} shadow-inner flex-shrink-0`}>
                   <span className="text-2xl">{habit.icon}</span>
                 </div>
@@ -169,7 +169,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
                 </div>
                 <div className="flex-shrink-0 ml-1">
                   {log ? (
-                    <button onClick={async () => { await supabase.from('daily_logs').delete().eq('id', log.logId); window.location.reload(); }} className="flex h-10 w-10 items-center justify-center rounded-full transition-all active:scale-75 bg-white/5 shadow-lg">
+                    <button onClick={async () => { await supabase.from('daily_logs').delete().eq('id', log.logId); window.location.reload(); }} className="flex h-10 w-10 items-center justify-center rounded-full transition-all active:scale-75 bg-white/10 shadow-lg">
                       {log.status === "completed" ? <Check className="h-6 w-6 text-emerald-500" /> : <X className="h-6 w-6 text-red-500" />}
                     </button>
                   ) : <Circle className="h-6 w-6 text-neutral-700" />}
@@ -184,7 +184,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
         )}
       </div>
 
-      <button onClick={() => setCreatorOpen(true)} className="fixed bottom-32 right-6 h-16 w-16 bg-blue-600 text-white rounded-[1.5rem] shadow-2xl flex items-center justify-center active:scale-90 transition-all z-40">
+      <button onClick={() => setCreatorOpen(true)} className="fixed bottom-32 right-6 h-16 w-16 bg-white text-black rounded-[1.5rem] shadow-2xl flex items-center justify-center active:scale-90 transition-all z-40">
         <Plus size={36} strokeWidth={3} />
       </button>
     </div>

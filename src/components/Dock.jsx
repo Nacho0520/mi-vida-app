@@ -15,7 +15,7 @@ export default function Dock({ activeTab, onTabChange }) {
       <motion.nav 
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="w-full max-w-md flex items-center justify-around bg-neutral-800/80 backdrop-blur-2xl py-4 rounded-[2.5rem] border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] pointer-events-auto"
+        className="w-full max-w-md flex items-center justify-around bg-neutral-800/60 backdrop-blur-2xl py-4 radius-pill border border-white/5 shadow-apple pointer-events-auto"
       >
         {tabs.map((tab) => {
           const Icon = tab.icon;

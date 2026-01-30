@@ -13,7 +13,7 @@ function NoteModal({ isOpen, habitTitle, onSave, onSkip }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-neutral-900 border border-neutral-700 p-6 shadow-xl">
+      <div className="w-full max-w-md radius-card bg-neutral-900 border border-white/5 p-6 shadow-apple">
         <h2 className="mb-3 text-lg font-semibold text-white">{t('what_happened')}</h2>
         {habitTitle && (
           <p className="mb-4 text-sm text-neutral-400">
@@ -21,7 +21,7 @@ function NoteModal({ isOpen, habitTitle, onSave, onSkip }) {
           </p>
         )}
         <textarea
-          className="mb-4 h-32 w-full resize-none rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-white placeholder-neutral-500 focus:border-neutral-400 focus:outline-none"
+          className="mb-4 h-32 w-full resize-none rounded-xl border border-neutral-800/60 bg-neutral-800 px-3 py-2 text-sm text-white placeholder-neutral-500 focus:border-neutral-400/50 focus:outline-none"
           placeholder={t('note_placeholder')}
           value={note}
           onChange={(e) => setNote(e.target.value)}

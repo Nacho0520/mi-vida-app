@@ -43,13 +43,13 @@ export default function SwipeCard({ habit, onSwipeComplete, onDrag }) {
         onDrag={(e, info) => onDrag && onDrag(info.offset.x)}
         onDragEnd={handleDragEnd}
         whileTap={{ cursor: 'grabbing', scale: 1.05 }}
-        className="relative flex h-80 w-72 flex-col items-center justify-center rounded-3xl shadow-2xl border border-white/10 cursor-grab z-10 bg-neutral-800"
+        className="relative flex h-80 w-72 flex-col items-center justify-center rounded-3xl shadow-apple border border-white/5 cursor-grab z-10 bg-neutral-800"
       >
         {/* Iconos Gigantes de Feedback (Dentro de la tarjeta) */}
-        <motion.div style={{ opacity: checkOpacity }} className="absolute inset-0 flex items-center justify-center bg-emerald-600 rounded-3xl z-0 pointer-events-none">
+        <motion.div style={{ opacity: checkOpacity }} className="absolute inset-0 flex items-center justify-center bg-emerald-500/80 rounded-3xl z-0 pointer-events-none">
             <Check size={80} className="text-white drop-shadow-lg" />
         </motion.div>
-        <motion.div style={{ opacity: crossOpacity }} className="absolute inset-0 flex items-center justify-center bg-red-800 rounded-3xl z-0 pointer-events-none">
+        <motion.div style={{ opacity: crossOpacity }} className="absolute inset-0 flex items-center justify-center bg-red-900/80 rounded-3xl z-0 pointer-events-none">
             <X size={80} className="text-white drop-shadow-lg" />
         </motion.div>
 

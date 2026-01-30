@@ -77,7 +77,7 @@ export default function Auth() {
       {/* BOTÓN FLOTANTE DE IDIOMA */}
       <button 
         onClick={toggleLang}
-        className="fixed bottom-8 right-8 flex items-center gap-2 bg-neutral-800/60 backdrop-blur-md px-4 py-3 rounded-full border border-white/5 hover:bg-neutral-700 transition-all active:scale-95 group shadow-xl z-50"
+        className="fixed bottom-8 right-8 flex items-center gap-2 bg-neutral-800/40 backdrop-blur-md px-4 py-3 rounded-full border border-white/5 hover:bg-neutral-700/70 transition-all active:scale-95 group shadow-xl z-50"
       >
         <span className="text-xl">{language === 'es' ? '🇪🇸' : '🇬🇧'}</span>
         <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest group-hover:text-white transition-colors">
@@ -89,12 +89,12 @@ export default function Auth() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm rounded-[2.5rem] bg-neutral-800/50 p-8 shadow-2xl border border-neutral-700/50 backdrop-blur-xl"
+        className="w-full max-w-sm radius-card bg-neutral-800/50 p-8 shadow-apple border border-white/5 backdrop-blur-xl"
       >
-        <h1 className="mb-2 text-center text-3xl font-black text-white tracking-tighter">
+        <h1 className="mb-2 text-center text-3xl font-black text-white tracking-tighter text-title">
           {isSignUp ? t('create_account') : t('app_name')} {/* <-- Traducido */}
         </h1>
-        <p className="mb-8 text-center text-xs font-bold uppercase tracking-widest text-neutral-500">
+        <p className="mb-8 text-center text-xs font-bold uppercase tracking-widest text-neutral-500 text-caption">
           {isSignUp ? t('signup_subtitle') : t('login_subtitle')} {/* <-- Traducido */}
         </p>
 
@@ -136,7 +136,7 @@ export default function Auth() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full rounded-2xl border border-neutral-700 bg-neutral-900/50 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:border-blue-500 focus:outline-none transition-all"
+                className="w-full rounded-2xl border border-neutral-800/60 bg-neutral-900/50 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:border-neutral-400/50 focus:outline-none transition-all"
                 placeholder={t('name_placeholder')}
               />
             </div>
@@ -151,7 +151,7 @@ export default function Auth() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-2xl border border-neutral-700 bg-neutral-900/50 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:border-blue-500 focus:outline-none transition-all"
+              className="w-full rounded-2xl border border-neutral-800/60 bg-neutral-900/50 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:border-neutral-400/50 focus:outline-none transition-all"
               placeholder={t('email_placeholder')}
             />
           </div>
@@ -165,7 +165,7 @@ export default function Auth() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-2xl border border-neutral-700 bg-neutral-900/50 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:border-blue-500 focus:outline-none transition-all"
+              className="w-full rounded-2xl border border-neutral-800/60 bg-neutral-900/50 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:border-neutral-400/50 focus:outline-none transition-all"
               placeholder={t('pass_placeholder')}
             />
           </div>

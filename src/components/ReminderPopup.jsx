@@ -56,14 +56,14 @@ export default function ReminderPopup({ session }) {
     <AnimatePresence>
       {visible && currentHabit && (
         <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="fixed bottom-4 left-4 right-4 z-50">
-          <div className="bg-neutral-800 border border-neutral-700 rounded-2xl p-4 shadow-2xl flex flex-col gap-3">
+          <div className="bg-neutral-800 border border-white/5 radius-card p-4 shadow-apple-soft flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <div className={`flex h-10 w-10 items-center justify-center rounded-full ${currentHabit.color || 'bg-blue-500'}`}><span className="text-xl">{currentHabit.icon || '📝'}</span></div>
               <div><p className="text-xs text-neutral-400 uppercase font-bold tracking-wide">{t('reminder_title')}</p><p className="text-white font-medium text-lg">{currentHabit.title}</p></div>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => handleAction('done')} className="flex flex-col items-center justify-center bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 py-2 rounded-xl border border-emerald-600/50 transition-colors"><Check size={18} className="mb-1" /><span className="text-xs font-medium">{t('btn_done')}</span></button>
-              <button onClick={() => handleAction('later')} className="flex flex-col items-center justify-center bg-neutral-700 text-neutral-300 hover:bg-neutral-600 py-2 rounded-xl border border-neutral-600 transition-colors"><Clock size={18} className="mb-1" /><span className="text-xs font-medium">{t('btn_later')}</span></button>
+              <button onClick={() => handleAction('done')} className="flex flex-col items-center justify-center bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 py-2 rounded-xl border border-emerald-500/20 transition-colors"><Check size={18} className="mb-1" /><span className="text-xs font-medium">{t('btn_done')}</span></button>
+              <button onClick={() => handleAction('later')} className="flex flex-col items-center justify-center bg-neutral-800/60 text-neutral-300 hover:bg-neutral-700/60 py-2 rounded-xl border border-white/5 transition-colors"><Clock size={18} className="mb-1" /><span className="text-xs font-medium">{t('btn_later')}</span></button>
               <button onClick={() => handleAction('skip')} className="flex flex-col items-center justify-center bg-red-900/20 text-red-400 hover:bg-red-900/30 py-2 rounded-xl border border-red-900/50 transition-colors"><X size={18} className="mb-1" /><span className="text-xs font-medium">{t('btn_skip')}</span></button>
             </div>
           </div>

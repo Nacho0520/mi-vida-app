@@ -89,7 +89,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-auto z-0" onClick={onClose} />
-        <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="relative z-10 bg-neutral-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 border-t border-neutral-700 shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="relative z-10 bg-neutral-800 w-full max-w-md rounded-t-3xl sm:radius-card p-6 border-t border-white/5 shadow-apple pointer-events-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               {habitToEdit ? <Palette className="text-blue-400" size={20} /> : <Sparkles className="text-yellow-400" size={20} />}
@@ -106,10 +106,10 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
             <div className="space-y-2">
               <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">{t('habit_name_label')}</label>
               <div className="flex gap-3">
-                <div className="h-14 w-14 flex items-center justify-center rounded-2xl text-3xl bg-neutral-700 border border-neutral-600 shadow-inner">
+                <div className="h-14 w-14 flex items-center justify-center rounded-2xl text-3xl bg-neutral-700 border border-white/5 shadow-inner">
                   {selectedIcon}
                 </div>
-                <input type="text" placeholder={t('habit_placeholder')} value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 bg-neutral-900 border border-neutral-600 rounded-2xl px-4 text-white text-lg placeholder-neutral-500 focus:border-blue-500 focus:outline-none" />
+                <input type="text" placeholder={t('habit_placeholder')} value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 bg-neutral-900 border border-neutral-800/60 rounded-2xl px-4 text-white text-lg placeholder-neutral-500 focus:border-neutral-400/50 focus:outline-none" />
               </div>
             </div>
 
@@ -118,7 +118,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
               <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider">
                 <Smile size={14} /> {t('icon_label')}
               </label>
-              <div className="grid grid-cols-6 gap-2 bg-neutral-900 p-3 rounded-2xl border border-neutral-700 max-h-40 overflow-y-auto custom-scrollbar shadow-inner">
+              <div className="grid grid-cols-6 gap-2 bg-neutral-900 p-3 rounded-2xl border border-white/5 max-h-40 overflow-y-auto custom-scrollbar shadow-inner">
                 {ICONS.map(icon => (
                   <button
                     key={icon}
@@ -134,10 +134,10 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
 
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider"><Calendar size={14} /> {t('frequency')}</label>
-              <div className="flex justify-between bg-neutral-900 p-2 rounded-2xl border border-neutral-700">
+              <div className="flex justify-between bg-neutral-900 p-2 rounded-2xl border border-white/5">
                 {DAYS.map((day) => {
                   const isSelected = selectedDays.includes(day.id)
-                  return (<button key={day.id} type="button" onClick={() => toggleDay(day.id)} className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ${isSelected ? 'bg-blue-500 text-white shadow-lg' : 'text-neutral-500 hover:text-white'}`}>{day.label}</button>)
+                  return (<button key={day.id} type="button" onClick={() => toggleDay(day.id)} className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ${isSelected ? 'bg-white text-black shadow-lg' : 'text-neutral-500 hover:text-white'}`}>{day.label}</button>)
                 })}
               </div>
             </div>
@@ -149,7 +149,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
             </div>
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider"><Palette size={14} /> {t('color')}</label>
-              <div className="flex gap-3 justify-center bg-neutral-900 p-3 rounded-2xl border border-neutral-700">{COLORS.map(color => (<button key={color} type="button" onClick={() => setSelectedColor(color)} className={`w-8 h-8 rounded-full ${color} transition-transform ${selectedColor === color ? 'ring-2 ring-white scale-110' : 'opacity-50 hover:opacity-100'}`} />))}</div>
+              <div className="flex gap-3 justify-center bg-neutral-900 p-3 rounded-2xl border border-white/5">{COLORS.map(color => (<button key={color} type="button" onClick={() => setSelectedColor(color)} className={`w-8 h-8 rounded-full ${color} transition-transform ${selectedColor === color ? 'ring-2 ring-white scale-110' : 'opacity-50 hover:opacity-100'}`} />))}</div>
             </div>
             <button type="submit" disabled={loading || !title} className="w-full bg-white text-black font-black py-4 rounded-xl text-lg hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center gap-2 mt-4 shadow-2xl active:scale-95 transition-all">
               {loading ? t('saving') : habitToEdit ? <><Save size={20} /> {t('save_changes_btn')}</> : <><Check size={20} /> {t('create_habit_btn')}</>}

@@ -67,7 +67,7 @@ export default function TopBanner() {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="w-full flex justify-center pt-6 mb-2 px-4 relative z-30"
         >
-          <div className="flex items-center gap-4 bg-neutral-900/90 backdrop-blur-xl pl-5 pr-8 py-3 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.3)] border border-white/5 max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 bg-neutral-800/60 backdrop-blur-xl pl-5 pr-8 py-3 radius-pill shadow-apple-soft border border-white/10 max-w-4xl mx-auto">
             <div className="p-1.5 bg-white/5 rounded-full shrink-0">
               <Megaphone size={14} className="text-neutral-400" />
             </div>

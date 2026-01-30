@@ -24,7 +24,7 @@ export default function Tutorial({ user, onComplete }) {
     <div className="fixed inset-0 z-[200] bg-neutral-900 flex items-center justify-center p-6 overflow-hidden font-sans">
       <AnimatePresence mode="wait">
         {phase === 'welcome' && (
-          <motion.div key="welcome" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="w-full max-w-sm bg-neutral-800 border border-neutral-700 rounded-[3rem] p-8 shadow-2xl text-center">
+          <motion.div key="welcome" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="w-full max-w-sm bg-neutral-800 border border-white/5 rounded-[3rem] p-8 shadow-2xl text-center">
             <div className="flex justify-center mb-6"><div className="p-4 bg-blue-500/10 rounded-3xl border border-blue-500/20 text-blue-400"><Star size={32} fill="currentColor" /></div></div>
             <h1 className="text-3xl font-black text-white tracking-tighter mb-4 leading-none">{t('tut_welcome_title')}</h1>
             <p className="text-neutral-400 text-sm mb-8 leading-relaxed font-medium">{t('hello')} <span className="text-white font-bold">{user?.user_metadata?.full_name || 'campeón'}</span>. {t('tut_welcome_desc')}</p>
@@ -38,11 +38,11 @@ export default function Tutorial({ user, onComplete }) {
           </motion.div>
         )}
         {phase === 'note' && (
-          <motion.div key="note" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm bg-neutral-800 border border-neutral-700 rounded-[3rem] p-8 shadow-2xl">
+          <motion.div key="note" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm bg-neutral-800 border border-white/5 rounded-[3rem] p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6"><div className="p-3 bg-purple-500/10 rounded-2xl text-purple-400"><MessageSquare size={24} /></div><h2 className="text-xl font-black text-white tracking-tight">{t('tut_note_title')}</h2></div>
             <p className="text-neutral-400 text-xs mb-4 font-bold uppercase tracking-widest">{t('tut_sim')}</p>
-            <textarea autoFocus value={tutorialNote} onChange={(e) => setTutorialNote(e.target.value)} placeholder={t('tut_note_placeholder')} className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl p-4 text-white text-sm outline-none focus:border-purple-500 transition-colors h-32 resize-none mb-6" />
-            <button onClick={() => setPhase('congrats')} className="w-full bg-purple-600 text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all">{t('tut_save_note')}</button>
+            <textarea autoFocus value={tutorialNote} onChange={(e) => setTutorialNote(e.target.value)} placeholder={t('tut_note_placeholder')} className="w-full bg-neutral-900 border border-neutral-800/60 rounded-2xl p-4 text-white text-sm outline-none focus:border-neutral-400/50 transition-colors h-32 resize-none mb-6" />
+            <button onClick={() => setPhase('congrats')} className="w-full bg-white text-black font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all">{t('tut_save_note')}</button>
           </motion.div>
         )}
         {phase === 'congrats' && (
@@ -50,7 +50,7 @@ export default function Tutorial({ user, onComplete }) {
             <motion.div animate={{ rotate: [0, -10, 10, -10, 0], scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="flex justify-center mb-8"><div className="p-6 bg-emerald-500/20 rounded-[2.5rem] border border-emerald-500/30 text-emerald-400"><PartyPopper size={60} /></div></motion.div>
             <h1 className="text-4xl font-black text-white tracking-tighter mb-4 leading-none">{t('tut_congrats_title')}</h1>
             <p className="text-neutral-300 text-lg font-medium mb-10 leading-snug px-4">{t('tut_congrats_desc')}</p>
-            <button onClick={onComplete} className="w-full bg-white text-black font-black py-5 rounded-[2rem] text-lg shadow-[0_20px_40px_rgba(255,255,255,0.1)] active:scale-95 transition-all flex items-center justify-center gap-3">{t('tut_enter_app')} <CheckCircle size={22} /></button>
+            <button onClick={onComplete} className="w-full bg-white text-black font-black py-5 rounded-[2rem] text-lg shadow-[0_10px_30px_rgba(255,255,255,0.05)] active:scale-95 transition-all flex items-center justify-center gap-3">{t('tut_enter_app')} <CheckCircle size={22} /></button>
           </motion.div>
         )}
       </AnimatePresence>

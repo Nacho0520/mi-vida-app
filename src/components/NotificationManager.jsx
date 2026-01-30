@@ -136,7 +136,7 @@ export default function NotificationManager({ userId }) {
     <button
       onClick={handleSubscribe}
       disabled={loading}
-      className="mt-4 w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl transition-colors text-sm font-medium"
+      className="mt-4 w-full flex items-center justify-center gap-2 bg-white hover:bg-neutral-200 text-black py-3 rounded-xl transition-colors text-sm font-bold"
     >
       {loading ? 'Activando...' : <><Bell size={18} /> Activar Recordatorio</>}
     </button>

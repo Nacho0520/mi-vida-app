@@ -14,7 +14,7 @@ import { X, BarChart3, LayoutGrid } from 'lucide-react'
 import Stats from './components/Stats'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.0.16'; 
+const CURRENT_SOFTWARE_VERSION = '1.0.18'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
@@ -195,7 +195,7 @@ function App() {
         <TopBanner />
         {updateAvailable && (
           <div className="px-4 pt-4">
-            <div className="mx-auto w-full max-w-md rounded-2xl border border-neutral-800/60 bg-neutral-900/70 px-4 py-3 backdrop-blur">
+            <div className="mx-auto w-full max-w-md rounded-2xl border border-white/5 bg-neutral-900/70 px-4 py-3 backdrop-blur">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-neutral-200">{t('update_title')}</p>
@@ -240,7 +240,7 @@ function App() {
 
   return (
     <div className={`app-screen flex items-center justify-center ${swipeStatus === 'done' ? 'bg-emerald-900' : swipeStatus === 'not-done' ? 'bg-red-900' : 'bg-neutral-900'} transition-colors duration-300 relative`}>
-      <button onClick={() => window.location.reload()} className="fixed top-6 right-6 z-[100] flex items-center gap-1 px-4 py-2 bg-neutral-800/80 backdrop-blur-md border border-neutral-700 rounded-full text-neutral-400 hover:text-white transition-all shadow-lg">
+      <button onClick={() => window.location.reload()} className="fixed top-6 right-6 z-[100] flex items-center gap-1 px-4 py-2 bg-neutral-800/80 backdrop-blur-md border border-white/5 rounded-full text-neutral-400 hover:text-white transition-all shadow-lg">
         <X size={18} /> <span className="text-xs font-medium uppercase tracking-widest">{t('exit')}</span>
       </button>
       <div className="w-full max-md mx-auto px-4 py-6 text-white">
