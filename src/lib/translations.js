@@ -101,6 +101,7 @@ export const translations = {
     hard_day_help: "Marca hasta 3 hábitos críticos",
     hard_day_selected: "Seleccionados:",
     hard_day_empty: "Actívalo y elige tus 3 prioridades para sobrevivir el día.",
+    no_habits_today: "Hoy no tienes hábitos programados.",
     
     // Admin
     maintenance: "Mantenimiento",
@@ -238,6 +239,7 @@ export const translations = {
     hard_day_help: "Mark up to 3 critical habits",
     hard_day_selected: "Selected:",
     hard_day_empty: "Turn it on and choose your top 3 priorities for today.",
+    no_habits_today: "You have no habits scheduled for today.",
     
     // Admin
     maintenance: "Maintenance",

@@ -7,6 +7,21 @@ import { useLanguage } from '../context/LanguageContext'
 const HOURS_COOLDOWN = 4 
 const COOLDOWN_MS = HOURS_COOLDOWN * 60 * 60 * 1000
 
+function getTodayFrequencyCode() {
+  const day = new Date().getDay()
+  const map = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
+  return map[day]
+}
+
+function normalizeFrequency(value) {
+  if (!value) return []
+  if (Array.isArray(value)) return value
+  if (typeof value === 'string') {
+    return value.replace(/[{}]/g, '').split(',').map(v => v.trim()).filter(Boolean)
+  }
+  return []
+}
+
 export default function ReminderPopup({ session }) {
   const [visible, setVisible] = useState(false)
   const [currentHabit, setCurrentHabit] = useState(null)
@@ -21,10 +36,17 @@ export default function ReminderPopup({ session }) {
     }
     const { data: habits } = await supabase.from('habits').select('*').eq('is_active', true)
     if (!habits || habits.length === 0) return
+    const todayCode = getTodayFrequencyCode()
+    const filteredHabits = habits.filter((habit) => {
+      const freq = normalizeFrequency(habit.frequency)
+      if (!freq || freq.length === 0) return true
+      return freq.includes(todayCode)
+    })
+    if (filteredHabits.length === 0) return
     const today = new Date().toISOString().split('T')[0]
     const { data: logs } = await supabase.from('daily_logs').select('habit_id').eq('user_id', session.user.id).gte('created_at', `${today}T00:00:00.000Z`).lte('created_at', `${today}T23:59:59.999Z`)
     const completedIds = logs?.map(l => l.habit_id) || []
-    const pending = habits.find(h => !completedIds.includes(h.id) && !snoozedHabits.includes(h.id))
+    const pending = filteredHabits.find(h => !completedIds.includes(h.id) && !snoozedHabits.includes(h.id))
     if (pending) {
       setCurrentHabit(pending)
       setVisible(true)

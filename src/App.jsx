@@ -14,7 +14,7 @@ import { X, BarChart3, LayoutGrid } from 'lucide-react'
 import Stats from './components/Stats'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.0.20'; 
+const CURRENT_SOFTWARE_VERSION = '1.0.21'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
@@ -31,6 +31,21 @@ function getDefaultIconForTitle(title = '', index) {
 function getDefaultColorForIndex(index) {
   const colors = ['bg-blue-500', 'bg-cyan-500', 'bg-emerald-500', 'bg-purple-500', 'bg-pink-500', 'bg-orange-500', 'bg-amber-500']
   return colors[index % colors.length]
+}
+
+function getTodayFrequencyCode() {
+  const day = new Date().getDay()
+  const map = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
+  return map[day]
+}
+
+function normalizeFrequency(value) {
+  if (!value) return []
+  if (Array.isArray(value)) return value
+  if (typeof value === 'string') {
+    return value.replace(/[{}]/g, '').split(',').map(v => v.trim()).filter(Boolean)
+  }
+  return []
 }
 
 function App() {
@@ -158,7 +173,15 @@ function App() {
     const fetchHabits = async () => {
       setLoadingHabits(true)
       const { data } = await supabase.from('habits').select('*').eq('is_active', true).eq('user_id', session.user.id)
-      if (data) setHabits(data.map((h, i) => ({ ...h, icon: h.icon || getDefaultIconForTitle(h.title, i), color: h.color || getDefaultColorForIndex(i) })))
+      if (data) {
+        const todayCode = getTodayFrequencyCode()
+        const filtered = data.filter((habit) => {
+          const freq = normalizeFrequency(habit.frequency)
+          if (!freq || freq.length === 0) return true
+          return freq.includes(todayCode)
+        })
+        setHabits(filtered.map((h, i) => ({ ...h, icon: h.icon || getDefaultIconForTitle(h.title, i), color: h.color || getDefaultColorForIndex(i) })))
+      }
       setLoadingHabits(false)
     }
     fetchHabits()

@@ -146,42 +146,48 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
 
         <div className="mb-10 flex justify-center"><CircularProgress percentage={percentage} /></div>
 
-        <div className="space-y-3">
-          {visibleHabits.map((habit) => {
-            const log = logsMap.get(habit.id);
-            const isCritical = hardDayIds.includes(habit.id);
-            return (
-              <div key={habit.id} className="group flex items-center gap-3 radius-card border border-white/5 bg-neutral-800/30 p-4 backdrop-blur-md transition-all shadow-apple-soft">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${habit.color} shadow-inner flex-shrink-0`}>
-                  <span className="text-2xl">{habit.icon}</span>
+        {visibleHabits.length === 0 ? (
+          <div className="radius-card border border-white/5 bg-neutral-800/30 p-6 text-center text-neutral-400 shadow-apple-soft">
+            <p className="text-body font-medium">{t('no_habits_today')}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {visibleHabits.map((habit) => {
+              const log = logsMap.get(habit.id);
+              const isCritical = hardDayIds.includes(habit.id);
+              return (
+                <div key={habit.id} className="group flex items-center gap-3 radius-card border border-white/5 bg-neutral-800/30 p-4 backdrop-blur-md transition-all shadow-apple-soft">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${habit.color} shadow-inner flex-shrink-0`}>
+                    <span className="text-2xl">{habit.icon}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-white truncate text-base tracking-tight">{habit.title}</p>
+                  </div>
+                  <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 transition-opacity pr-2">
+                    {hardDayEnabled && (
+                      <button
+                        onClick={() => toggleHardDayHabit(habit.id)}
+                        className={`p-2 rounded-lg transition-colors ${isCritical ? 'text-neutral-200' : 'text-neutral-600 hover:text-neutral-300'}`}
+                        title={t('hard_day_title')}
+                      >
+                        <Star size={18} fill={isCritical ? 'currentColor' : 'none'} />
+                      </button>
+                    )}
+                    <button onClick={() => setEditHabit(habit)} className="p-2 text-neutral-400 hover:text-blue-400 rounded-lg"><Settings size={18} /></button>
+                    <button onClick={async () => { if(confirm(t('confirm_delete'))){ await supabase.from('daily_logs').delete().eq('habit_id', habit.id); await supabase.from('habits').delete().eq('id', habit.id); window.location.reload(); }}} className="p-2 text-neutral-400 hover:text-red-500 rounded-lg"><Trash2 size={18} /></button>
+                  </div>
+                  <div className="flex-shrink-0 ml-1">
+                    {log ? (
+                      <button onClick={async () => { await supabase.from('daily_logs').delete().eq('id', log.logId); window.location.reload(); }} className="flex h-10 w-10 items-center justify-center rounded-full transition-all active:scale-75 bg-white/10 shadow-lg">
+                        {log.status === "completed" ? <Check className="h-6 w-6 text-emerald-500" /> : <X className="h-6 w-6 text-red-500" />}
+                      </button>
+                    ) : <Circle className="h-6 w-6 text-neutral-700" />}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-white truncate text-base tracking-tight">{habit.title}</p>
-                </div>
-                <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 transition-opacity pr-2">
-                  {hardDayEnabled && (
-                    <button
-                      onClick={() => toggleHardDayHabit(habit.id)}
-                      className={`p-2 rounded-lg transition-colors ${isCritical ? 'text-neutral-200' : 'text-neutral-600 hover:text-neutral-300'}`}
-                      title={t('hard_day_title')}
-                    >
-                      <Star size={18} fill={isCritical ? 'currentColor' : 'none'} />
-                    </button>
-                  )}
-                  <button onClick={() => setEditHabit(habit)} className="p-2 text-neutral-400 hover:text-blue-400 rounded-lg"><Settings size={18} /></button>
-                  <button onClick={async () => { if(confirm(t('confirm_delete'))){ await supabase.from('daily_logs').delete().eq('habit_id', habit.id); await supabase.from('habits').delete().eq('id', habit.id); window.location.reload(); }}} className="p-2 text-neutral-400 hover:text-red-500 rounded-lg"><Trash2 size={18} /></button>
-                </div>
-                <div className="flex-shrink-0 ml-1">
-                  {log ? (
-                    <button onClick={async () => { await supabase.from('daily_logs').delete().eq('id', log.logId); window.location.reload(); }} className="flex h-10 w-10 items-center justify-center rounded-full transition-all active:scale-75 bg-white/10 shadow-lg">
-                      {log.status === "completed" ? <Check className="h-6 w-6 text-emerald-500" /> : <X className="h-6 w-6 text-red-500" />}
-                    </button>
-                  ) : <Circle className="h-6 w-6 text-neutral-700" />}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {(habits || []).some(h => !logsMap.has(h.id)) && (
           <button onClick={onStartReview} className="mt-8 w-full rounded-[2rem] bg-white px-6 py-5 text-lg font-black text-black shadow-2xl active:scale-95 transition-all">{t('start_review')}</button>
