@@ -26,6 +26,20 @@ const normalizeMiniHabits = (value) => {
       .map((item, index) => {
         if (!item) return null
         if (typeof item === 'string') {
+          try {
+            const parsed = JSON.parse(item)
+            if (parsed && typeof parsed === 'object') {
+              const title = parsed.title || parsed.name || ''
+              if (!title) return null
+              return {
+                title,
+                icon: parsed.icon || ICONS[index % ICONS.length],
+                color: parsed.color || COLORS[index % COLORS.length]
+              }
+            }
+          } catch {
+            // Keep as plain string
+          }
           return { title: item, icon: ICONS[index % ICONS.length], color: COLORS[index % COLORS.length] }
         }
         if (typeof item === 'object') {
@@ -52,11 +66,28 @@ const normalizeMiniHabits = (value) => {
       .split(',')
       .map(v => v.trim())
       .filter(Boolean)
-      .map((title, index) => ({
-        title,
-        icon: ICONS[index % ICONS.length],
-        color: COLORS[index % COLORS.length]
-      }))
+      .map((raw, index) => {
+        try {
+          const parsed = JSON.parse(raw)
+          if (parsed && typeof parsed === 'object') {
+            const title = parsed.title || parsed.name || ''
+            if (!title) return null
+            return {
+              title,
+              icon: parsed.icon || ICONS[index % ICONS.length],
+              color: parsed.color || COLORS[index % COLORS.length]
+            }
+          }
+        } catch {
+          // Use raw string
+        }
+        return {
+          title: raw,
+          icon: ICONS[index % ICONS.length],
+          color: COLORS[index % COLORS.length]
+        }
+      })
+      .filter(Boolean)
   }
   return []
 }

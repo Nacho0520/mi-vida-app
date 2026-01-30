@@ -57,6 +57,20 @@ function normalizeMiniHabits(value) {
       .map((item, index) => {
         if (!item) return null
         if (typeof item === 'string') {
+          try {
+            const parsed = JSON.parse(item)
+            if (parsed && typeof parsed === 'object') {
+              const title = parsed.title || parsed.name || ''
+              if (!title) return null
+              return {
+                title,
+                icon: parsed.icon || getDefaultIconForTitle(title, index),
+                color: parsed.color || getDefaultColorForIndex(index)
+              }
+            }
+          } catch {
+            // Keep as plain string
+          }
           return {
             title: item,
             icon: getDefaultIconForTitle(item, index),
@@ -87,11 +101,28 @@ function normalizeMiniHabits(value) {
       .split(',')
       .map(v => v.trim())
       .filter(Boolean)
-      .map((title, index) => ({
-        title,
-        icon: getDefaultIconForTitle(title, index),
-        color: getDefaultColorForIndex(index)
-      }))
+      .map((raw, index) => {
+        try {
+          const parsed = JSON.parse(raw)
+          if (parsed && typeof parsed === 'object') {
+            const title = parsed.title || parsed.name || ''
+            if (!title) return null
+            return {
+              title,
+              icon: parsed.icon || getDefaultIconForTitle(title, index),
+              color: parsed.color || getDefaultColorForIndex(index)
+            }
+          }
+        } catch {
+          // Use raw string
+        }
+        return {
+          title: raw,
+          icon: getDefaultIconForTitle(raw, index),
+          color: getDefaultColorForIndex(index)
+        }
+      })
+      .filter(Boolean)
   }
   return []
 }
