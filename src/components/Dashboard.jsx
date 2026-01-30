@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, X, Circle, Menu, Plus, Trash2, Settings, Star, Flame } from "lucide-react";
+import { Check, X, Circle, Menu, Plus, Trash2, Settings, Star, Frown } from "lucide-react";
 import Sidebar from "./Sidebar";
 import SettingsModal from "./SettingsModal";
 import ProfileModal from "./ProfileModal";
@@ -26,12 +26,13 @@ function CircularProgress({ percentage }) {
   );
 }
 
-function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, version, onOpenAdmin }) {
+function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmin }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [isCreatorOpen, setCreatorOpen] = useState(false);
   const [editHabit, setEditHabit] = useState(null);
   const [isProfileOpen, setProfileOpen] = useState(false);
+  const [isHardDayModalOpen, setHardDayModalOpen] = useState(false);
   const [hardDayEnabled, setHardDayEnabled] = useState(() => {
     try {
       return localStorage.getItem("mivida_hard_day_enabled") === "true";
@@ -76,7 +77,9 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
   useEffect(() => {
     const validIds = new Set((habits || []).map(h => h.id));
     const filtered = (hardDayIds || []).filter(id => validIds.has(id));
-    if (filtered.length !== hardDayIds.length) setHardDayIds(filtered);
+    if (filtered.length !== hardDayIds.length) {
+      queueMicrotask(() => setHardDayIds(filtered));
+    }
   }, [habits, hardDayIds]);
 
   const toggleHardDayHabit = (habitId) => {
@@ -116,24 +119,6 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
           <h1 className="text-3xl font-black text-white tracking-tight capitalize leading-none">{user?.user_metadata?.full_name || 'Usuario'}</h1>
         </header>
 
-        <div className="mb-8 flex items-center justify-between radius-card border border-neutral-800/60 bg-neutral-900/40 px-4 py-3 shadow-apple-soft">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-neutral-800/80 border border-neutral-700/60 flex items-center justify-center">
-              <Flame className="text-neutral-400" size={16} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-neutral-200">{t('hard_day_title')}</p>
-              <p className="text-[11px] text-neutral-500">{t('hard_day_desc')}</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setHardDayEnabled(!hardDayEnabled)}
-            className={`h-8 w-14 rounded-full transition-all relative ${hardDayEnabled ? 'bg-neutral-200' : 'bg-neutral-700'}`}
-            aria-pressed={hardDayEnabled}
-          >
-            <div className={`absolute top-1 h-6 w-6 rounded-full transition-all ${hardDayEnabled ? 'left-7 bg-neutral-900' : 'left-1 bg-neutral-200'}`} />
-          </button>
-        </div>
         {hardDayEnabled && (
           <div className="mb-6 flex items-center justify-between text-[11px] text-neutral-500">
             <span>{t('hard_day_help')}</span>
@@ -197,6 +182,72 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
       <button onClick={() => setCreatorOpen(true)} className="fixed bottom-32 right-6 h-16 w-16 bg-white text-black rounded-[1.5rem] shadow-2xl flex items-center justify-center active:scale-90 transition-all z-40">
         <Plus size={36} strokeWidth={3} />
       </button>
+      <button
+        onClick={() => setHardDayModalOpen(true)}
+        className={`fixed bottom-52 right-6 h-12 w-12 rounded-[1rem] flex items-center justify-center transition-all z-40 ${
+          hardDayEnabled
+            ? 'bg-white text-black shadow-2xl scale-110'
+            : 'bg-neutral-800/70 text-neutral-300 border border-white/5 shadow-apple-soft'
+        }`}
+        title={t('hard_day_title')}
+      >
+        <Frown size={20} />
+      </button>
+
+      {isHardDayModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm bg-neutral-800/80 radius-card p-6 shadow-apple border border-white/5 relative backdrop-blur-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-neutral-900 border border-white/5 flex items-center justify-center">
+                <Frown size={18} className="text-neutral-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-lg">{t('hard_day_title')}</h3>
+                <p className="text-xs text-neutral-500">{t('hard_day_confirm')}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 max-h-56 overflow-y-auto">
+              {(habits || []).map((habit) => {
+                const selected = hardDayIds.includes(habit.id)
+                return (
+                  <button
+                    key={habit.id}
+                    onClick={() => toggleHardDayHabit(habit.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl border transition-colors ${
+                      selected ? 'border-white/20 bg-white/10' : 'border-white/5 bg-neutral-900/40'
+                    }`}
+                  >
+                    <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${habit.color}`}>
+                      <span className="text-lg">{habit.icon}</span>
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm text-white font-medium">{habit.title}</p>
+                      <p className="text-[10px] text-neutral-500">{selected ? t('hard_day_selected_label') : t('hard_day_select_label')}</p>
+                    </div>
+                    <Star size={16} className={selected ? 'text-white' : 'text-neutral-600'} fill={selected ? 'currentColor' : 'none'} />
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => { setHardDayEnabled(false); setHardDayIds([]); setHardDayModalOpen(false); }}
+                className="flex-1 rounded-xl bg-neutral-900/60 border border-white/5 text-neutral-300 py-3 text-sm font-bold"
+              >
+                {t('hard_day_cancel')}
+              </button>
+              <button
+                onClick={() => { setHardDayEnabled(true); setHardDayModalOpen(false); }}
+                className="flex-1 rounded-xl bg-white text-black py-3 text-sm font-bold"
+              >
+                {t('hard_day_confirm_btn')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
