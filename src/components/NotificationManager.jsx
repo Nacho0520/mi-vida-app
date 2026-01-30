@@ -16,7 +16,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray
 }
 
-export default function NotificationManager({ userId }) {
+export default function NotificationManager({ userId, appVersion }) {
   // BLINDAJE PARA SAFARI: No accedemos a Notification.permission directamente al inicio
   const [permission, setPermission] = useState('default')
   const [loading, setLoading] = useState(false)
@@ -39,9 +39,9 @@ export default function NotificationManager({ userId }) {
       // Solo actualizamos si ya tiene permiso concedido y hay un usuario
       if (userId && permission === 'granted') {
         const { error } = await supabase.from('push_subscriptions')
-          .update({ language: language }) // <-- Actualizamos la columna language
+          .update({ language: language, app_version: appVersion || null }) // <-- Actualizamos idioma y versión
           .eq('user_id', userId)
-        if (error && String(error.message || '').includes("language")) {
+        if (error && (String(error.message || '').includes("language") || String(error.message || '').includes("app_version"))) {
           // La columna no existe: evitamos romper la experiencia
           return
         }
@@ -81,10 +81,11 @@ export default function NotificationManager({ userId }) {
         const { error } = await supabase.from('push_subscriptions').insert({
           user_id: userId,
           subscription: subscription,
-          language: language // <-- Guardamos 'es' o 'en'
+          language: language, // <-- Guardamos 'es' o 'en'
+          app_version: appVersion || null
         })
 
-        if (error && String(error.message || '').includes("language")) {
+        if (error && (String(error.message || '').includes("language") || String(error.message || '').includes("app_version"))) {
           // Fallback si la columna no existe
           const { error: fallbackError } = await supabase.from('push_subscriptions').insert({
             user_id: userId,

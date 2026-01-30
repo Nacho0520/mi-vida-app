@@ -2,7 +2,7 @@ import { X, Globe } from 'lucide-react'
 import NotificationManager from './NotificationManager'
 import { useLanguage } from '../context/LanguageContext'
 
-export default function SettingsModal({ isOpen, onClose, user }) {
+export default function SettingsModal({ isOpen, onClose, user, appVersion }) {
   const { t, language, switchLanguage } = useLanguage()
 
   if (!isOpen) return null
@@ -22,7 +22,7 @@ export default function SettingsModal({ isOpen, onClose, user }) {
           </div>
           <div className="pt-2 border-t border-white/5 mt-4">
             <p className="text-xs text-neutral-400 mb-2">{t('system_permissions')}</p>
-            {user?.id ? (<NotificationManager userId={user.id} />) : (<p className="text-xs text-neutral-500 italic">{t('loading_permissions')}</p>)}
+            {user?.id ? (<NotificationManager userId={user.id} appVersion={appVersion} />) : (<p className="text-xs text-neutral-500 italic">{t('loading_permissions')}</p>)}
           </div>
         </div>
       </div>

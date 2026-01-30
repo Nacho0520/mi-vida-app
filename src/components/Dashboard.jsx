@@ -106,7 +106,7 @@ function Dashboard({ user, habits, todayLogs, onStartReview, onResetToday, versi
         onOpenAdmin={onOpenAdmin} 
       />
       
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setSettingsOpen(false)} user={user} />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setSettingsOpen(false)} user={user} appVersion={version} />
       <ProfileModal isOpen={isProfileOpen} onClose={() => setProfileOpen(false)} user={user} />
       <HabitCreator isOpen={isCreatorOpen || !!editHabit} onClose={() => { setCreatorOpen(false); setEditHabit(null); }} userId={user?.id} habitToEdit={editHabit} onHabitCreated={() => window.location.reload()} />
 

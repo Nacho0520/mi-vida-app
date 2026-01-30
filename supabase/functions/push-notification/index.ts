@@ -32,10 +32,25 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // 3. Buscar usuarios suscritos
-    const { data: subscriptions, error } = await supabase
-      .from('push_subscriptions')
-      .select('*')
+    // 3. Leer payload (personalización)
+    const payloadRequest = await req.json().catch(() => ({}))
+    const {
+      title = '🌙 Momento de reflexión',
+      body = '¿Qué tal ha ido el día? Entra en MiVida para cerrar tus hábitos.',
+      icon = '/pwa-192x192.png',
+      badge = '/pwa-192x192.png',
+      url = 'https://mi-vida-app.vercel.app',
+      language = null,
+      min_version = null,
+      max_version = null,
+      user_ids = null
+    } = payloadRequest || {}
+
+    // 4. Buscar usuarios suscritos (con filtros básicos)
+    let query = supabase.from('push_subscriptions').select('*')
+    if (language) query = query.eq('language', language)
+    if (Array.isArray(user_ids) && user_ids.length > 0) query = query.in('user_id', user_ids)
+    const { data: subscriptions, error } = await query
 
     if (error) throw error
 
@@ -43,14 +58,32 @@ serve(async (req) => {
 
     const results = []
 
-    // 4. Enviar notificación a cada uno
+    const compareVersions = (a: string, b: string) => {
+      const pa = String(a || '').split('.').map(Number)
+      const pb = String(b || '').split('.').map(Number)
+      for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const va = pa[i] || 0
+        const vb = pb[i] || 0
+        if (va > vb) return 1
+        if (va < vb) return -1
+      }
+      return 0
+    }
+
+    // 5. Enviar notificación a cada uno
     for (const sub of subscriptions) {
+      if (min_version && sub.app_version && compareVersions(sub.app_version, min_version) < 0) {
+        continue
+      }
+      if (max_version && sub.app_version && compareVersions(sub.app_version, max_version) > 0) {
+        continue
+      }
       const payload = JSON.stringify({
-        title: '🌙 Momento de reflexión',
-        body: '¿Qué tal ha ido el día? Entra en MiVida para cerrar tus hábitos.',
-        icon: '/pwa-192x192.png', // Asegúrate de tener este icono en tu carpeta public
-        badge: '/pwa-192x192.png',
-        url: 'https://mi-vida-app.vercel.app' // TU URL REAL
+        title,
+        body,
+        icon,
+        badge,
+        url
       })
 
       try {

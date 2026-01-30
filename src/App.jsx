@@ -13,6 +13,7 @@ import Dock from './components/Dock'
 import { X, BarChart3, LayoutGrid } from 'lucide-react' 
 import Stats from './components/Stats'
 import ProgressComparison from './components/ProgressComparison'
+import BlockedScreen from './components/BlockedScreen'
 import { useLanguage } from './context/LanguageContext' 
 
 const CURRENT_SOFTWARE_VERSION = '1.0.23'; 
@@ -58,17 +59,17 @@ function App() {
   const [session, setSession] = useState(null)
   const [loadingSession, setLoadingSession] = useState(true)
   const [habits, setHabits] = useState([])
-  const [loadingHabits, setLoadingHabits] = useState(false)
   const [todayLogs, setTodayLogs] = useState([])
-  const [loadingTodayLogs, setLoadingTodayLogs] = useState(false)
   const [mode, setMode] = useState('dashboard') 
   const [activeTab, setActiveTab] = useState('home') 
   const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState(null)
   const [saveSuccess, setSaveSuccess] = useState(null)
   const [hasSaved, setHasSaved] = useState(false)
   const [isMaintenance, setIsMaintenance] = useState(false)
   const [updateAvailable, setUpdateAvailable] = useState(false)
+  const [maintenanceMessage, setMaintenanceMessage] = useState('')
+  const [isBlocked, setIsBlocked] = useState(false)
+  const [isWhitelisted, setIsWhitelisted] = useState(false)
   const AUTO_UPDATE_DELAY_MS = 8000
   const ADMIN_EMAIL = 'hemmings.nacho@gmail.com' 
   
@@ -109,6 +110,12 @@ function App() {
         if (maint) setIsMaintenance(maint.value === 'true' || maint.value === true);
         if (vers) handleVersionCheck(vers.value);
       }
+      const { data: textSettings } = await supabase
+        .from('app_settings_text')
+        .select('value')
+        .eq('key', 'maintenance_message')
+        .single();
+      if (textSettings?.value) setMaintenanceMessage(textSettings.value);
       const subscription = supabase.channel('settings_realtime').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'app_settings' }, (payload) => {
           if (payload.new.key === 'maintenance_mode') setIsMaintenance(payload.new.value === 'true' || payload.new.value === true);
           if (payload.new.key === 'app_version') handleVersionCheck(payload.new.value);
@@ -135,11 +142,9 @@ function App() {
 
   const fetchTodayLogs = useCallback(async () => {
     if (!session) return
-    setLoadingTodayLogs(true)
     const today = getTodayDateString()
     const { data } = await supabase.from('daily_logs').select('*').eq('user_id', session.user.id).gte('created_at', `${today}T00:00:00.000Z`).lte('created_at', `${today}T23:59:59.999Z`)
     setTodayLogs(data || [])
-    setLoadingTodayLogs(false)
   }, [session])
 
   const handleResetToday = async () => {
@@ -150,7 +155,7 @@ function App() {
   }
 
   const handleStartReview = () => {
-    setMode('reviewing'); setCurrentIndex(0); setResults([]); setHasSaved(false); setSaveError(null); setSaveSuccess(null);
+    setMode('reviewing'); setCurrentIndex(0); setResults([]); setHasSaved(false); setSaveSuccess(null);
   }
 
   useEffect(() => {
@@ -170,9 +175,34 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (!session) return
+    const updateProfileState = async () => {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('is_blocked')
+        .eq('user_id', session.user.id)
+        .single()
+      setIsBlocked(Boolean(data?.is_blocked))
+      await supabase
+        .from('user_profiles')
+        .update({ last_seen: new Date().toISOString() })
+        .eq('user_id', session.user.id)
+    }
+    updateProfileState()
+  }, [session])
+
+  useEffect(() => {
+    if (!session || !isMaintenance) return
+    const checkWhitelist = async () => {
+      const { data } = await supabase.rpc('is_maintenance_whitelisted', { p_email: session.user.email })
+      setIsWhitelisted(Boolean(data))
+    }
+    checkWhitelist()
+  }, [session, isMaintenance])
+
+  useEffect(() => {
     if (!session || mode === 'tutorial') return
     const fetchHabits = async () => {
-      setLoadingHabits(true)
       const { data } = await supabase.from('habits').select('*').eq('is_active', true).eq('user_id', session.user.id)
       if (data) {
         const todayCode = getTodayFrequencyCode()
@@ -183,30 +213,36 @@ function App() {
         })
         setHabits(filtered.map((h, i) => ({ ...h, icon: h.icon || getDefaultIconForTitle(h.title, i), color: h.color || getDefaultColorForIndex(i) })))
       }
-      setLoadingHabits(false)
     }
     fetchHabits()
   }, [session, mode])
 
-  useEffect(() => { if (session && mode !== 'tutorial') fetchTodayLogs() }, [session, habits, fetchTodayLogs, mode])
+  useEffect(() => {
+    if (session && mode !== 'tutorial') {
+      queueMicrotask(() => fetchTodayLogs())
+    }
+  }, [session, habits, fetchTodayLogs, mode])
 
   useEffect(() => {
     if (!session || !reviewHabits.length || mode !== 'reviewing' || currentIndex < reviewHabits.length || !results.length || hasSaved || saving) return
     const saveResults = async () => {
-      setSaving(true); setSaveError(null);
+      setSaving(true);
       const payload = results.map(i => ({ user_id: session.user.id, habit_id: i.id, status: i.status, note: i.note || null, created_at: new Date().toISOString() }))
       const { error } = await supabase.from('daily_logs').insert(payload)
       if (!error) { setSaveSuccess(t('saved_success')); setHasSaved(true); setTimeout(() => { fetchTodayLogs(); setMode('dashboard'); }, 1500); } 
-      else { setSaveError(error.message) }
+      else { console.error('Error guardando logs:', error.message) }
       setSaving(false)
     }
     saveResults()
-  }, [session, reviewHabits, currentIndex, results, hasSaved, saving, mode])
+  }, [session, reviewHabits, currentIndex, results, hasSaved, saving, mode, fetchTodayLogs, t])
 
   if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white font-black italic tracking-tighter">MIVIDA...</div>
-  if (isMaintenance && session?.user?.email !== ADMIN_EMAIL) return <MaintenanceScreen />
+  if (isMaintenance && session?.user?.email !== ADMIN_EMAIL && !isWhitelisted) return <MaintenanceScreen message={maintenanceMessage} />
   
   if (!session) return <><Auth /></>
+  if (isBlocked && session?.user?.email !== ADMIN_EMAIL) {
+    return <BlockedScreen title={t('blocked_title')} message={t('blocked_desc')} />
+  }
 
   if (mode === 'tutorial') return <Tutorial user={session.user} onComplete={handleFinishTutorial} />
   if (mode === 'admin') return <AdminPanel onClose={() => setMode('dashboard')} version={CURRENT_SOFTWARE_VERSION} />

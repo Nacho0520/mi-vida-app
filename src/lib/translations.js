@@ -107,6 +107,8 @@ export const translations = {
     hard_day_selected: "Seleccionados:",
     hard_day_empty: "Actívalo y elige tus 3 prioridades para sobrevivir el día.",
     no_habits_today: "Hoy no tienes hábitos programados.",
+    blocked_title: "Acceso bloqueado",
+    blocked_desc: "Tu cuenta está bloqueada temporalmente. Contacta con soporte si crees que es un error.",
     
     // Admin
     maintenance: "Mantenimiento",
@@ -250,6 +252,8 @@ export const translations = {
     hard_day_selected: "Selected:",
     hard_day_empty: "Turn it on and choose your top 3 priorities for today.",
     no_habits_today: "You have no habits scheduled for today.",
+    blocked_title: "Access blocked",
+    blocked_desc: "Your account is temporarily blocked. Contact support if you think this is a mistake.",
     
     // Admin
     maintenance: "Maintenance",
