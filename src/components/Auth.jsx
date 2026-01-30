@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { motion, AnimatePresence } from 'framer-motion'
+const MotionDiv = motion.div
 import { Mail, CheckCircle, AlertCircle, Globe } from 'lucide-react' // <-- Añadimos Globe
 import { useLanguage } from '../context/LanguageContext' // <-- Importamos el hook
 
@@ -12,6 +13,9 @@ export default function Auth() {
   const [fullName, setFullName] = useState('')
   const [errorMsg, setErrorMsg] = useState(null)
   const [successMsg, setSuccessMsg] = useState(null)
+  const [isRecovery, setIsRecovery] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   
   // Usamos el hook de idioma
   const { t, language, switchLanguage } = useLanguage()
@@ -20,6 +24,11 @@ export default function Auth() {
   useEffect(() => {
     const checkEmailVerified = () => {
       const hash = window.location.hash
+      if (hash.includes('type=recovery')) {
+        setIsRecovery(true)
+        window.history.replaceState(null, null, window.location.pathname)
+        return
+      }
       if (hash.includes('access_token') || hash.includes('type=signup')) {
         setSuccessMsg(t('success_verified')) // <-- Traducido
         window.history.replaceState(null, null, window.location.pathname)
@@ -27,6 +36,15 @@ export default function Auth() {
     }
     checkEmailVerified()
   }, [t])
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovery(true)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleAuth = async (e) => {
     e.preventDefault()
@@ -68,6 +86,57 @@ export default function Auth() {
     setLoading(false)
   }
 
+  const handleResetPassword = async () => {
+    if (!email.trim()) {
+      setErrorMsg(t('reset_password_missing_email'))
+      return
+    }
+    setLoading(true)
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/`,
+    })
+    if (error) {
+      setErrorMsg(error.message)
+    } else {
+      setSuccessMsg(t('reset_password_sent'))
+    }
+    setLoading(false)
+  }
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault()
+    if (!newPassword || newPassword.length < 6) {
+      setErrorMsg(t('reset_password_short'))
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setErrorMsg(t('reset_password_mismatch'))
+      return
+    }
+    setLoading(true)
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) {
+      setErrorMsg(error.message)
+    } else {
+      setSuccessMsg(t('reset_password_updated'))
+      setNewPassword('')
+      setConfirmPassword('')
+      setIsRecovery(false)
+    }
+    setLoading(false)
+  }
+
+  const handleBackToLogin = () => {
+    setIsRecovery(false)
+    setIsSignUp(false)
+    setErrorMsg(null)
+    setSuccessMsg(null)
+  }
+
   // Función para cambiar idioma con el botón flotante
   const toggleLang = () => switchLanguage(language === 'es' ? 'en' : 'es')
 
@@ -86,16 +155,16 @@ export default function Auth() {
         <Globe size={14} className="text-neutral-500 group-hover:text-white transition-colors ml-1" />
       </button>
 
-      <motion.div 
+      <MotionDiv 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm radius-card bg-neutral-800/50 p-8 shadow-apple border border-white/5 backdrop-blur-xl"
       >
         <h1 className="mb-2 text-center text-3xl font-black text-white tracking-tighter text-title">
-          {isSignUp ? t('create_account') : t('app_name')} {/* <-- Traducido */}
+          {isRecovery ? t('reset_password_title') : isSignUp ? t('create_account') : t('app_name')} {/* <-- Traducido */}
         </h1>
         <p className="mb-8 text-center text-xs font-bold uppercase tracking-widest text-neutral-500 text-caption">
-          {isSignUp ? t('signup_subtitle') : t('login_subtitle')} {/* <-- Traducido */}
+          {isRecovery ? t('reset_password_subtitle') : isSignUp ? t('signup_subtitle') : t('login_subtitle')} {/* <-- Traducido */}
         </p>
 
         {/* MENSAJES DE ESTADO */}
@@ -125,8 +194,45 @@ export default function Auth() {
           )}
         </AnimatePresence>
 
-        <form className="space-y-4" onSubmit={handleAuth}>
-          {isSignUp && (
+        {isRecovery ? (
+          <form className="space-y-4" onSubmit={handleUpdatePassword}>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-neutral-500">
+                {t('new_password')}
+              </label>
+              <input
+                type="password"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full rounded-2xl border border-neutral-800/60 bg-neutral-900/50 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:border-neutral-400/50 focus:outline-none transition-all"
+                placeholder={t('reset_password_placeholder')}
+              />
+            </div>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-neutral-500">
+                {t('confirm_password')}
+              </label>
+              <input
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full rounded-2xl border border-neutral-800/60 bg-neutral-900/50 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:border-neutral-400/50 focus:outline-none transition-all"
+                placeholder={t('reset_password_placeholder')}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-4 flex w-full items-center justify-center rounded-2xl bg-white px-4 py-4 text-sm font-black text-neutral-900 hover:bg-neutral-200 disabled:opacity-50 transition-all active:scale-95 shadow-xl shadow-white/5"
+            >
+              {loading ? t('syncing') : t('reset_password_update')}
+            </button>
+          </form>
+        ) : (
+          <form className="space-y-4" onSubmit={handleAuth}>
+            {isSignUp && (
             <div>
               <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-neutral-500">
                 {t('your_name')} {/* <-- Traducido */}
@@ -177,9 +283,37 @@ export default function Auth() {
           >
             {loading ? t('syncing') : isSignUp ? t('btn_signup') : t('btn_login')} {/* <-- Traducido */}
           </button>
-        </form>
+          </form>
+        )}
 
-        <div className="mt-8 text-center">
+        {!isSignUp && !isRecovery && (
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={handleResetPassword}
+              className="text-xs font-bold text-neutral-500 hover:text-white transition-colors uppercase tracking-widest"
+              disabled={loading}
+            >
+              {t('reset_password')}
+            </button>
+          </div>
+        )}
+
+        {isRecovery && (
+          <div className="mt-6 text-center">
+            <p className="text-xs text-neutral-500 mb-3">{t('reset_password_updated_hint')}</p>
+            <button
+              type="button"
+              onClick={handleBackToLogin}
+              className="text-xs font-bold text-neutral-500 hover:text-white transition-colors uppercase tracking-widest"
+            >
+              {t('back_to_login')}
+            </button>
+          </div>
+        )}
+
+        {!isRecovery && (
+          <div className="mt-8 text-center">
           <button
             type="button"
             onClick={() => {
@@ -191,8 +325,9 @@ export default function Auth() {
           >
             {isSignUp ? t('switch_to_login') : t('switch_to_signup')} {/* <-- Traducido */}
           </button>
-        </div>
-      </motion.div>
+          </div>
+        )}
+      </MotionDiv>
     </div>
   )
 }
