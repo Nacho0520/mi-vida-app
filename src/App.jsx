@@ -16,7 +16,7 @@ import ProgressComparison from './components/ProgressComparison'
 import BlockedScreen from './components/BlockedScreen'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.1.0'; 
+const CURRENT_SOFTWARE_VERSION = '1.1.2'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
@@ -52,15 +52,46 @@ function normalizeFrequency(value) {
 
 function normalizeMiniHabits(value) {
   if (!value) return []
-  if (Array.isArray(value)) return value.filter(Boolean)
+  if (Array.isArray(value)) {
+    return value
+      .map((item, index) => {
+        if (!item) return null
+        if (typeof item === 'string') {
+          return {
+            title: item,
+            icon: getDefaultIconForTitle(item, index),
+            color: getDefaultColorForIndex(index)
+          }
+        }
+        if (typeof item === 'object') {
+          const title = item.title || item.name || ''
+          if (!title) return null
+          return {
+            title,
+            icon: item.icon || getDefaultIconForTitle(title, index),
+            color: item.color || getDefaultColorForIndex(index)
+          }
+        }
+        return null
+      })
+      .filter(Boolean)
+  }
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value)
-      if (Array.isArray(parsed)) return parsed.filter(Boolean)
+      if (Array.isArray(parsed)) return normalizeMiniHabits(parsed)
     } catch {
       // Fallback to comma-separated strings
     }
-    return value.split(',').map(v => v.trim()).filter(Boolean)
+    return value
+      .split(',')
+      .map(v => v.trim())
+      .filter(Boolean)
+      .map((title, index) => ({
+        title,
+        icon: getDefaultIconForTitle(title, index),
+        color: getDefaultColorForIndex(index)
+      }))
   }
   return []
 }

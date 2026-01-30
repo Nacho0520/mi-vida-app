@@ -17,6 +17,49 @@ const ICONS = [
 ]
 
 const DAYS = [{ id: 'L', label: 'L' }, { id: 'M', label: 'M' }, { id: 'X', label: 'X' }, { id: 'J', label: 'J' }, { id: 'V', label: 'V' }, { id: 'S', label: 'S' }, { id: 'D', label: 'D' }]
+const MotionDiv = motion.div
+
+const normalizeMiniHabits = (value) => {
+  if (!value) return []
+  if (Array.isArray(value)) {
+    return value
+      .map((item, index) => {
+        if (!item) return null
+        if (typeof item === 'string') {
+          return { title: item, icon: ICONS[index % ICONS.length], color: COLORS[index % COLORS.length] }
+        }
+        if (typeof item === 'object') {
+          const title = item.title || item.name || ''
+          if (!title) return null
+          return {
+            title,
+            icon: item.icon || ICONS[index % ICONS.length],
+            color: item.color || COLORS[index % COLORS.length]
+          }
+        }
+        return null
+      })
+      .filter(Boolean)
+  }
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      if (Array.isArray(parsed)) return normalizeMiniHabits(parsed)
+    } catch {
+      // Fallback to comma-separated strings
+    }
+    return value
+      .split(',')
+      .map(v => v.trim())
+      .filter(Boolean)
+      .map((title, index) => ({
+        title,
+        icon: ICONS[index % ICONS.length],
+        color: COLORS[index % COLORS.length]
+      }))
+  }
+  return []
+}
 
 export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, habitToEdit = null }) {
   const [title, setTitle] = useState('')
@@ -26,23 +69,11 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
   const [selectedIcon, setSelectedIcon] = useState(ICONS[0])
   const [miniHabits, setMiniHabits] = useState([])
   const [miniHabitInput, setMiniHabitInput] = useState('')
+  const [miniHabitIcon, setMiniHabitIcon] = useState(ICONS[0])
+  const [miniHabitColor, setMiniHabitColor] = useState(COLORS[0])
+  const [editingMiniIndex, setEditingMiniIndex] = useState(null)
   const [loading, setLoading] = useState(false)
   const { t } = useLanguage()
-
-  const normalizeMiniHabits = (value) => {
-    if (!value) return []
-    if (Array.isArray(value)) return value.filter(Boolean)
-    if (typeof value === 'string') {
-      try {
-        const parsed = JSON.parse(value)
-        if (Array.isArray(parsed)) return parsed.filter(Boolean)
-      } catch {
-        // Fallback to comma-separated strings
-      }
-      return value.split(',').map(v => v.trim()).filter(Boolean)
-    }
-    return []
-  }
 
   useEffect(() => {
     if (isOpen) {
@@ -53,6 +84,10 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
         setSelectedColor(habitToEdit.color || COLORS[0])
         setSelectedIcon(habitToEdit.icon || ICONS[0])
         setMiniHabits(normalizeMiniHabits(habitToEdit.mini_habits))
+        setMiniHabitIcon(ICONS[0])
+        setMiniHabitColor(COLORS[0])
+        setMiniHabitInput('')
+        setEditingMiniIndex(null)
       } else {
         setTitle('')
         setSelectedDays(['L', 'M', 'X', 'J', 'V'])
@@ -61,6 +96,9 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
         setSelectedIcon(ICONS[0])
         setMiniHabits([])
         setMiniHabitInput('')
+        setMiniHabitIcon(ICONS[0])
+        setMiniHabitColor(COLORS[0])
+        setEditingMiniIndex(null)
       }
     }
   }, [isOpen, habitToEdit])
@@ -85,14 +123,16 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
       color: selectedColor,
       icon: selectedIcon,
       is_active: true,
-      mini_habits: miniHabits.map(h => h.trim()).filter(Boolean)
+      mini_habits: miniHabits
+        .filter(h => h?.title?.trim())
+        .map(h => ({ title: h.title.trim(), icon: h.icon, color: h.color }))
     }
     try {
       if (habitToEdit) {
         const { error } = await supabase.from('habits').update(habitData).eq('id', habitToEdit.id)
         if (error) {
           if (String(error.message || '').includes('mini_habits')) {
-            const { mini_habits, ...fallback } = habitData
+            const { mini_habits: _mini_habits, ...fallback } = habitData
             const { error: fallbackError } = await supabase.from('habits').update(fallback).eq('id', habitToEdit.id)
             if (fallbackError) throw fallbackError
           } else {
@@ -103,7 +143,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
         const { error } = await supabase.from('habits').insert(habitData)
         if (error) {
           if (String(error.message || '').includes('mini_habits')) {
-            const { mini_habits, ...fallback } = habitData
+            const { mini_habits: _mini_habits, ...fallback } = habitData
             const { error: fallbackError } = await supabase.from('habits').insert(fallback)
             if (fallbackError) throw fallbackError
           } else {
@@ -119,16 +159,48 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
   const handleAddMiniHabit = () => {
     const value = miniHabitInput.trim()
     if (!value) return
-    if (miniHabits.includes(value)) {
+    if (editingMiniIndex === null && miniHabits.some(item => item.title === value)) {
       setMiniHabitInput('')
       return
     }
-    setMiniHabits(prev => [...prev, value].slice(0, 8))
+    if (editingMiniIndex !== null) {
+      setMiniHabits(prev => prev.map((item, index) => (
+        index === editingMiniIndex ? { title: value, icon: miniHabitIcon, color: miniHabitColor } : item
+      )))
+    } else {
+      setMiniHabits(prev => [
+        ...prev,
+        { title: value, icon: miniHabitIcon, color: miniHabitColor }
+      ].slice(0, 8))
+    }
     setMiniHabitInput('')
+    setMiniHabitIcon(ICONS[0])
+    setMiniHabitColor(COLORS[0])
+    setEditingMiniIndex(null)
   }
 
   const handleRemoveMiniHabit = (value) => {
-    setMiniHabits(prev => prev.filter(item => item !== value))
+    setMiniHabits(prev => prev.filter(item => item.title !== value))
+    if (miniHabitInput.trim() === value) {
+      setMiniHabitInput('')
+      setMiniHabitIcon(ICONS[0])
+      setMiniHabitColor(COLORS[0])
+      setEditingMiniIndex(null)
+    }
+  }
+
+  const handleEditMiniHabit = (item, index) => {
+    setMiniHabitInput(item.title)
+    setMiniHabitIcon(item.icon)
+    setMiniHabitColor(item.color)
+    setEditingMiniIndex(index)
+  }
+
+  const handleCancelEditMiniHabit = () => {
+    setMiniHabitInput('')
+    setMiniHabitIcon(ICONS[0])
+    setMiniHabitColor(COLORS[0])
+    setEditingMiniIndex(null)
   }
 
   const handleDelete = async () => {
@@ -148,8 +220,8 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-auto z-0" onClick={onClose} />
-        <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="relative z-10 bg-neutral-800 w-full max-w-md rounded-t-3xl sm:radius-card p-6 border-t border-white/5 shadow-apple pointer-events-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <MotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-auto z-0" onClick={onClose} />
+        <MotionDiv initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="relative z-10 bg-neutral-800 w-full max-w-md rounded-t-3xl sm:radius-card p-6 border-t border-white/5 shadow-apple pointer-events-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               {habitToEdit ? <Palette className="text-blue-400" size={20} /> : <Sparkles className="text-yellow-400" size={20} />}
@@ -176,6 +248,9 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
             <div className="space-y-3">
               <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">{t('mini_habits_title')}</label>
               <div className="flex gap-2">
+                <div className={`h-11 w-11 rounded-2xl flex items-center justify-center text-xl shadow-inner border border-white/5 ${miniHabitColor}`}>
+                  {miniHabitIcon}
+                </div>
                 <input
                   type="text"
                   value={miniHabitInput}
@@ -188,21 +263,69 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
                   onClick={handleAddMiniHabit}
                   className="px-4 rounded-2xl bg-white/10 text-white text-sm font-semibold border border-white/5 hover:bg-white/20"
                 >
-                  {t('mini_habits_add')}
+                  {editingMiniIndex !== null ? t('mini_habits_update') : t('mini_habits_add')}
                 </button>
               </div>
+              {editingMiniIndex !== null && (
+                <button
+                  type="button"
+                  onClick={handleCancelEditMiniHabit}
+                  className="text-xs text-neutral-500 hover:text-neutral-300"
+                >
+                  {t('mini_habits_cancel_edit')}
+                </button>
+              )}
+              <div className="grid grid-cols-8 gap-2 bg-neutral-900 p-3 rounded-2xl border border-white/5 max-h-28 overflow-y-auto custom-scrollbar shadow-inner">
+                {ICONS.map(icon => (
+                  <button
+                    key={`mini-${icon}`}
+                    type="button"
+                    onClick={() => setMiniHabitIcon(icon)}
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg transition-all ${miniHabitIcon === icon ? 'bg-white/10 ring-2 ring-white scale-105 shadow-lg' : 'hover:bg-white/5 opacity-60 hover:opacity-100'}`}
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2 justify-center bg-neutral-900 p-2 rounded-2xl border border-white/5">
+                {COLORS.map(color => (
+                  <button
+                    key={`mini-${color}`}
+                    type="button"
+                    onClick={() => setMiniHabitColor(color)}
+                    className={`w-7 h-7 rounded-full ${color} transition-transform ${miniHabitColor === color ? 'ring-2 ring-white scale-110' : 'opacity-50 hover:opacity-100'}`}
+                  />
+                ))}
+              </div>
               {miniHabits.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {miniHabits.map((item) => (
-                    <button
-                      key={item}
+                <div className="space-y-2">
+                  {miniHabits.map((item, index) => (
+                    <div
+                      key={`${item.title}-${index}`}
                       type="button"
-                      onClick={() => handleRemoveMiniHabit(item)}
-                      className="px-3 py-1 rounded-full text-[11px] font-semibold bg-neutral-900/70 border border-white/5 text-neutral-200 hover:bg-neutral-800/70"
-                      title={t('mini_habits_remove')}
+                      className="flex items-center gap-3 radius-card border border-white/5 bg-neutral-900/70 px-3 py-2 text-[11px] text-neutral-200"
                     >
-                      {item}
-                    </button>
+                      <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${item.color}`}>
+                        <span className="text-base">{item.icon}</span>
+                      </div>
+                      <span className="font-semibold tracking-tight flex-1">{item.title}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleEditMiniHabit(item, index)}
+                        className="text-neutral-500 hover:text-blue-300"
+                        title={t('mini_habits_edit')}
+                      >
+                        <Settings size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMiniHabit(item.title)}
+                        className="text-neutral-500 hover:text-white"
+                        title={t('mini_habits_remove')}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
@@ -250,7 +373,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
               {loading ? t('saving') : habitToEdit ? <><Save size={20} /> {t('save_changes_btn')}</> : <><Check size={20} /> {t('create_habit_btn')}</>}
             </button>
           </form>
-        </motion.div>
+        </MotionDiv>
       </div>
     </AnimatePresence>
   )

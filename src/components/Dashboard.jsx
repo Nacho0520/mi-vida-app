@@ -179,11 +179,20 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
                   </div>
                   {isExpanded && miniHabits.length > 0 && (
                     <div className="mt-3 pl-16">
-                      <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold mb-2">{t('mini_habits_title')}</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {miniHabits.map((mini) => (
-                          <div key={mini} className="radius-card border border-white/5 bg-neutral-900/50 px-2 py-1.5 text-[11px] text-neutral-300">
-                            {mini}
+                      <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold mb-2">
+                        {t('mini_habits_title')}
+                      </p>
+                      <div className="space-y-2">
+                        {miniHabits.map((mini, index) => (
+                          <div
+                            key={`${mini.title || mini}-${index}`}
+                            className="radius-card border border-white/5 bg-neutral-900/50 px-3 py-2 text-[11px] text-neutral-300 flex items-center gap-2 shadow-apple-soft"
+                            style={{ marginLeft: `${Math.min(index, 4) * 10}px` }}
+                          >
+                            <div className={`h-7 w-7 rounded-lg flex items-center justify-center ${mini.color || 'bg-neutral-800'}`}>
+                              <span className="text-sm">{mini.icon || '•'}</span>
+                            </div>
+                            <span className="font-semibold tracking-tight">{mini.title || mini}</span>
                           </div>
                         ))}
                       </div>
