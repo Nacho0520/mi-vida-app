@@ -87,6 +87,13 @@ export const translations = {
     dock_more: "Más",
     more_title: "Más Funciones",
     more_subtitle: "Estamos preparando nuevas herramientas para ti.",
+
+    // Hard Day Mode
+    hard_day_title: "Día Difícil",
+    hard_day_desc: "Enfócate solo en lo esencial",
+    hard_day_help: "Marca hasta 3 hábitos críticos",
+    hard_day_selected: "Seleccionados:",
+    hard_day_empty: "Actívalo y elige tus 3 prioridades para sobrevivir el día.",
     
     // Admin
     maintenance: "Mantenimiento",
@@ -211,6 +218,13 @@ export const translations = {
     dock_more: "More",
     more_title: "More Features",
     more_subtitle: "We are preparing new tools for you.",
+
+    // Hard Day Mode
+    hard_day_title: "Hard Day",
+    hard_day_desc: "Focus only on the essentials",
+    hard_day_help: "Mark up to 3 critical habits",
+    hard_day_selected: "Selected:",
+    hard_day_empty: "Turn it on and choose your top 3 priorities for today.",
     
     // Admin
     maintenance: "Maintenance",
