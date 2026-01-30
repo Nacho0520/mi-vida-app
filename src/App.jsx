@@ -247,8 +247,8 @@ function App() {
           ) : (
             <div className="flex flex-col items-center justify-center flex-1 text-white p-6 text-center">
               <div className="w-full max-w-md space-y-6">
-                <div className="bg-blue-500/10 p-6 rounded-[2.5rem] border border-blue-500/20">
-                  <LayoutGrid size={48} className="text-blue-500 mx-auto mb-4" />
+                <div className="bg-neutral-800/30 p-6 radius-card border border-white/5 shadow-apple-soft">
+                  <LayoutGrid size={48} className="text-neutral-400 mx-auto mb-4" />
                   <h2 className="text-3xl font-black mb-2 tracking-tighter uppercase leading-none">{t('more_title')}</h2>
                   <p className="text-neutral-500 font-medium italic">{t('more_subtitle')}</p>
                 </div>
