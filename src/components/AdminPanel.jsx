@@ -177,6 +177,19 @@ export default function AdminPanel({ onClose, version }) {
 
       <div className="space-y-6">
         <section className="bg-neutral-800/20 rounded-[3rem] p-6 border border-white/5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-purple-500/10 rounded-[1.5rem] border border-purple-500/10"><RefreshCw className="text-purple-500" size={28} /></div>
+              <div>
+                <h3 className="font-black text-sm uppercase tracking-tight">Software v{version}</h3>
+                <p className="text-[10px] text-neutral-500 font-bold uppercase">Versión de sincronización</p>
+              </div>
+            </div>
+            <input type="text" value={appVersion} onChange={(e) => setAppVersion(e.target.value)} className="w-28 bg-neutral-900 border border-neutral-800/60 rounded-2xl px-4 py-3 text-center text-sm font-black text-purple-400 focus:border-neutral-400/50 outline-none" />
+          </div>
+        </section>
+
+        <section className="bg-neutral-800/20 rounded-[3rem] p-6 border border-white/5">
           <button
             onClick={() => setOpenSection(openSection === 'maintenance' ? null : 'maintenance')}
             className="w-full flex items-center justify-between"
@@ -190,12 +203,7 @@ export default function AdminPanel({ onClose, version }) {
           {openSection === 'maintenance' && (
             <>
               <div className="h-px bg-white/5 my-6" />
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-purple-500/10 rounded-[1.5rem] border border-purple-500/10"><RefreshCw className="text-purple-500" size={28} /></div>
-                <div className="flex-1"><h3 className="font-black text-sm uppercase tracking-tight">Software v{version}</h3><p className="text-[10px] text-neutral-500 font-bold uppercase">Versión de sincronización:</p></div>
-                <input type="text" value={appVersion} onChange={(e) => setAppVersion(e.target.value)} className="w-24 bg-neutral-900 border border-neutral-800/60 rounded-2xl px-4 py-3 text-center text-sm font-black text-purple-400 focus:border-neutral-400/50 outline-none" />
-              </div>
-              <div className="mt-6 space-y-6">
+              <div className="mt-2 space-y-6">
                 <div>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="h-9 w-9 rounded-xl bg-neutral-900/70 border border-white/5 flex items-center justify-center">
