@@ -18,7 +18,7 @@ import UpdateShowcase from './components/UpdateShowcase'
 import MoreFeatures from './components/MoreFeatures'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.1.13'; 
+const CURRENT_SOFTWARE_VERSION = '1.1.14'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
