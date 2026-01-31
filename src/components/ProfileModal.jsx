@@ -3,13 +3,27 @@ import { supabase } from '../lib/supabaseClient'
 import { X, User, Upload, Image as ImageIcon, Trash2 } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 
-const PRESET_AVATARS = [
-  '/avatars/avatar-1.png',
-  '/avatars/avatar-2.png',
-  '/avatars/avatar-3.png',
-  '/avatars/avatar-4.png',
-  '/avatars/avatar-5.png',
-  '/avatars/avatar-6.png'
+const PRESET_AVATAR_GROUPS = [
+  {
+    key: 'humans',
+    labelKey: 'avatar_group_humans',
+    items: [
+      '/avatars/avatar-human-1.png',
+      '/avatars/avatar-human-2.png',
+      '/avatars/avatar-human-3.png',
+      '/avatars/avatar-human-4.png'
+    ]
+  },
+  {
+    key: 'fictional',
+    labelKey: 'avatar_group_fictional',
+    items: [
+      '/avatars/avatar-fiction-1.png',
+      '/avatars/avatar-fiction-2.png',
+      '/avatars/avatar-fiction-3.png',
+      '/avatars/avatar-fiction-4.png'
+    ]
+  }
 ]
 
 export default function ProfileModal({ isOpen, onClose, user }) {
@@ -133,17 +147,24 @@ export default function ProfileModal({ isOpen, onClose, user }) {
         <form onSubmit={handleUpdate} className="space-y-4">
           <div className="space-y-3">
             <label className="block text-sm text-neutral-400 mb-1">{t('avatar_title')}</label>
-            <div className="grid grid-cols-6 gap-2">
-              {PRESET_AVATARS.map((src) => (
-                <button
-                  key={src}
-                  type="button"
-                  onClick={() => handleSelectPreset(src)}
-                  className={`h-12 w-12 rounded-xl border ${avatarUrl === src ? 'border-white/40' : 'border-white/5'} overflow-hidden`}
-                  disabled={uploading}
-                >
-                  <img src={src} alt="preset" className="h-full w-full object-cover" />
-                </button>
+            <div className="space-y-3">
+              {PRESET_AVATAR_GROUPS.map((group) => (
+                <div key={group.key} className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-wide text-neutral-500">{t(group.labelKey)}</p>
+                  <div className="grid grid-cols-6 gap-2">
+                    {group.items.map((src) => (
+                      <button
+                        key={src}
+                        type="button"
+                        onClick={() => handleSelectPreset(src)}
+                        className={`h-12 w-12 rounded-xl border ${avatarUrl === src ? 'border-white/40' : 'border-white/5'} overflow-hidden`}
+                        disabled={uploading}
+                      >
+                        <img src={src} alt="preset" className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
             <div className="flex gap-2">
