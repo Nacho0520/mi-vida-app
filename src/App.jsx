@@ -20,7 +20,7 @@ import MoreFeatures from './components/MoreFeatures'
 import History from './components/History'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.1.24'; 
+const CURRENT_SOFTWARE_VERSION = '1.2.1'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
@@ -536,7 +536,7 @@ function App() {
               <div className="flex flex-col items-center justify-center flex-1 text-white p-6 text-center">
                 <div className="w-full max-w-md space-y-6">
                   <ProgressComparison user={session.user} />
-                  <MoreFeatures />
+                  <MoreFeatures user={session.user} />
                 </div>
               </div>
             </div>
