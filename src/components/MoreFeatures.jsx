@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { Target, Sparkles, Activity, Users, Mail, Clock, X, Check, UserPlus } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
@@ -88,6 +89,11 @@ export default function MoreFeatures({ user }) {
   const handleDeleteLetter = (id) => {
     persistLetters(letters.filter((letter) => letter.id !== id))
     if (activeLetter?.id === id) setActiveLetter(null)
+  }
+
+  const renderPortal = (node) => {
+    if (typeof document === 'undefined') return null
+    return createPortal(node, document.body)
   }
 
   const loadFriends = async () => {
@@ -373,13 +379,14 @@ export default function MoreFeatures({ user }) {
         })}
       </MotionDiv>
 
-      {isLetterOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <MotionDiv
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-sm bg-neutral-900/90 radius-card p-5 shadow-apple border border-white/5"
-          >
+      {isLetterOpen &&
+        renderPortal(
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <MotionDiv
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full max-w-sm bg-neutral-900/90 radius-card p-5 shadow-apple border border-white/5"
+            >
             <h3 className="text-lg font-bold text-white">{t('more_letters_modal_title')}</h3>
             <p className="text-[11px] text-neutral-500 mt-1">{t('more_letters_modal_subtitle')}</p>
             <textarea
@@ -420,17 +427,18 @@ export default function MoreFeatures({ user }) {
                 {t('more_letters_save')}
               </button>
             </div>
-          </MotionDiv>
-        </div>
-      )}
+            </MotionDiv>
+          </div>
+        )}
 
-      {activeLetter && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <MotionDiv
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-sm bg-neutral-900/90 radius-card p-5 shadow-apple border border-white/5"
-          >
+      {activeLetter &&
+        renderPortal(
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <MotionDiv
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full max-w-sm bg-neutral-900/90 radius-card p-5 shadow-apple border border-white/5"
+            >
             <h3 className="text-lg font-bold text-white">{t('more_letters_open_title')}</h3>
             <p className="text-[11px] text-neutral-500 mt-1">{t('more_letters_open_subtitle')}</p>
             <div className="mt-3 rounded-xl bg-neutral-950 border border-white/5 px-3 py-3 text-sm text-neutral-100 whitespace-pre-wrap">
@@ -450,17 +458,18 @@ export default function MoreFeatures({ user }) {
                 {t('more_letters_delete')}
               </button>
             </div>
-          </MotionDiv>
-        </div>
-      )}
+            </MotionDiv>
+          </div>
+        )}
 
-      {isFriendsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <MotionDiv
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md bg-neutral-900/95 radius-card p-5 shadow-apple border border-white/5"
-          >
+      {isFriendsOpen &&
+        renderPortal(
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <MotionDiv
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full max-w-md bg-neutral-900/95 radius-card p-5 shadow-apple border border-white/5"
+            >
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-bold text-white">{t('friends_modal_title')}</h3>
@@ -673,9 +682,9 @@ export default function MoreFeatures({ user }) {
                 </div>
               )}
             </div>
-          </MotionDiv>
-        </div>
-      )}
+            </MotionDiv>
+          </div>
+        )}
     </div>
   )
 }
