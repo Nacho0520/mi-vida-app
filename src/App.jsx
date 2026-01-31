@@ -20,7 +20,7 @@ import MoreFeatures from './components/MoreFeatures'
 import History from './components/History'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.1.18'; 
+const CURRENT_SOFTWARE_VERSION = '1.1.19'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
@@ -176,6 +176,7 @@ function App() {
   const tabContainerRef = useRef(null)
   const [tabWidth, setTabWidth] = useState(0)
   const x = useMotionValue(0)
+  const effectiveWidth = Math.max(tabWidth || 0, typeof window !== 'undefined' ? window.innerWidth : 0)
   const handleTabChange = (nextTab) => {
     setActiveTab(nextTab)
   }
@@ -235,24 +236,31 @@ function App() {
 
   useEffect(() => {
     const updateWidth = () => {
-      const width = tabContainerRef.current?.offsetWidth || window.innerWidth
-      setTabWidth(width)
+      const width = tabContainerRef.current?.getBoundingClientRect?.().width || window.innerWidth
+      if (width) setTabWidth(width)
     }
     updateWidth()
     window.addEventListener('resize', updateWidth)
-    return () => window.removeEventListener('resize', updateWidth)
+    const observer = tabContainerRef.current && typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(updateWidth)
+      : null
+    if (observer && tabContainerRef.current) observer.observe(tabContainerRef.current)
+    return () => {
+      window.removeEventListener('resize', updateWidth)
+      if (observer) observer.disconnect()
+    }
   }, [])
 
   useEffect(() => {
-    if (!tabWidth || tabIndex < 0) return
-    const controls = animate(x, -tabIndex * tabWidth, {
+    if (!effectiveWidth || tabIndex < 0) return
+    const controls = animate(x, -tabIndex * effectiveWidth, {
       type: 'spring',
       damping: 30,
       stiffness: 300,
       mass: 0.8
     })
     return controls.stop
-  }, [tabWidth, tabIndex, x])
+  }, [effectiveWidth, tabIndex, x])
 
   useEffect(() => {
     if (!session) return
@@ -488,27 +496,27 @@ function App() {
           </div>
         )}
         
-        <div className="flex-1 flex flex-col overflow-hidden" ref={tabContainerRef}>
+        <div className="flex-1 flex flex-col overflow-hidden w-full" ref={tabContainerRef}>
           <MotionDiv
             className="flex h-full"
             style={{ x }}
             drag="x"
             dragDirectionLock
-            dragConstraints={{ left: -tabWidth * (tabs.length - 1), right: 0 }}
+            dragConstraints={{ left: -effectiveWidth * (tabs.length - 1), right: 0 }}
             dragElastic={0.06}
             onDragEnd={(_, info) => {
-              if (!tabWidth) return
-              const threshold = tabWidth * 0.2
+              if (!effectiveWidth) return
+              const threshold = effectiveWidth * 0.2
               if (info.offset.x < -threshold && tabIndex < tabs.length - 1) {
                 setActiveTab(tabs[tabIndex + 1])
               } else if (info.offset.x > threshold && tabIndex > 0) {
                 setActiveTab(tabs[tabIndex - 1])
               } else {
-                animate(x, -tabIndex * tabWidth, { type: 'spring', damping: 30, stiffness: 300, mass: 0.8 })
+                animate(x, -tabIndex * effectiveWidth, { type: 'spring', damping: 30, stiffness: 300, mass: 0.8 })
               }
             }}
           >
-            <div style={{ width: tabWidth }} className="shrink-0">
+            <div style={{ width: effectiveWidth }} className="shrink-0">
               <Dashboard
                 user={session.user} habits={habits} todayLogs={todayLogs}
                 onStartReview={handleStartReview} onResetToday={handleResetToday}
@@ -521,10 +529,10 @@ function App() {
                 onOpenHistory={() => setMode('history')}
               />
             </div>
-            <div style={{ width: tabWidth }} className="shrink-0">
+            <div style={{ width: effectiveWidth }} className="shrink-0">
               <Stats user={session.user} /> 
             </div>
-            <div style={{ width: tabWidth }} className="shrink-0">
+            <div style={{ width: effectiveWidth }} className="shrink-0">
               <div className="flex flex-col items-center justify-center flex-1 text-white p-6 text-center">
                 <div className="w-full max-w-md space-y-6">
                   <ProgressComparison user={session.user} />
