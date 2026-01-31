@@ -20,7 +20,7 @@ import MoreFeatures from './components/MoreFeatures'
 import History from './components/History'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.1.16'; 
+const CURRENT_SOFTWARE_VERSION = '1.1.17'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
@@ -171,6 +171,7 @@ function App() {
   
   const { t, language } = useLanguage()
   const MotionDiv = motion.div
+  const [tabDirection, setTabDirection] = useState(0)
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
 
   const handleSwipeStart = (event) => {
@@ -192,11 +193,25 @@ function App() {
     const tabs = ['home', 'stats', 'apps']
     const currentIndex = tabs.indexOf(activeTab)
     if (dx < 0 && currentIndex < tabs.length - 1) {
+      setTabDirection(1)
       setActiveTab(tabs[currentIndex + 1])
     }
     if (dx > 0 && currentIndex > 0) {
+      setTabDirection(-1)
       setActiveTab(tabs[currentIndex - 1])
     }
+  }
+
+  const handleTabChange = (nextTab) => {
+    const tabs = ['home', 'stats', 'apps']
+    const currentIndex = tabs.indexOf(activeTab)
+    const nextIndex = tabs.indexOf(nextTab)
+    if (nextIndex === -1 || currentIndex === -1) {
+      setActiveTab(nextTab)
+      return
+    }
+    setTabDirection(nextIndex > currentIndex ? 1 : -1)
+    setActiveTab(nextTab)
   }
   const [updatePayload, setUpdatePayload] = useState(null)
   const [updateOpen, setUpdateOpen] = useState(false)
@@ -491,13 +506,14 @@ function App() {
         )}
         
         <div className="flex-1 flex flex-col">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" custom={tabDirection}>
             <MotionDiv
               key={activeTab}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
+              custom={tabDirection}
+              initial={(dir) => ({ opacity: 0, x: dir >= 0 ? 36 : -36, scale: 0.985 })}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={(dir) => ({ opacity: 0, x: dir >= 0 ? -36 : 36, scale: 0.985 })}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
               className="flex-1 flex flex-col"
             >
               {activeTab === 'home' ? (
@@ -526,7 +542,7 @@ function App() {
           </AnimatePresence>
         </div>
 
-        <Dock activeTab={activeTab} onTabChange={setActiveTab} />
+        <Dock activeTab={activeTab} onTabChange={handleTabChange} />
         <ReminderPopup session={session} />
       </div>
     )
