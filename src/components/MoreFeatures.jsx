@@ -146,11 +146,23 @@ export default function MoreFeatures({ user }) {
     if (isFriendsOpen) loadFriends()
   }, [isFriendsOpen])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('open') === 'friends') {
+      setIsFriendsOpen(true)
+    }
+  }, [])
+
   const handleInviteEmail = async () => {
     if (!inviteEmail.trim()) return
     setFriendsError('')
     try {
       await createFriendInvite(inviteEmail.trim())
+      const found = await searchUserByEmail(inviteEmail.trim())
+      if (found?.user_id) {
+        await notifyFriendRequest(found.user_id)
+      }
       setInviteEmail('')
       await loadFriends()
     } catch (error) {
@@ -179,11 +191,32 @@ export default function MoreFeatures({ user }) {
     setFriendsError('')
     try {
       await createFriendRequest(searchResult.user_id)
+      await notifyFriendRequest(searchResult.user_id)
       setSearchResult(null)
       setSearchEmail('')
       await loadFriends()
     } catch (error) {
       setFriendsError(error?.message || t('friends_error'))
+    }
+  }
+
+  const notifyFriendRequest = async (targetUserId) => {
+    if (!targetUserId) return
+    const senderName =
+      user?.user_metadata?.full_name || user?.email || t('friends_request_unknown')
+    const title = t('friends_push_title')
+    const body = t('friends_push_body').replace('{name}', senderName)
+    try {
+      await supabase.functions.invoke('push-notification', {
+        body: {
+          title,
+          body,
+          url: 'https://mi-vida-app.vercel.app/?open=friends',
+          user_ids: [targetUserId]
+        }
+      })
+    } catch {
+      // ignore push errors to avoid blocking UI
     }
   }
 
