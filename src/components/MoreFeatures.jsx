@@ -139,8 +139,12 @@ export default function MoreFeatures({ user }) {
   }
 
   useEffect(() => {
+    if (user?.id) loadFriends()
+  }, [user?.id])
+
+  useEffect(() => {
     if (isFriendsOpen) loadFriends()
-  }, [isFriendsOpen, user?.id])
+  }, [isFriendsOpen])
 
   const handleInviteEmail = async () => {
     if (!inviteEmail.trim()) return
@@ -300,6 +304,96 @@ export default function MoreFeatures({ user }) {
             </div>
           </div>
         </MotionDiv>
+
+        {(pendingIncoming.length > 0 || pendingInvites.length > 0) && (
+          <MotionDiv
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-3 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs uppercase tracking-widest text-emerald-300/80">{t('friends_requests_title')}</p>
+              <span className="text-[10px] text-emerald-200">
+                {pendingIncoming.length + pendingInvites.length}
+              </span>
+            </div>
+            <div className="space-y-2">
+              {pendingIncoming.map((req) => (
+                <div
+                  key={req.id}
+                  className="flex items-center justify-between rounded-xl bg-white/5 border border-emerald-500/20 px-3 py-2"
+                >
+                  <p className="text-xs text-neutral-200">
+                    {req.requester?.full_name || req.requester?.email || t('friends_request_unknown')}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleRespondRequest(req.id, true)}
+                      className="h-8 w-8 rounded-full bg-emerald-500/30 border border-emerald-500/40 flex items-center justify-center text-emerald-100"
+                    >
+                      <Check size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleRespondRequest(req.id, false)}
+                      className="h-8 w-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {pendingInvites.map((invite) => (
+                <div
+                  key={invite.id}
+                  className="flex items-center justify-between rounded-xl bg-white/5 border border-emerald-500/20 px-3 py-2"
+                >
+                  <p className="text-xs text-neutral-200">
+                    {t('friends_invite_from')} {invite.inviter?.full_name || invite.inviter?.email || t('friends_request_unknown')}
+                  </p>
+                  <button
+                    onClick={() => handleAcceptInvite(invite.id)}
+                    className="text-[11px] text-emerald-50 bg-emerald-500/20 border border-emerald-500/40 px-3 py-1.5 rounded-full"
+                  >
+                    {t('friends_accept')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </MotionDiv>
+        )}
+
+        <div className="rounded-2xl border border-white/5 bg-neutral-950/60 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs uppercase tracking-widest text-neutral-500">{t('friends_list_title')}</p>
+            <span className="text-[10px] text-neutral-500">{friends.length}</span>
+          </div>
+          {friendsLoading ? (
+            <p className="text-[11px] text-neutral-500">{t('friends_loading')}</p>
+          ) : friends.length === 0 ? (
+            <p className="text-[11px] text-neutral-500">{t('friends_empty')}</p>
+          ) : (
+            <div className="space-y-2">
+              {friends.map((friend) => (
+                <div
+                  key={friend.friend_id}
+                  className="flex items-center justify-between rounded-xl bg-white/5 border border-white/5 px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-white">{friend.display_name || t('friends_request_unknown')}</p>
+                    <p className="text-[10px] text-neutral-500">
+                      {t('friends_consistency')} {friend.weekly_consistency || 0}%
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-white">{friend.streak || 0}</p>
+                    <p className="text-[9px] uppercase tracking-widest text-neutral-500">{t('friends_streak')}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <MotionDiv
           whileHover={{ y: -2 }}

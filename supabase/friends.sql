@@ -26,6 +26,11 @@ create unique index if not exists friendships_unique_pair
 
 alter table public.friendships enable row level security;
 
+drop policy if exists "Friends read own friendships" on public.friendships;
+drop policy if exists "Friends create request" on public.friendships;
+drop policy if exists "Friends accept own request" on public.friendships;
+drop policy if exists "Friends delete own request" on public.friendships;
+
 create policy "Friends read own friendships"
   on public.friendships for select
   using (auth.uid() = requester_id or auth.uid() = addressee_id);
@@ -53,6 +58,8 @@ create table if not exists public.friend_codes (
 
 alter table public.friend_codes enable row level security;
 
+drop policy if exists "Users manage own friend code" on public.friend_codes;
+
 create policy "Users manage own friend code"
   on public.friend_codes for all
   using (auth.uid() = user_id)
@@ -69,6 +76,11 @@ create table if not exists public.friend_invites (
 );
 
 alter table public.friend_invites enable row level security;
+
+drop policy if exists "Inviter can read own invites" on public.friend_invites;
+drop policy if exists "Inviter can create invites" on public.friend_invites;
+drop policy if exists "Invitee or inviter can update invite" on public.friend_invites;
+drop policy if exists "Invitee or inviter can delete invite" on public.friend_invites;
 
 create policy "Inviter can read own invites"
   on public.friend_invites for select
@@ -88,6 +100,7 @@ create policy "Invitee or inviter can delete invite"
   using (auth.uid() = inviter_id or (auth.jwt() ->> 'email') = invitee_email);
 
 -- Buscar usuario por email (solo match exacto)
+drop function if exists public.search_user_by_email(text);
 create or replace function public.search_user_by_email(p_email text)
 returns table (
   user_id uuid,
@@ -225,6 +238,7 @@ end;
 $$;
 
 -- Resumen de amigos (racha + consistencia semanal)
+drop function if exists public.get_friend_summary();
 create or replace function public.get_friend_summary()
 returns table (
   friend_id uuid,
