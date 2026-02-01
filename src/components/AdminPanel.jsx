@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { ShieldAlert, RefreshCw, Megaphone, CheckCircle, Activity, Save, ChevronLeft, Users, Trash2, Globe, Bell, UserX, UserCheck, ListChecks, LineChart, Wrench, Mail, Sparkles, ShieldCheck, Flame, Star, Clock, Heart, Wand2 } from 'lucide-react'
+import { ShieldAlert, RefreshCw, Megaphone, CheckCircle, Activity, Save, ChevronLeft, Users, Trash2, Globe, Bell, UserX, UserCheck, ListChecks, LineChart, Wrench, Mail, Sparkles, ShieldCheck, Flame, Star, Clock, Heart, Wand2, Bug } from 'lucide-react'
 
 export default function AdminPanel({ onClose, version }) {
   const [maintenance, setMaintenance] = useState(false)
@@ -21,6 +21,7 @@ export default function AdminPanel({ onClose, version }) {
   const [maintenanceMessage, setMaintenanceMessage] = useState('')
   const [whitelist, setWhitelist] = useState([])
   const [whitelistInput, setWhitelistInput] = useState('')
+  const [feedbackReports, setFeedbackReports] = useState([])
   const [notifyNow, setNotifyNow] = useState({ title: '', body: '', language: 'es', min_version: '', max_version: '', url: '' })
   const [notifySchedule, setNotifySchedule] = useState({ title: '', body: '', language: 'es', send_at: '', url: '' })
   const [loading, setLoading] = useState(false)
@@ -104,6 +105,17 @@ export default function AdminPanel({ onClose, version }) {
 
       const { data: metricsData } = await supabase.rpc('get_admin_app_metrics')
       if (metricsData && metricsData[0]) setAppMetrics(metricsData[0])
+
+      const { data: feedbackData } = await supabase.rpc('get_admin_feedback')
+      if (feedbackData) {
+        const ordered = [...feedbackData].sort((a, b) => {
+          const orderA = a.status === 'open' ? 0 : 1
+          const orderB = b.status === 'open' ? 0 : 1
+          if (orderA !== orderB) return orderA - orderB
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        })
+        setFeedbackReports(ordered)
+      }
 
       const { data: whitelistData } = await supabase.from('maintenance_whitelist').select('email').order('email', { ascending: true })
       if (whitelistData) setWhitelist(whitelistData.map(w => w.email))
@@ -215,6 +227,11 @@ export default function AdminPanel({ onClose, version }) {
     await supabase.from('app_settings_text').upsert({ key: 'maintenance_message', value: maintenanceMessage })
     setMessage({ type: 'success', text: 'Mensaje de mantenimiento guardado.' })
     setTimeout(() => setMessage(null), 3000)
+  }
+
+  const updateFeedbackStatus = async (id, status) => {
+    await supabase.from('feedback_reports').update({ status }).eq('id', id)
+    fetchAdminData()
   }
 
   const addWhitelistEmail = async () => {
@@ -734,6 +751,95 @@ export default function AdminPanel({ onClose, version }) {
                   </div>
                 </div>
               </div>
+            </>
+          )}
+        </section>
+
+        <section className="bg-neutral-800/20 rounded-[3rem] p-6 border border-white/5">
+          <button
+            onClick={() => setOpenSection(openSection === 'feedback' ? null : 'feedback')}
+            className="w-full flex items-center justify-between"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-rose-500/10 rounded-[1.5rem] border border-rose-500/10">
+                <Bug className="text-rose-400" size={28} />
+              </div>
+              <div>
+                <h3 className="font-black text-sm uppercase tracking-tight">Reportes</h3>
+                <p className="text-[10px] text-neutral-500 font-bold uppercase">Bugs y mejoras</p>
+              </div>
+            </div>
+            <div className="text-xs text-neutral-500">{openSection === 'feedback' ? 'Cerrar' : 'Abrir'}</div>
+          </button>
+          {openSection === 'feedback' && (
+            <>
+              <div className="h-px bg-white/5 my-6" />
+              {feedbackReports.length === 0 ? (
+                <p className="text-xs text-neutral-500">Sin reportes aún.</p>
+              ) : (
+                <div className="space-y-3">
+                  {feedbackReports.map((item) => (
+                    <div key={item.id} className="rounded-2xl border border-white/5 bg-neutral-900/60 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-white">
+                            {item.title || '(Sin título)'}
+                          </p>
+                          <p className="text-[11px] text-neutral-500 mt-1">
+                            {item.user_full_name || item.user_email || 'Usuario'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] uppercase tracking-widest font-bold text-neutral-400 bg-white/5 border border-white/5 px-2.5 py-1 rounded-full">
+                            {item.type}
+                          </span>
+                          <span className={`text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full border ${
+                            item.status === 'open'
+                              ? 'text-amber-300 bg-amber-500/10 border-amber-500/20'
+                              : 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[12px] text-neutral-200 mt-3 whitespace-pre-wrap">
+                        {item.message}
+                      </p>
+                      {item.screenshot_url && (
+                        <a
+                          href={item.screenshot_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-3 inline-flex text-[11px] text-neutral-300 border border-white/10 px-3 py-1.5 rounded-full"
+                        >
+                          Ver captura
+                        </a>
+                      )}
+                      <div className="flex items-center justify-between mt-4">
+                        <p className="text-[10px] text-neutral-500">
+                          {new Date(item.created_at).toLocaleString()}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          {item.status !== 'resolved' && (
+                            <button
+                              onClick={() => updateFeedbackStatus(item.id, 'resolved')}
+                              className="text-[10px] text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-full"
+                            >
+                              Marcar resuelto
+                            </button>
+                          )}
+                          <button
+                            onClick={() => updateFeedbackStatus(item.id, 'closed')}
+                            className="text-[10px] text-neutral-300 border border-white/10 px-3 py-1.5 rounded-full"
+                          >
+                            Cerrar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </>
           )}
         </section>

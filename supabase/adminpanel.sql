@@ -30,6 +30,10 @@ create table if not exists public.user_profiles (
 
 alter table public.user_profiles enable row level security;
 
+drop policy if exists "User can read own profile" on public.user_profiles;
+drop policy if exists "User can update own profile" on public.user_profiles;
+drop policy if exists "Admin full access to profiles" on public.user_profiles;
+
 create policy "User can read own profile"
   on public.user_profiles for select
   using (auth.uid() = user_id);
@@ -68,6 +72,7 @@ create table if not exists public.maintenance_whitelist (
 );
 
 alter table public.maintenance_whitelist enable row level security;
+drop policy if exists "Admin manage maintenance whitelist" on public.maintenance_whitelist;
 create policy "Admin manage maintenance whitelist"
   on public.maintenance_whitelist for all
   using (public.is_admin())
@@ -79,6 +84,8 @@ create table if not exists public.app_settings_text (
 );
 
 alter table public.app_settings_text enable row level security;
+drop policy if exists "Admin manage app_settings_text" on public.app_settings_text;
+drop policy if exists "Public read app_settings_text" on public.app_settings_text;
 create policy "Admin manage app_settings_text"
   on public.app_settings_text for all
   using (public.is_admin())
@@ -113,10 +120,40 @@ create table if not exists public.scheduled_notifications (
 );
 
 alter table public.scheduled_notifications enable row level security;
+drop policy if exists "Admin manage scheduled_notifications" on public.scheduled_notifications;
 create policy "Admin manage scheduled_notifications"
   on public.scheduled_notifications for all
   using (public.is_admin())
   with check (public.is_admin());
+
+-- Reportes de bugs y mejoras
+create table if not exists public.feedback_reports (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.user_profiles(user_id) on delete set null,
+  type text not null,
+  title text,
+  message text not null,
+  screenshot_url text,
+  status text default 'open',
+  created_at timestamptz default now()
+);
+
+alter table public.feedback_reports
+  add column if not exists screenshot_url text;
+
+alter table public.feedback_reports enable row level security;
+
+drop policy if exists "Admin manage feedback_reports" on public.feedback_reports;
+drop policy if exists "Users create feedback_reports" on public.feedback_reports;
+
+create policy "Admin manage feedback_reports"
+  on public.feedback_reports for all
+  using (public.is_admin())
+  with check (public.is_admin());
+
+create policy "Users create feedback_reports"
+  on public.feedback_reports for insert
+  with check (auth.uid() = user_id);
 
 -- Push subscriptions: idioma y versión (para segmentación)
 alter table public.push_subscriptions
@@ -216,4 +253,51 @@ as $$
     (select count(distinct user_id) from logs where created_at >= now() - interval '30 days') as mau,
     case when (select total_logs from totals) = 0 then 0 else (select total_completed from totals) / (select total_logs from totals) end as avg_completion,
     case when (select cnt from total_users) = 0 then 0 else (select count(*)::numeric from public.habits) / (select cnt from total_users) end as avg_habits_per_user;
+$$;
+
+drop function if exists public.get_admin_feedback();
+create or replace function public.get_admin_feedback()
+returns table (
+  id uuid,
+  user_id uuid,
+  user_email text,
+  user_full_name text,
+  type text,
+  title text,
+  message text,
+  screenshot_url text,
+  status text,
+  created_at timestamptz
+)
+language sql
+security definer
+as $$
+  select
+    f.id,
+    f.user_id,
+    p.email as user_email,
+    p.full_name as user_full_name,
+    f.type,
+    f.title,
+    f.message,
+    f.screenshot_url,
+    f.status,
+    f.created_at
+  from public.feedback_reports f
+  left join public.user_profiles p on p.user_id = f.user_id
+  order by
+    case when f.status = 'open' then 0 else 1 end,
+    f.created_at desc;
+$$;
+
+create or replace function public.get_admin_user_ids()
+returns table (
+  user_id uuid
+)
+language sql
+security definer
+as $$
+  select p.user_id
+  from public.user_profiles p
+  join public.admin_whitelist w on lower(w.email) = lower(p.email);
 $$;

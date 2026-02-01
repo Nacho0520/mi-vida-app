@@ -19,10 +19,11 @@ import UpdateShowcase from './components/UpdateShowcase'
 import MoreFeatures from './components/MoreFeatures'
 import FriendsSection from './components/FriendsSection'
 import FutureLettersSection from './components/FutureLettersSection'
+import FeedbackSection from './components/FeedbackSection'
 import History from './components/History'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.1.33'; 
+const CURRENT_SOFTWARE_VERSION = '1.1.34'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
@@ -540,6 +541,7 @@ function App() {
                   <ProgressComparison user={session.user} />
                   <FriendsSection user={session.user} />
                   <FutureLettersSection />
+                  <FeedbackSection user={session.user} />
                   <MoreFeatures />
                 </div>
               </div>
