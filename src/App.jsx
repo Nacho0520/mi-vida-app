@@ -17,10 +17,12 @@ import ProgressComparison from './components/ProgressComparison'
 import BlockedScreen from './components/BlockedScreen'
 import UpdateShowcase from './components/UpdateShowcase'
 import MoreFeatures from './components/MoreFeatures'
+import FriendsSection from './components/FriendsSection'
+import FutureLettersSection from './components/FutureLettersSection'
 import History from './components/History'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.1.31'; 
+const CURRENT_SOFTWARE_VERSION = '1.1.32'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
@@ -536,7 +538,9 @@ function App() {
               <div className="flex flex-col items-center justify-center flex-1 text-white p-6 text-center">
                 <div className="w-full max-w-md space-y-6">
                   <ProgressComparison user={session.user} />
-                  <MoreFeatures user={session.user} />
+                  <FriendsSection user={session.user} />
+                  <FutureLettersSection />
+                  <MoreFeatures />
                 </div>
               </div>
             </div>
