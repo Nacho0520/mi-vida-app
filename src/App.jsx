@@ -20,7 +20,7 @@ import MoreFeatures from './components/MoreFeatures'
 import History from './components/History'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.1.30'; 
+const CURRENT_SOFTWARE_VERSION = '1.1.31'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']

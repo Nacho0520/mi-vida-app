@@ -19,6 +19,8 @@ const MotionDiv = motion.div
 const DAY_MS = 24 * 60 * 60 * 1000
 const LETTER_STORAGE_KEY = 'mivida_future_letters'
 const LETTER_DELAYS = [7, 14, 30]
+const FRIENDS_NEW_KEY = 'mivida_friends_new_since'
+const FRIENDS_NEW_DAYS = 3
 
 const loadLetters = () => {
   try {
@@ -44,6 +46,7 @@ export default function MoreFeatures({ user }) {
   const [letterDelay, setLetterDelay] = useState(7)
   const [activeLetter, setActiveLetter] = useState(null)
   const [isFriendsOpen, setIsFriendsOpen] = useState(false)
+  const [showFriendsNew, setShowFriendsNew] = useState(false)
   const [friends, setFriends] = useState([])
   const [pendingIncoming, setPendingIncoming] = useState([])
   const [pendingOutgoing, setPendingOutgoing] = useState([])
@@ -145,6 +148,18 @@ export default function MoreFeatures({ user }) {
   useEffect(() => {
     if (isFriendsOpen) loadFriends()
   }, [isFriendsOpen])
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(FRIENDS_NEW_KEY)
+      const since = stored ? Number(stored) : Date.now()
+      if (!stored) localStorage.setItem(FRIENDS_NEW_KEY, String(since))
+      const elapsedDays = (Date.now() - since) / DAY_MS
+      setShowFriendsNew(elapsedDays <= FRIENDS_NEW_DAYS)
+    } catch {
+      setShowFriendsNew(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -285,6 +300,7 @@ export default function MoreFeatures({ user }) {
       </div>
 
       <div className="grid gap-3 mb-4">
+        <p className="text-[11px] uppercase tracking-[0.4em] text-neutral-500">{t('friends_section_title')}</p>
         <MotionDiv
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.98 }}
@@ -301,23 +317,13 @@ export default function MoreFeatures({ user }) {
               <p className="text-[11px] text-neutral-400">{t('more_friends_desc')}</p>
               <p className="text-[10px] text-neutral-500 mt-2">{t('more_friends_privacy')}</p>
             </div>
-            <div className="flex items-center gap-2">
-              {['A', 'L', 'M'].map((initial, index) => (
-                <MotionDiv
-                  key={initial}
-                  animate={{ y: [0, -2, 0] }}
-                  transition={{ duration: 2.6, repeat: Infinity, delay: index * 0.2 }}
-                  className="h-9 w-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[11px] text-neutral-300"
-                >
-                  {initial}
-                </MotionDiv>
-              ))}
-            </div>
+            {showFriendsNew && (
+              <span className="text-[10px] uppercase tracking-widest font-bold text-indigo-300/80 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">
+                {t('friends_new')}
+              </span>
+            )}
           </div>
           <div className="flex items-center justify-between mt-4">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-300/80 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
-              {t('more_friends_tag')}
-            </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
@@ -327,12 +333,6 @@ export default function MoreFeatures({ user }) {
                 className="text-[11px] text-neutral-300 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full"
               >
                 {t('more_friends_invite')}
-              </button>
-              <button
-                onClick={() => setIsFriendsOpen(true)}
-                className="text-[11px] text-white bg-white/5 border border-white/10 px-3 py-1.5 rounded-full"
-              >
-                {t('more_friends_action')}
               </button>
             </div>
           </div>
@@ -428,6 +428,7 @@ export default function MoreFeatures({ user }) {
           )}
         </div>
 
+        <p className="text-[11px] uppercase tracking-[0.4em] text-neutral-500 pt-2">{t('more_section_title')}</p>
         <MotionDiv
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.98 }}
