@@ -7,6 +7,8 @@ import { useLanguage } from '../context/LanguageContext'
 const MotionDiv = motion.div
 const DAY_MS = 24 * 60 * 60 * 1000
 const LETTER_STORAGE_KEY = 'mivida_future_letters'
+const LETTER_NEW_KEY = 'mivida_letters_new_since'
+const LETTER_NEW_DAYS = 3
 const LETTER_DELAYS = [7, 14, 30]
 
 const loadLetters = () => {
@@ -26,6 +28,7 @@ export default function FutureLettersSection() {
   const [letterText, setLetterText] = useState('')
   const [letterDelay, setLetterDelay] = useState(7)
   const [activeLetter, setActiveLetter] = useState(null)
+  const [showLettersNew, setShowLettersNew] = useState(false)
 
   const orderedLetters = useMemo(() => {
     return [...letters].sort((a, b) => a.openAt - b.openAt)
@@ -60,6 +63,18 @@ export default function FutureLettersSection() {
     if (activeLetter?.id === id) setActiveLetter(null)
   }
 
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LETTER_NEW_KEY)
+      const since = stored ? Number(stored) : Date.now()
+      if (!stored) localStorage.setItem(LETTER_NEW_KEY, String(since))
+      const elapsedDays = (Date.now() - since) / DAY_MS
+      setShowLettersNew(elapsedDays <= LETTER_NEW_DAYS)
+    } catch {
+      setShowLettersNew(false)
+    }
+  }, [])
+
   const renderPortal = (node) => {
     if (typeof document === 'undefined') return null
     return createPortal(node, document.body)
@@ -73,9 +88,11 @@ export default function FutureLettersSection() {
           <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">{t('more_letters_title')}</h2>
           <p className="text-[11px] text-neutral-500">{t('more_letters_desc')}</p>
         </div>
-        <div className="h-9 w-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center">
-          <span className="text-[10px] text-neutral-400 font-bold">{letters.length}</span>
-        </div>
+        {showLettersNew && (
+          <span className="text-[10px] uppercase tracking-widest font-bold text-indigo-300/90 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-1 rounded-full">
+            {t('friends_new')}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center justify-between mt-2 relative z-10">
@@ -101,11 +118,7 @@ export default function FutureLettersSection() {
             >
               {t('more_letters_open')}
             </button>
-          ) : (
-            <span className="text-[10px] uppercase tracking-widest font-bold text-indigo-300/80 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">
-              {t('more_letters_tag')}
-            </span>
-          )}
+          ) : null}
           <button
             onClick={() => setIsLetterOpen(true)}
             className="text-[11px] text-white bg-white/10 border border-white/10 px-3 py-1.5 rounded-full hover:bg-white/15 transition"
