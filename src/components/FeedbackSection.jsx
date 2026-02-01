@@ -36,7 +36,7 @@ export default function FeedbackSection({ user }) {
           return
         }
         const ext = screenshotFile.name.split('.').pop() || 'png'
-        const path = `feedback/${user.id}/${Date.now()}.${ext}`
+        const path = `${user.id}/${Date.now()}.${ext}`
         const { error: uploadError } = await supabase.storage
           .from('feedback')
           .upload(path, screenshotFile, { upsert: true, contentType: screenshotFile.type })
