@@ -17,17 +17,17 @@ export default function CommunityHub({ user }) {
   return (
     <div className="flex flex-col items-center justify-center flex-1 text-white p-6 text-center">
       <div className="w-full max-w-md space-y-6">
-        <div className="bg-neutral-900/40 p-6 radius-card border border-white/5 shadow-apple-soft relative overflow-hidden text-left">
-          <div className="absolute -top-16 right-0 h-36 w-36 rounded-full bg-blue-500/10 blur-3xl" />
-          <div className="relative z-10 flex items-center justify-between">
+        <div className="text-left px-1">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <Users size={16} className="text-neutral-300" />
+            </div>
             <div>
               <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">{t('community_title')}</h2>
               <p className="text-[11px] text-neutral-500">{t('community_subtitle')}</p>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center">
-              <Users size={18} className="text-neutral-200" />
-            </div>
           </div>
+          <div className="mt-4 h-px bg-white/5" />
         </div>
 
         <FriendsSection user={user} />
