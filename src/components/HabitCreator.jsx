@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, Calendar, Clock, Palette, Sparkles, Trash2, Save, Smile, ChevronDown, Settings } from 'lucide-react' // Añadido Smile
 import { supabase } from '../lib/supabaseClient'
 import { useLanguage } from '../context/LanguageContext'
+import ProModal from './ProModal'
 
 const COLORS = ['bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-orange-600', 'bg-pink-600', 'bg-red-600', 'bg-cyan-600']
 
@@ -105,6 +106,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
   const [editingMiniIndex, setEditingMiniIndex] = useState(null)
   const [showMiniHabits, setShowMiniHabits] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showProModal, setShowProModal] = useState(false)
   const { t } = useLanguage()
 
   useEffect(() => {
@@ -150,12 +152,15 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
     if (!title.trim()) return
     setLoading(true)
     try {
-      const {
-        data: { user } = {}
-      } = await supabase.auth.getUser()
+      const { data: { user } = {} } = await supabase.auth.getUser()
+
+      // Leer localStorage aquí, en cada intento de crear hábito
       const ADMIN_EMAIL = 'hemmings.nacho@gmail.com'
       const TEST_EMAIL = 'test@test.com'
-      const isPrivileged = user?.email === ADMIN_EMAIL || user?.email === TEST_EMAIL
+      const isSimulatingFree = localStorage.getItem('dayclose_simulate_free') === 'true'
+      const isPrivileged =
+        (user?.email === ADMIN_EMAIL) ||
+        (user?.email === TEST_EMAIL && !isSimulatingFree)
 
       if (!isPrivileged) {
         const { data: existingHabits, error: countError } = await supabase
@@ -166,7 +171,8 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
 
         if (countError) throw countError
         if (existingHabits && existingHabits.length >= 5) {
-          alert('Has alcanzado el límite de 5 hábitos del plan gratuito.\nPronto podrás desbloquear más con DayClose Pro.')
+          setLoading(false)
+          setShowProModal(true)
           return
         }
       }
@@ -450,6 +456,7 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
           </form>
         </MotionDiv>
       </div>
+      <ProModal isOpen={showProModal} onClose={() => setShowProModal(false)} />
     </AnimatePresence>
   )
 }

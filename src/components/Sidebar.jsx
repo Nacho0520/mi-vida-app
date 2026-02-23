@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, LogOut, Settings, ShieldCheck, Heart, ChevronRight, Sparkles, Beaker, Archive } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
@@ -87,6 +88,9 @@ export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSetting
                   </button>
                 )}
               </nav>
+              {email === 'test@test.com' && (
+                <TestModeSwitch />
+              )}
               <div className="mb-4">
                 <a href="https://ko-fi.com/nachohemmings" target="_blank" rel="noopener noreferrer" className="group flex items-center justify-between w-full px-5 py-5 bg-emerald-500/10 border border-emerald-500/20 rounded-[2rem] transition-all hover:bg-emerald-500/20 active:scale-95 shadow-lg shadow-emerald-500/5">
                   <div className="flex items-center gap-3">
@@ -109,5 +113,47 @@ export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSetting
         </>
       )}
     </AnimatePresence>
+  )
+}
+
+function TestModeSwitch() {
+  const [isSimulating, setIsSimulating] = useState(
+    localStorage.getItem('dayclose_simulate_free') === 'true'
+  )
+
+  const toggle = () => {
+    const next = !isSimulating
+    setIsSimulating(next)
+    localStorage.setItem('dayclose_simulate_free', String(next))
+  }
+
+  return (
+    <div className="mx-4 mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+      <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
+        🧪 Modo Test
+      </p>
+      <div className="flex items-center justify-between">
+        <span className="text-neutral-300 text-sm">
+          Simular usuario Free
+        </span>
+        <button
+          onClick={toggle}
+          className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+            isSimulating ? 'bg-amber-500' : 'bg-neutral-600'
+          }`}
+        >
+          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full 
+                           shadow transition-transform duration-200 ${
+                             isSimulating ? 'translate-x-5' : 'translate-x-0'
+                           }`} 
+          />
+        </button>
+      </div>
+      <p className="text-neutral-500 text-xs mt-2">
+        {isSimulating 
+          ? '⚠️ Límite de 5 hábitos activo' 
+          : '✅ Acceso Pro completo'}
+      </p>
+    </div>
   )
 }
