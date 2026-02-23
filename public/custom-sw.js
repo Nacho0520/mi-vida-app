@@ -3,7 +3,7 @@
 self.addEventListener('push', (event) => {
     const data = event.data ? event.data.json() : {};
     
-    const title = data.title || 'Mi Vida Organizada';
+    const title = data.title || 'DayClose';
     const options = {
       body: data.body || 'Tienes un nuevo mensaje',
       icon: '/pwa-192x192.png',

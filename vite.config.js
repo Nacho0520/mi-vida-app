@@ -29,8 +29,8 @@ export default defineConfig({
       },
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
       manifest: {
-        name: "Mi Vida Organizada",
-        short_name: "MiVida",
+        name: "DayClose",
+        short_name: "DayClose",
         description: "App de seguimiento de hábitos y rutina diaria",
         theme_color: "#171717",
         background_color: "#171717",

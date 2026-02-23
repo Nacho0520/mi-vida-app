@@ -149,19 +149,41 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
     e.preventDefault()
     if (!title.trim()) return
     setLoading(true)
-    const habitData = {
-      user_id: userId,
-      title: title.trim(),
-      frequency: selectedDays,
-      time_of_day: timeOfDay,
-      color: selectedColor,
-      icon: selectedIcon,
-      is_active: true,
-      mini_habits: miniHabits
-        .filter(h => h?.title?.trim())
-        .map(h => ({ title: h.title.trim(), icon: h.icon, color: h.color }))
-    }
     try {
+      const {
+        data: { user } = {}
+      } = await supabase.auth.getUser()
+      const ADMIN_EMAIL = 'hemmings.nacho@gmail.com'
+      const TEST_EMAIL = 'test@test.com'
+      const isPrivileged = user?.email === ADMIN_EMAIL || user?.email === TEST_EMAIL
+
+      if (!isPrivileged) {
+        const { data: existingHabits, error: countError } = await supabase
+          .from('habits')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('is_active', true)
+
+        if (countError) throw countError
+        if (existingHabits && existingHabits.length >= 5) {
+          alert('Has alcanzado el límite de 5 hábitos del plan gratuito.\nPronto podrás desbloquear más con DayClose Pro.')
+          return
+        }
+      }
+
+      const habitData = {
+        user_id: userId,
+        title: title.trim(),
+        frequency: selectedDays,
+        time_of_day: timeOfDay,
+        color: selectedColor,
+        icon: selectedIcon,
+        is_active: true,
+        mini_habits: miniHabits
+          .filter(h => h?.title?.trim())
+          .map(h => ({ title: h.title.trim(), icon: h.icon, color: h.color }))
+      }
+
       if (habitToEdit) {
         const { error } = await supabase.from('habits').update(habitData).eq('id', habitToEdit.id)
         if (error) {
@@ -187,7 +209,11 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
       }
       onHabitCreated()
       onClose()
-    } catch (err) { alert('Error: ' + err.message) } finally { setLoading(false) }
+    } catch (err) {
+      alert('Error: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleAddMiniHabit = () => {

@@ -36,10 +36,10 @@ serve(async (req) => {
     const payloadRequest = await req.json().catch(() => ({}))
     const {
       title = '🌙 Momento de reflexión',
-      body = '¿Qué tal ha ido el día? Entra en MiVida para cerrar tus hábitos.',
+      body = '¿Qué tal ha ido el día? Entra en DayClose para cerrar tus hábitos.',
       icon = '/pwa-192x192.png',
       badge = '/pwa-192x192.png',
-      url = 'https://mi-vida-app.vercel.app',
+      url = 'https://dayclose.vercel.app',
       language = null,
       min_version = null,
       max_version = null,

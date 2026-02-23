@@ -124,7 +124,7 @@ export default function FriendsSection({ user }) {
         body: {
           title,
           body,
-          url: 'https://mi-vida-app.vercel.app/?open=friends',
+          url: 'https://dayclose.vercel.app/?open=friends',
           user_ids: [targetUserId]
         }
       })

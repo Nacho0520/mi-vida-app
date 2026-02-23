@@ -63,7 +63,7 @@ export default function FeedbackSection({ user }) {
             body: {
               title: t('feedback_push_title'),
               body: t('feedback_push_body'),
-              url: 'https://mi-vida-app.vercel.app',
+              url: 'https://dayclose.vercel.app',
               user_ids: adminIds
             }
           })
