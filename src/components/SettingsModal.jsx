@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { X, Globe } from 'lucide-react'
-import NotificationManager from './NotificationManager'
 import { useLanguage } from '../context/LanguageContext'
 import { supabase } from '../lib/supabaseClient'
 
@@ -118,7 +117,7 @@ export default function SettingsModal({ isOpen, onClose, user, appVersion }) {
           </div>
           <div className="pt-2 border-t border-white/5 mt-4">
             <p className="text-xs text-neutral-400 mb-2">{t('system_permissions')}</p>
-            {user?.id ? (<NotificationManager userId={user.id} appVersion={appVersion} />) : (<p className="text-xs text-neutral-500 italic">{t('loading_permissions')}</p>)}
+            {!user?.id && <p className="text-xs text-neutral-500 italic">{t('loading_permissions')}</p>}
           </div>
           <div className="bg-neutral-900/50 p-4 rounded-xl border border-neutral-800/60">
             <p className="text-xs text-neutral-400 mb-2 font-semibold">{t('push_steps_title')}</p>

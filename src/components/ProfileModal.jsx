@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { X, User, Upload, Image as ImageIcon, Trash2 } from 'lucide-react'
+import { X, User, Upload, Image as ImageIcon, Trash2, Zap, Flame, Trophy, TrendingUp } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 
 const PRESET_AVATAR_GROUPS = [
@@ -26,7 +26,7 @@ const PRESET_AVATAR_GROUPS = [
   }
 ]
 
-export default function ProfileModal({ isOpen, onClose, user }) {
+export default function ProfileModal({ isOpen, onClose, user, isPro }) {
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || '')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,6 +34,65 @@ export default function ProfileModal({ isOpen, onClose, user }) {
   const [avatarUrl, setAvatarUrl] = useState(user?.user_metadata?.avatar_url || '')
   const [uploading, setUploading] = useState(false)
   const { t } = useLanguage()
+  const [profileStats, setProfileStats] = useState(null)
+
+  useEffect(() => {
+    if (!isOpen || !user?.id) return
+    const fetchStats = async () => {
+      const { data: logs } = await supabase
+        .from('daily_logs')
+        .select('created_at, status')
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+      if (!logs) return
+
+      const formatDate = (d) => new Date(d).toISOString().split('T')[0]
+      const activeDays = [...new Set(logs.map(l => formatDate(l.created_at)))]
+
+      // Racha actual
+      let streak = 0
+      const today = formatDate(new Date())
+      let check = new Date()
+      if (activeDays.includes(today)) {
+        streak = 1
+        check.setDate(check.getDate() - 1)
+        while (activeDays.includes(formatDate(check))) {
+          streak++
+          check.setDate(check.getDate() - 1)
+        }
+      }
+
+      // Mejor racha
+      let bestStreak = 0
+      let tempStreak = 0
+      const sorted = [...activeDays].sort()
+      for (let i = 0; i < sorted.length; i++) {
+        if (i === 0) { tempStreak = 1; continue }
+        const prev = new Date(sorted[i - 1])
+        const curr = new Date(sorted[i])
+        const diff = (curr - prev) / (1000 * 60 * 60 * 24)
+        if (diff === 1) { tempStreak++ } else { tempStreak = 1 }
+        if (tempStreak > bestStreak) bestStreak = tempStreak
+      }
+      if (tempStreak > bestStreak) bestStreak = tempStreak
+
+      // Mejor semana (7 días naturales)
+      const weekCounts = {}
+      logs.forEach(l => {
+        const d = new Date(l.created_at)
+        const monday = new Date(d)
+        const dist = d.getDay() === 0 ? 6 : d.getDay() - 1
+        monday.setDate(d.getDate() - dist)
+        const key = formatDate(monday)
+        weekCounts[key] = (weekCounts[key] || 0) + 1
+      })
+      const bestWeek = Math.max(0, ...Object.values(weekCounts))
+
+      setProfileStats({ streak, bestStreak: Math.max(streak, bestStreak), total: logs.length, bestWeek })
+    }
+    fetchStats()
+  }, [isOpen, user?.id])
 
   if (!isOpen) return null
 
@@ -155,6 +214,46 @@ export default function ProfileModal({ isOpen, onClose, user }) {
             {message.text}
           </div>
         )}
+        {/* Estadísticas de perfil */}
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-black text-neutral-400 uppercase tracking-widest">{t('profile_stats_title') || 'Tus estadísticas'}</p>
+            {!isPro && (
+              <span className="flex items-center gap-1 text-[10px] font-black text-violet-400 px-2 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/20 uppercase tracking-wider">
+                <Zap size={9} /> Pro
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {/* Racha actual — libre */}
+            <div className="bg-neutral-900/60 rounded-2xl p-4 border border-white/5">
+              <Flame size={16} className="text-orange-400 mb-2" />
+              <p className="text-xl font-black text-white">{profileStats?.streak ?? '—'}</p>
+              <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">{t('streak_label')}</p>
+            </div>
+            {/* Total completados — libre */}
+            <div className="bg-neutral-900/60 rounded-2xl p-4 border border-white/5">
+              <Trophy size={16} className="text-yellow-400 mb-2" />
+              <p className="text-xl font-black text-white">{profileStats?.total ?? '—'}</p>
+              <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">{t('total_wins')}</p>
+            </div>
+            {/* Mejor racha — Pro */}
+            <div className={`relative bg-neutral-900/60 rounded-2xl p-4 border ${isPro ? 'border-white/5' : 'border-violet-500/10'}`}>
+              {!isPro && <div className="absolute inset-0 rounded-2xl bg-neutral-900/60 backdrop-blur-[2px] flex items-center justify-center"><Zap size={14} className="text-violet-400" /></div>}
+              <Flame size={16} className="text-amber-400 mb-2" />
+              <p className={`text-xl font-black ${isPro ? 'text-white' : 'text-white/20 blur-sm select-none'}`}>{profileStats?.bestStreak ?? '—'}</p>
+              <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">{t('best_streak') || 'Mejor racha'}</p>
+            </div>
+            {/* Mejor semana — Pro */}
+            <div className={`relative bg-neutral-900/60 rounded-2xl p-4 border ${isPro ? 'border-white/5' : 'border-violet-500/10'}`}>
+              {!isPro && <div className="absolute inset-0 rounded-2xl bg-neutral-900/60 backdrop-blur-[2px] flex items-center justify-center"><Zap size={14} className="text-violet-400" /></div>}
+              <TrendingUp size={16} className="text-emerald-400 mb-2" />
+              <p className={`text-xl font-black ${isPro ? 'text-white' : 'text-white/20 blur-sm select-none'}`}>{profileStats?.bestWeek ?? '—'}</p>
+              <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">{t('best_week') || 'Mejor semana'}</p>
+            </div>
+          </div>
+        </div>
+
         <form onSubmit={handleUpdate} className="premium-divider">
           <div className="premium-divider">
             <label className="block text-sm text-neutral-400 mb-1">{t('avatar_title')}</label>

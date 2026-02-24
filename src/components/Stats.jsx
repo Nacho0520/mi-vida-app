@@ -20,6 +20,7 @@ export default function Stats({ user, isPro }) {
     }
   })
   const [isProtectorActive, setProtectorActive] = useState(false)
+  const [isPerfectWeek, setIsPerfectWeek] = useState(false)
   const { t } = useLanguage()
   const MAX_PROTECTORS_PER_MONTH = 2
 
@@ -110,6 +111,11 @@ export default function Stats({ user, isPro }) {
         currentWeekData.push({ day: days[d.getDay()], date: dateStr, count, isToday: dateStr === todayStr })
       }
       setWeeklyData(currentWeekData)
+      const isPerfectWeek = currentWeekData.every(d => {
+        const dDate = new Date(d.date)
+        return dDate > new Date() || d.count > 0
+      })
+      setIsPerfectWeek(isPerfectWeek && currentWeekData.filter(d => new Date(d.date) <= new Date()).every(d => d.count > 0))
 
       // Heatmap — últimos 28 días
       const heatmap = []
@@ -201,6 +207,11 @@ export default function Stats({ user, isPro }) {
         <div className="flex items-center gap-3 mb-6">
           <Calendar size={18} className="text-neutral-400" />
           <h3 className="text-sm font-black text-white uppercase tracking-wider">{t('weekly_perf')}</h3>
+          {isPerfectWeek && (
+            <span className="ml-auto flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-400 text-[10px] font-black uppercase tracking-wider animate-pulse">
+              🏆 {t('perfect_week') || 'Semana perfecta'}
+            </span>
+          )}
         </div>
         <div className="flex items-end justify-between h-32 gap-2">
           {weeklyData.map((d, i) => {

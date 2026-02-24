@@ -164,6 +164,9 @@ function App() {
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(null)
   const [hasSaved, setHasSaved] = useState(false)
+  const [showDaySummary, setShowDaySummary] = useState(false)
+  const [dayScore, setDayScore] = useState(null)
+  const [dayMood, setDayMood] = useState(null)
   const [isMaintenance, setIsMaintenance] = useState(false)
   const [updateAvailable, setUpdateAvailable] = useState(false)
   const [maintenanceMessage, setMaintenanceMessage] = useState('')
@@ -369,6 +372,7 @@ function App() {
 
   const handleStartReview = () => {
     setMode('reviewing'); setCurrentIndex(0); setResults([]); setHasSaved(false); setSaveSuccess(null);
+    setShowDaySummary(false); setDayScore(null); setDayMood(null);
   }
 
   const handleResetTutorial = async () => {
@@ -475,18 +479,25 @@ function App() {
     }
   }, [session, habits, fetchTodayLogs, mode])
 
+  // FIX 2 + FIX 3: solo guarda cuando showDaySummary es true, y espera fetchTodayLogs antes de cambiar de modo
   useEffect(() => {
-    if (!session || !reviewHabits.length || mode !== 'reviewing' || currentIndex < reviewHabits.length || !results.length || hasSaved || saving) return
+    if (!session || !reviewHabits.length || mode !== 'reviewing' || currentIndex < reviewHabits.length || !results.length || hasSaved || saving || !showDaySummary) return
     const saveResults = async () => {
       setSaving(true);
       const payload = results.map(i => ({ user_id: session.user.id, habit_id: i.id, status: i.status, note: i.note || null, created_at: new Date().toISOString() }))
       const { error } = await supabase.from('daily_logs').insert(payload)
-      if (!error) { setSaveSuccess(t('saved_success')); setHasSaved(true); setTimeout(() => { fetchTodayLogs(); setMode('dashboard'); }, 1500); } 
-      else { console.error('Error guardando logs:', error.message) }
+      if (!error) {
+        setSaveSuccess(t('saved_success'));
+        setHasSaved(true);
+        await fetchTodayLogs();
+        setTimeout(() => { setSwipeStatus(null); setMode('dashboard'); }, 1200);
+      } else {
+        console.error('Error guardando logs:', error.message)
+      }
       setSaving(false)
     }
     saveResults()
-  }, [session, reviewHabits, currentIndex, results, hasSaved, saving, mode, fetchTodayLogs, t])
+  }, [session, reviewHabits, currentIndex, results, hasSaved, saving, mode, fetchTodayLogs, t, showDaySummary])
 
   if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white font-black italic tracking-tighter">DAYCLOSE</div>
   const isTestAccount = session?.user?.email === TEST_EMAIL
@@ -541,7 +552,6 @@ function App() {
     return (
       <div className="relative min-h-screen bg-neutral-900 overflow-x-hidden flex flex-col">
         <ProWelcomeModal isOpen={showCheckoutSuccessToast} onClose={() => setShowCheckoutSuccessToast(false)} />
-        {/* TopBanner renderizado como bloque flexible, no flotante */}
         <TopBanner onOpenUpdates={() => setUpdateOpen(true)} />
         <UpdateShowcase isOpen={updateOpen} onClose={handleCloseUpdate} payload={updatePayload} />
         {updateAvailable && (
@@ -637,6 +647,62 @@ function App() {
             onSwipeComplete={(d) => { if (d === 'right') { setResults(p => [...p, { id: currentHabit.id, title: currentHabit.title, status: 'completed' }]); setCurrentIndex(c => c + 1); } else { setPendingHabit(currentHabit); setIsModalOpen(true); } }} 
             onDrag={(x) => setSwipeStatus(x > 100 ? 'done' : x < -100 ? 'not-done' : null)} 
           />
+        ) : !showDaySummary ? (
+          <div className="w-full max-w-sm mx-auto">
+            <div className="bg-neutral-800/60 rounded-[2rem] border border-white/5 p-6 text-center shadow-xl">
+              <p className="text-2xl mb-1">✅</p>
+              <p className="text-lg font-black text-white mb-1">{t('review_completed')}</p>
+              <p className="text-[11px] text-neutral-500 mb-6">{t('day_summary_subtitle') || 'Antes de cerrar, ¿cómo fue tu día?'}</p>
+
+              <p className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 mb-3">{t('day_score_label') || 'Puntúa tu día'}</p>
+              <div className="flex justify-center gap-1.5 mb-6 flex-wrap">
+                {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setDayScore(n)}
+                    className={`w-9 h-9 rounded-xl text-sm font-black transition-all active:scale-90 ${
+                      dayScore === n
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'bg-neutral-700/60 text-neutral-400 border border-white/5'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+
+              <p className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 mb-3">{t('day_mood_label') || 'Estado de ánimo'}</p>
+              <div className="flex justify-center gap-3 mb-6">
+                {['😩','😕','😐','🙂','😄'].map(emoji => (
+                  <button
+                    key={emoji}
+                    onClick={() => setDayMood(emoji)}
+                    className={`text-2xl w-12 h-12 rounded-2xl transition-all active:scale-90 ${
+                      dayMood === emoji
+                        ? 'bg-neutral-600 ring-2 ring-white/30 scale-110'
+                        : 'bg-neutral-700/40 border border-white/5'
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setShowDaySummary(true)}
+                disabled={!dayScore || !dayMood}
+                className="w-full py-4 rounded-2xl bg-white text-black font-black text-sm active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none"
+              >
+                {t('close_day_btn') || 'Cerrar el día →'}
+              </button>
+              <button
+                onClick={() => setShowDaySummary(true)}
+                className="mt-3 w-full text-[11px] text-neutral-600 active:text-neutral-400"
+              >
+                {t('skip_summary') || 'Saltar'}
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="rounded-2xl bg-neutral-800 p-6 text-center">
             <p className="text-xl font-bold mb-2">{t('review_completed')}</p>

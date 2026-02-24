@@ -12,7 +12,7 @@ import {
   Smile,
   ChevronDown,
   Settings,
-} from "lucide-react"; // Añadido Smile
+} from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { useLanguage } from "../context/LanguageContext";
 import ProModal from "./ProModal";
@@ -27,76 +27,14 @@ const COLORS = [
   "bg-cyan-600",
 ];
 
-// BIBLIOTECA DE ICONOS EXPANDIDA (+60 opciones)
 const ICONS = [
-  "📚",
-  "💧",
-  "🏃",
-  "🧘",
-  "💊",
-  "💤",
-  "📝",
-  "🧹",
-  "🥦",
-  "💰",
-  "🎸",
-  "📵",
-  "🏋️",
-  "🚴",
-  "🏊",
-  "🚶",
-  "🍎",
-  "🥗",
-  "🥤",
-  "🦷",
-  "💻",
-  "✍️",
-  "🧠",
-  "🎯",
-  "⏰",
-  "📧",
-  "💼",
-  "🎓",
-  "🧺",
-  "🍳",
-  "🪴",
-  "🛁",
-  "🛌",
-  "🚿",
-  "🧼",
-  "🎨",
-  "🎮",
-  "🎬",
-  "📷",
-  "🎧",
-  "♟️",
-  "🧶",
-  "👫",
-  "🐕",
-  "🐈",
-  "☕",
-  "🍺",
-  "🍦",
-  "✈️",
-  "🛒",
-  "👔",
-  "🛠️",
-  "🚗",
-  "📈",
-  "💎",
-  "💡",
-  "☀️",
-  "🌑",
-  "🌊",
-  "⛰️",
-  "🌳",
-  "🕯️",
-  "✨",
-  "🔓",
-  "🚭",
-  "💪",
-  "🤳",
-  "🧽",
+  "📚", "💧", "🏃", "🧘", "💊", "💤", "📝", "🧹", "🥦", "💰",
+  "🎸", "📵", "🏋️", "🚴", "🏊", "🚶", "🍎", "🥗", "🥤", "🦷",
+  "💻", "✍️", "🧠", "🎯", "⏰", "📧", "💼", "🎓", "🧺", "🍳",
+  "🪴", "🛁", "🛌", "🚿", "🧼", "🎨", "🎮", "🎬", "📷", "🎧",
+  "♟️", "🧶", "👫", "🐕", "🐈", "☕", "🍺", "🍦", "✈️", "🛒",
+  "👔", "🛠️", "🚗", "📈", "💎", "💡", "☀️", "🌑", "🌊", "⛰️",
+  "🌳", "🕯️", "✨", "🔓", "🚭", "💪", "🤳", "🧽",
 ];
 
 const DAYS = [
@@ -108,6 +46,9 @@ const DAYS = [
   { id: "S", label: "S" },
   { id: "D", label: "D" },
 ];
+
+const ALL_DAYS = ["L", "M", "X", "J", "V", "S", "D"];
+
 const MotionDiv = motion.div;
 
 const normalizeMiniHabits = (value) => {
@@ -187,6 +128,16 @@ const normalizeMiniHabits = (value) => {
   return [];
 };
 
+const normalizeFreq = (f) => {
+  if (!f) return ALL_DAYS;
+  if (Array.isArray(f)) return f.length === 0 ? ALL_DAYS : f;
+  if (typeof f === "string") {
+    const arr = f.replace(/[{}]/g, "").split(",").map(v => v.trim()).filter(Boolean);
+    return arr.length === 0 ? ALL_DAYS : arr;
+  }
+  return ALL_DAYS;
+};
+
 export default function HabitCreator({
   isOpen,
   onClose,
@@ -210,7 +161,6 @@ export default function HabitCreator({
   const [userPlan, setUserPlan] = useState("free");
   const { t } = useLanguage();
 
-  // Cargar plan desde profiles al montar / cuando hay userId
   useEffect(() => {
     if (!userId) return;
     const loadPlan = async () => {
@@ -237,9 +187,7 @@ export default function HabitCreator({
         setMiniHabitColor(COLORS[0]);
         setMiniHabitInput("");
         setEditingMiniIndex(null);
-        setShowMiniHabits(
-          normalizeMiniHabits(habitToEdit.mini_habits).length > 0,
-        );
+        setShowMiniHabits(normalizeMiniHabits(habitToEdit.mini_habits).length > 0);
       } else {
         setTitle("");
         setSelectedDays(["L", "M", "X", "J", "V"]);
@@ -272,24 +220,36 @@ export default function HabitCreator({
     try {
       const { data: { user } = {} } = await supabase.auth.getUser();
 
-      // Sin límite: plan Pro, admin, o test sin "simular free"
       const ADMIN_EMAIL = "hemmings.nacho@gmail.com";
       const TEST_EMAIL = "test@test.com";
-      const simulateFree = typeof localStorage !== "undefined" && localStorage.getItem("dayclose_simulate_free") === "true";
-      const isPrivileged =
+      const freshSimulateFree =
+        typeof localStorage !== "undefined" &&
+        localStorage.getItem("dayclose_simulate_free") === "true";
+      const effectiveIsPrivileged =
         userPlan === "pro" ||
         user?.email === ADMIN_EMAIL ||
-        (user?.email === TEST_EMAIL && !simulateFree);
+        (user?.email === TEST_EMAIL && !freshSimulateFree);
 
-      if (!isPrivileged) {
+      if (!effectiveIsPrivileged && !habitToEdit) {
         const { data: existingHabits, error: countError } = await supabase
           .from("habits")
-          .select("id")
+          .select("id, frequency")
           .eq("user_id", userId)
           .eq("is_active", true);
 
         if (countError) throw countError;
-        if (existingHabits && existingHabits.length >= 5) {
+
+        // Calcular máximo de hábitos coincidentes en cualquier día de la semana
+        const newFreq = selectedDays.length === 0 ? ALL_DAYS : selectedDays;
+        const maxPerDay = ALL_DAYS.reduce((max, day) => {
+          const existingCount = (existingHabits || []).filter(h =>
+            normalizeFreq(h.frequency).includes(day)
+          ).length;
+          const countWithNew = newFreq.includes(day) ? existingCount + 1 : existingCount;
+          return Math.max(max, countWithNew);
+        }, 0);
+
+        if (maxPerDay > 5) {
           setLoading(false);
           setShowProModal(true);
           return;
@@ -356,10 +316,7 @@ export default function HabitCreator({
   const handleAddMiniHabit = () => {
     const value = miniHabitInput.trim();
     if (!value) return;
-    if (
-      editingMiniIndex === null &&
-      miniHabits.some((item) => item.title === value)
-    ) {
+    if (editingMiniIndex === null && miniHabits.some((item) => item.title === value)) {
       setMiniHabitInput("");
       return;
     }
@@ -373,10 +330,7 @@ export default function HabitCreator({
       );
     } else {
       setMiniHabits((prev) =>
-        [
-          ...prev,
-          { title: value, icon: miniHabitIcon, color: miniHabitColor },
-        ].slice(0, 8),
+        [...prev, { title: value, icon: miniHabitIcon, color: miniHabitColor }].slice(0, 8),
       );
     }
     setMiniHabitInput("");
@@ -478,7 +432,6 @@ export default function HabitCreator({
           </div>
 
           <form onSubmit={handleSubmit} className="premium-divider">
-            {/* Título e Icono Actual */}
             <div className="premium-divider">
               <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
                 {t("habit_name_label")}
@@ -520,9 +473,7 @@ export default function HabitCreator({
               {showMiniHabits && (
                 <>
                   <div className="flex gap-2">
-                    <div
-                      className={`h-11 w-11 rounded-2xl flex items-center justify-center text-xl shadow-inner border border-white/5 ${miniHabitColor}`}
-                    >
+                    <div className={`h-11 w-11 rounded-2xl flex items-center justify-center text-xl shadow-inner border border-white/5 ${miniHabitColor}`}>
                       {miniHabitIcon}
                     </div>
                     <input
@@ -537,9 +488,7 @@ export default function HabitCreator({
                       onClick={handleAddMiniHabit}
                       className="px-4 rounded-2xl bg-white/10 text-white text-sm font-semibold border border-white/5 hover:bg-white/20"
                     >
-                      {editingMiniIndex !== null
-                        ? t("mini_habits_update")
-                        : t("mini_habits_add")}
+                      {editingMiniIndex !== null ? t("mini_habits_update") : t("mini_habits_add")}
                     </button>
                   </div>
                   {editingMiniIndex !== null && (
@@ -578,17 +527,12 @@ export default function HabitCreator({
                       {miniHabits.map((item, index) => (
                         <div
                           key={`${item.title}-${index}`}
-                          type="button"
                           className="flex items-center gap-3 radius-card border border-white/5 bg-neutral-900/70 px-3 py-2 text-[11px] text-neutral-200"
                         >
-                          <div
-                            className={`h-8 w-8 rounded-xl flex items-center justify-center ${item.color}`}
-                          >
+                          <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${item.color}`}>
                             <span className="text-base">{item.icon}</span>
                           </div>
-                          <span className="font-semibold tracking-tight flex-1">
-                            {item.title}
-                          </span>
+                          <span className="font-semibold tracking-tight flex-1">{item.title}</span>
                           <button
                             type="button"
                             onClick={() => handleEditMiniHabit(item, index)}
@@ -613,7 +557,6 @@ export default function HabitCreator({
               )}
             </div>
 
-            {/* SELECCIÓN DE ICONO (MODIFICACIÓN) */}
             <div className="premium-divider">
               <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider">
                 <Smile size={14} /> {t("icon_label")}
@@ -652,6 +595,7 @@ export default function HabitCreator({
                 })}
               </div>
             </div>
+
             <div className="premium-divider">
               <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider">
                 <Clock size={14} /> {t("time_of_day")}
@@ -673,6 +617,7 @@ export default function HabitCreator({
                 ))}
               </div>
             </div>
+
             <div className="premium-divider">
               <label className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider">
                 <Palette size={14} /> {t("color")}
@@ -688,6 +633,7 @@ export default function HabitCreator({
                 ))}
               </div>
             </div>
+
             <button
               type="submit"
               disabled={loading || !title}
@@ -696,13 +642,9 @@ export default function HabitCreator({
               {loading ? (
                 t("saving")
               ) : habitToEdit ? (
-                <>
-                  <Save size={20} /> {t("save_changes_btn")}
-                </>
+                <><Save size={20} /> {t("save_changes_btn")}</>
               ) : (
-                <>
-                  <Check size={20} /> {t("create_habit_btn")}
-                </>
+                <><Check size={20} /> {t("create_habit_btn")}</>
               )}
             </button>
           </form>
