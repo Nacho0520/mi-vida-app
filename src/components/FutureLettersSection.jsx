@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { Mail, Clock } from 'lucide-react'
+import { Mail, Clock, Zap } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
+import ProModal from './ProModal'
 
 const MotionDiv = motion.div
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -10,6 +11,7 @@ const LETTER_STORAGE_KEY = 'mivida_future_letters'
 const LETTER_NEW_KEY = 'mivida_letters_new_since'
 const LETTER_NEW_DAYS = 3
 const LETTER_DELAYS = [7, 14, 30]
+const MAX_FREE_LETTERS = 1
 
 const loadLetters = () => {
   try {
@@ -21,7 +23,7 @@ const loadLetters = () => {
   }
 }
 
-export default function FutureLettersSection() {
+export default function FutureLettersSection({ isPro }) {
   const { t } = useLanguage()
   const [letters, setLetters] = useState(() => loadLetters())
   const [isLetterOpen, setIsLetterOpen] = useState(false)
@@ -29,6 +31,9 @@ export default function FutureLettersSection() {
   const [letterDelay, setLetterDelay] = useState(7)
   const [activeLetter, setActiveLetter] = useState(null)
   const [showLettersNew, setShowLettersNew] = useState(false)
+  const [proModalOpen, setProModalOpen] = useState(false)
+
+  const canWriteLetter = isPro || letters.length < MAX_FREE_LETTERS
 
   const orderedLetters = useMemo(() => {
     return [...letters].sort((a, b) => a.openAt - b.openAt)
@@ -75,6 +80,11 @@ export default function FutureLettersSection() {
     }
   }, [])
 
+  const handleOpenWriter = () => {
+    if (!canWriteLetter) { setProModalOpen(true); return }
+    setIsLetterOpen(true)
+  }
+
   const renderPortal = (node) => {
     if (typeof document === 'undefined') return null
     return createPortal(node, document.body)
@@ -82,6 +92,7 @@ export default function FutureLettersSection() {
 
   return (
     <div className="bg-neutral-900/40 p-5 sm:p-6 radius-card border border-white/5 shadow-apple-soft relative overflow-hidden">
+      <ProModal isOpen={proModalOpen} onClose={() => setProModalOpen(false)} />
       <div className="absolute -top-24 left-6 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl" />
       <div className="flex items-center justify-between mb-3 relative z-10">
         <div>
@@ -90,6 +101,16 @@ export default function FutureLettersSection() {
         </div>
         {showLettersNew && <span className="badge-subtle">{t('friends_new')}</span>}
       </div>
+
+      {!isPro && letters.length >= MAX_FREE_LETTERS && (
+        <button onClick={() => setProModalOpen(true)} className="w-full mb-3 relative z-10 flex items-center justify-between gap-3 bg-violet-600/10 border border-violet-500/20 rounded-2xl px-4 py-2.5 active:scale-95 transition-all">
+          <p className="text-[11px] text-neutral-400">Plan Free: máx {MAX_FREE_LETTERS} carta activa</p>
+          <div className="flex items-center gap-1 bg-violet-600 px-2.5 py-1 rounded-lg flex-shrink-0">
+            <Zap size={10} className="text-white fill-white" />
+            <span className="text-[10px] font-black text-white">Pro</span>
+          </div>
+        </button>
+      )}
 
       <div className="flex items-center justify-between mt-2 relative z-10">
         <div className="flex items-center gap-2 text-[10px] text-neutral-500">
@@ -116,8 +137,12 @@ export default function FutureLettersSection() {
             </button>
           ) : null}
           <button
-            onClick={() => setIsLetterOpen(true)}
-            className="text-[11px] text-white bg-white/10 border border-white/10 px-3 py-1.5 rounded-full hover:bg-white/15 transition"
+            onClick={handleOpenWriter}
+            className={`text-[11px] px-3 py-1.5 rounded-full transition ${
+              canWriteLetter
+                ? 'text-white bg-white/10 border border-white/10 hover:bg-white/15'
+                : 'text-violet-400 bg-violet-600/10 border border-violet-500/20'
+            }`}
           >
             {t('more_letters_action')}
           </button>

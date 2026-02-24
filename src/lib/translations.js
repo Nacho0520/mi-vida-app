@@ -124,6 +124,8 @@ export const translations = {
     total_wins: "Victorias Totales",
     this_week: "Esta Semana",
     weekly_perf: "Rendimiento Semanal",
+    heatmap_title: "Mapa de Actividad",
+    heatmap_unlock: "Desbloquea el mapa de calor con Pro",
     compare_day: "Hoy vs Ayer",
     compare_week: "Esta semana",
     compare_month: "Mes actual",
@@ -317,7 +319,19 @@ export const translations = {
     push_generic_step2: "Activa las notificaciones desde Ajustes.",
     tut_congrats_title: "¡Enhorabuena!",
     tut_congrats_desc: "Ya eres un experto en DayClose.",
-    tut_enter_app: "ENTRAR A LA APP"
+    tut_enter_app: "ENTRAR A LA APP",
+
+    // Subscription
+    subscription_title: "Suscripción",
+    plan_free_title: "Plan Free",
+    plan_free_desc: "Hasta 5 hábitos activos",
+    plan_pro_title: "Plan Pro activo",
+    plan_pro_desc: "Hábitos ilimitados y todas las funciones",
+    upgrade_to_pro: "Actualizar a Pro",
+    manage_subscription: "Gestionar suscripción",
+    payment_error: "No se ha podido iniciar el pago. Inténtalo de nuevo.",
+    portal_error: "No se ha podido abrir el portal. Inténtalo de nuevo.",
+
   },
   en: {
     // Auth & General
@@ -444,6 +458,8 @@ export const translations = {
     total_wins: "Total Wins",
     this_week: "This Week",
     weekly_perf: "Weekly Performance",
+    heatmap_title: "Activity Map",
+    heatmap_unlock: "Unlock the activity map with Pro",
     compare_day: "Today vs Yesterday",
     compare_week: "This week",
     compare_month: "Current month",
@@ -636,6 +652,18 @@ export const translations = {
     push_generic_step2: "Enable notifications in Settings.",
     tut_congrats_title: "Congratulations!",
     tut_congrats_desc: "You are now a DayClose expert.",
-    tut_enter_app: "ENTER APP"
+    tut_enter_app: "ENTER APP",
+
+    // Subscription
+    subscription_title: "Subscription",
+    plan_free_title: "Free Plan",
+    plan_free_desc: "Up to 5 active habits",
+    plan_pro_title: "Pro Plan active",
+    plan_pro_desc: "Unlimited habits and all features",
+    upgrade_to_pro: "Upgrade to Pro",
+    manage_subscription: "Manage subscription",
+    payment_error: "Could not start payment. Please try again.",
+    portal_error: "Could not open portal. Please try again.",
+
   }
 }

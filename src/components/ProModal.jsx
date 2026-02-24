@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { X, Zap, BarChart2, Infinity, Bell } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabaseClient'
@@ -47,26 +48,23 @@ export default function ProModal({ isOpen, onClose }) {
     }
   }
 
-  return (
+  const content = (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[999]"
           />
-
-          {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.92, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            className="fixed inset-0 z-[999] flex items-center justify-center p-6"
           >
             <div className="w-full max-w-[380px] bg-[#1C1C1E] rounded-3xl overflow-hidden shadow-2xl">
 
@@ -142,4 +140,7 @@ export default function ProModal({ isOpen, onClose }) {
       )}
     </AnimatePresence>
   )
+
+  if (typeof document === 'undefined') return null
+  return createPortal(content, document.body)
 }

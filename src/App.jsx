@@ -189,6 +189,12 @@ function App() {
   const [updateOpen, setUpdateOpen] = useState(false)
   const [updateUnread, setUpdateUnread] = useState(false)
   const [showCheckoutSuccessToast, setShowCheckoutSuccessToast] = useState(false)
+  const [isPro, setIsPro] = useState(false)
+  const [testProOverride, setTestProOverride] = useState(() => {
+    try {
+      return localStorage.getItem('dayclose_simulate_free') !== 'true'
+    } catch { return true }
+  })
 
   const reviewHabits = useMemo(() => {
     try {
@@ -267,6 +273,15 @@ function App() {
     })
     return controls.stop
   }, [effectiveWidth, tabIndex, x])
+
+  useEffect(() => {
+    if (!session?.user?.id) return
+    const loadPlan = async () => {
+      const { data } = await supabase.from('profiles').select('plan').eq('id', session.user.id).maybeSingle()
+      setIsPro(data?.plan === 'pro')
+    }
+    loadPlan()
+  }, [session?.user?.id])
 
   useEffect(() => {
     if (!session) return
@@ -408,6 +423,14 @@ function App() {
         .eq('user_id', session.user.id)
         .single()
       setIsBlocked(Boolean(data?.is_blocked))
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('plan')
+        .eq('id', session.user.id)
+        .single()
+      const adminEmails = [ADMIN_EMAIL]
+      const isAdmin = adminEmails.includes(session.user.email)
+      setIsPro(isAdmin || profileData?.plan === 'pro')
       await supabase
         .from('user_profiles')
         .update({ last_seen: new Date().toISOString() })
@@ -468,6 +491,17 @@ function App() {
 
   if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white font-black italic tracking-tighter">MIVIDA...</div>
   const isTestAccount = session?.user?.email === TEST_EMAIL
+  const effectiveIsPro = isTestAccount ? testProOverride : isPro
+
+  const handleToggleTestPro = () => {
+    setTestProOverride(prev => {
+      const next = !prev
+      try {
+        localStorage.setItem('dayclose_simulate_free', next ? 'false' : 'true')
+      } catch {}
+      return next
+    })
+  }
 
   if (isMaintenance && session?.user?.email !== ADMIN_EMAIL && !isWhitelisted && !isTestAccount) {
     return <MaintenanceScreen message={maintenanceMessage} />
@@ -499,7 +533,7 @@ function App() {
     return (
       <>
         <ProWelcomeModal isOpen={showCheckoutSuccessToast} onClose={() => setShowCheckoutSuccessToast(false)} />
-        <History user={session.user} onClose={() => setMode('dashboard')} />
+        <History user={session.user} onClose={() => setMode('dashboard')} isPro={effectiveIsPro} />
       </>
     )
   }
@@ -561,10 +595,12 @@ function App() {
                 onResetTutorial={handleResetTutorial}
                 onResetUpdates={handleResetUpdates}
                 onOpenHistory={() => setMode('history')}
+                isPro={effectiveIsPro}
+                onToggleTestPro={handleToggleTestPro}
               />
             </div>
             <div style={{ width: effectiveWidth }} className="shrink-0">
-              <Stats user={session.user} /> 
+              <Stats user={session.user} isPro={effectiveIsPro} />
             </div>
             <div style={{ width: effectiveWidth }} className="shrink-0">
               <CommunityHub user={session.user} />
@@ -572,8 +608,8 @@ function App() {
             <div style={{ width: effectiveWidth }} className="shrink-0">
               <div className="flex flex-col items-center justify-center flex-1 text-white p-6 text-center">
                 <div className="w-full max-w-md space-y-6">
-                  <ProgressComparison user={session.user} />
-                  <FutureLettersSection />
+                  <ProgressComparison user={session.user} isPro={effectiveIsPro} />
+                  <FutureLettersSection isPro={effectiveIsPro} />
                   <FeedbackSection user={session.user} />
                   <MoreFeatures />
                 </div>
@@ -583,7 +619,7 @@ function App() {
         </div>
 
         <Dock activeTab={activeTab} onTabChange={handleTabChange} />
-        <ReminderPopup session={session} />
+        <ReminderPopup session={session} isPro={effectiveIsPro} />
       </div>
     )
   }

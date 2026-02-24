@@ -1,9 +1,13 @@
+import { useState, useEffect } from 'react'
 import { X, Globe } from 'lucide-react'
 import NotificationManager from './NotificationManager'
 import { useLanguage } from '../context/LanguageContext'
+import { supabase } from '../lib/supabaseClient'
 
 export default function SettingsModal({ isOpen, onClose, user, appVersion }) {
   const { t, language, switchLanguage } = useLanguage()
+  const [profile, setProfile] = useState({ plan: 'free', stripe_customer_id: null, stripe_subscription_id: null })
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false)
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
   const isIOS = /iPhone|iPad|iPod/i.test(ua)
   const isAndroid = /Android/i.test(ua)
@@ -13,6 +17,57 @@ export default function SettingsModal({ isOpen, onClose, user, appVersion }) {
       ? [t('push_android_step1'), t('push_android_step2'), t('push_android_step3')]
       : [t('push_generic_step1'), t('push_generic_step2')]
 
+  useEffect(() => {
+    if (!isOpen || !user?.id) return
+    const load = async () => {
+      const { data } = await supabase.from('profiles').select('plan, stripe_customer_id, stripe_subscription_id').eq('id', user.id).maybeSingle()
+      setProfile({
+        plan: data?.plan === 'pro' ? 'pro' : 'free',
+        stripe_customer_id: data?.stripe_customer_id ?? null,
+        stripe_subscription_id: data?.stripe_subscription_id ?? null
+      })
+    }
+    load()
+  }, [isOpen, user?.id])
+
+  const handleUpgradeToPro = async () => {
+    if (!user?.id) return
+    setSubscriptionLoading(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', { body: { userId: user.id } })
+      if (error) throw error
+      const url = data?.url
+      if (url) window.location.href = url
+      else alert(t('payment_error'))
+    } catch (err) {
+      console.error(err)
+      alert(t('payment_error'))
+    } finally {
+      setSubscriptionLoading(false)
+    }
+  }
+
+  const handleManageSubscription = async () => {
+    const customerId = profile?.stripe_customer_id
+    if (!customerId) {
+      alert(t('portal_error'))
+      return
+    }
+    setSubscriptionLoading(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('create-portal-session', { body: { customerId } })
+      if (error) throw error
+      const url = data?.url
+      if (url) window.location.href = url
+      else alert(t('portal_error'))
+    } catch (err) {
+      console.error(err)
+      alert(t('portal_error'))
+    } finally {
+      setSubscriptionLoading(false)
+    }
+  }
+
   if (!isOpen) return null
 
   return (
@@ -21,6 +76,39 @@ export default function SettingsModal({ isOpen, onClose, user, appVersion }) {
         <button onClick={onClose} className="absolute top-4 right-4 text-neutral-400 hover:text-white"><X size={24} /></button>
         <h2 className="text-xl font-bold text-white mb-6">{t('settings_title')}</h2>
         <div className="premium-divider">
+          <div className="bg-neutral-800/60 rounded-2xl border border-white/5 p-4 mb-4">
+            <p className="text-xs font-semibold text-neutral-400 mb-2">{t('subscription_title')}</p>
+            {profile.plan === 'free' ? (
+              <>
+                <p className="text-neutral-400 font-medium">{t('plan_free_title')}</p>
+                <p className="text-neutral-500 text-sm mt-1">{t('plan_free_desc')}</p>
+                <button
+                  type="button"
+                  onClick={handleUpgradeToPro}
+                  disabled={subscriptionLoading}
+                  className="mt-4 w-full py-3 rounded-xl bg-violet-600 text-white font-semibold text-sm active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {subscriptionLoading ? t('syncing') : t('upgrade_to_pro')}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-block px-2.5 py-0.5 rounded-full bg-violet-600 text-white text-xs font-semibold uppercase tracking-widest">PRO</span>
+                  <p className="text-white font-bold">{t('plan_pro_title')}</p>
+                </div>
+                <p className="text-neutral-400 text-sm">{t('plan_pro_desc')}</p>
+                <button
+                  type="button"
+                  onClick={handleManageSubscription}
+                  disabled={subscriptionLoading}
+                  className="mt-4 w-full py-3 rounded-xl bg-neutral-700 text-neutral-300 font-semibold text-sm active:scale-95 transition-all disabled:opacity-50 hover:bg-neutral-600"
+                >
+                  {subscriptionLoading ? t('syncing') : t('manage_subscription')}
+                </button>
+              </>
+            )}
+          </div>
           <div className="bg-neutral-900/50 p-4 rounded-xl border border-neutral-800/60">
             <label className="flex items-center gap-2 text-sm text-neutral-400 mb-3"><Globe size={14} /> {t('language_label')}</label>
             <div className="grid grid-cols-2 gap-2">

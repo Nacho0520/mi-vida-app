@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { Calendar, ArrowLeft, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { Calendar, ArrowLeft, CheckCircle2, XCircle, Loader2, Zap } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
+import ProModal from './ProModal'
 
 function formatDateLocal(date) {
   const d = new Date(date)
@@ -11,12 +12,13 @@ function formatDateLocal(date) {
   return `${year}-${month}-${day}`
 }
 
-export default function History({ user, onClose }) {
+export default function History({ user, onClose, isPro }) {
   const { t } = useLanguage()
   const [loading, setLoading] = useState(true)
   const [logs, setLogs] = useState([])
   const [habits, setHabits] = useState([])
   const [range, setRange] = useState('month')
+  const [proModalOpen, setProModalOpen] = useState(false)
   const [selectedMonth, setSelectedMonth] = useState(formatDateLocal(new Date()).slice(0, 7))
   const [selectedWeekStart, setSelectedWeekStart] = useState(() => {
     const now = new Date()
@@ -27,12 +29,15 @@ export default function History({ user, onClose }) {
     return formatDateLocal(monday)
   })
 
+  // Free: 30 días | Pro: 90 días
+  const HISTORY_DAYS = isPro ? 90 : 30
+
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return
       setLoading(true)
       const startDate = new Date()
-      startDate.setDate(startDate.getDate() - 30)
+      startDate.setDate(startDate.getDate() - HISTORY_DAYS)
       const { data: logsData } = await supabase
         .from('daily_logs')
         .select('id, created_at, status, note, habit_id')
@@ -48,7 +53,7 @@ export default function History({ user, onClose }) {
       setLoading(false)
     }
     fetchData()
-  }, [user])
+  }, [user, HISTORY_DAYS])
 
   const habitMap = useMemo(() => {
     const map = new Map()
@@ -56,7 +61,17 @@ export default function History({ user, onClose }) {
     return map
   }, [habits])
 
+  // Para Free: bloquear navegación a meses anteriores al último mes
+  const currentMonthStr = formatDateLocal(new Date()).slice(0, 7)
+  const prevMonthStr = (() => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - 1)
+    return formatDateLocal(d).slice(0, 7)
+  })()
+  const isMonthBlocked = !isPro && selectedMonth < currentMonthStr
+
   const filteredLogs = useMemo(() => {
+    if (isMonthBlocked) return []
     if (range === 'month') {
       return logs.filter(log => formatDateLocal(log.created_at).startsWith(selectedMonth))
     }
@@ -67,7 +82,7 @@ export default function History({ user, onClose }) {
       const d = new Date(log.created_at)
       return d >= start && d <= end
     })
-  }, [logs, range, selectedMonth, selectedWeekStart])
+  }, [logs, range, selectedMonth, selectedWeekStart, isMonthBlocked])
 
   const grouped = useMemo(() => {
     const map = new Map()
@@ -94,6 +109,9 @@ export default function History({ user, onClose }) {
 
   return (
     <div className="w-full max-w-md mx-auto px-6 pb-32 pt-6 animate-in fade-in duration-500">
+      <ProModal isOpen={proModalOpen} onClose={() => setProModalOpen(false)} />
+
+      {/* ── Header ── */}
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={onClose}
@@ -101,12 +119,25 @@ export default function History({ user, onClose }) {
         >
           <ArrowLeft size={18} />
         </button>
-        <div>
+        <div className="flex-1">
           <h2 className="text-xl font-black text-white">{t('history_title')}</h2>
-          <p className="text-[11px] text-neutral-500">{t('history_subtitle')}</p>
+          <p className="text-[11px] text-neutral-500">
+            {isPro ? 'Últimos 90 días' : 'Últimos 30 días'}
+          </p>
         </div>
+        {/* Badge Pro o CTA */}
+        {!isPro && (
+          <button
+            onClick={() => setProModalOpen(true)}
+            className="flex items-center gap-1.5 bg-violet-600/15 border border-violet-500/30 px-3 py-1.5 rounded-xl active:scale-95 transition-all"
+          >
+            <Zap size={11} className="text-violet-400 fill-violet-400" />
+            <span className="text-[10px] font-black text-violet-400 uppercase tracking-wider">90 días</span>
+          </button>
+        )}
       </div>
 
+      {/* ── Filtros ── */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 bg-neutral-900/60 border border-white/5 rounded-full p-1">
           <button
@@ -126,13 +157,20 @@ export default function History({ user, onClose }) {
           <input
             type="month"
             value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
+            min={isPro ? undefined : prevMonthStr}
+            max={currentMonthStr}
+            onChange={(e) => {
+              if (!isPro && e.target.value < currentMonthStr) {
+                setProModalOpen(true)
+                return
+              }
+              setSelectedMonth(e.target.value)
+            }}
             className="bg-neutral-900/60 border border-white/5 rounded-full px-3 py-1 text-[11px] text-neutral-300"
           />
         ) : (
           <input
             type="week"
-            value={selectedWeekStart}
             onChange={(e) => {
               const [year, week] = e.target.value.split('-W')
               const firstDay = new Date(year, 0, 1)
@@ -141,6 +179,14 @@ export default function History({ user, onClose }) {
               const day = monday.getDay()
               const diff = day === 0 ? -6 : 1 - day
               monday.setDate(monday.getDate() + diff)
+
+              // Free: bloquear semanas fuera de los últimos 30 días
+              const cutoff = new Date()
+              cutoff.setDate(cutoff.getDate() - 30)
+              if (!isPro && monday < cutoff) {
+                setProModalOpen(true)
+                return
+              }
               setSelectedWeekStart(formatDateLocal(monday))
             }}
             className="bg-neutral-900/60 border border-white/5 rounded-full px-3 py-1 text-[11px] text-neutral-300"
@@ -148,7 +194,27 @@ export default function History({ user, onClose }) {
         )}
       </div>
 
-      {grouped.length === 0 ? (
+      {/* ── Contenido bloqueado (Free navegando a mes anterior) ── */}
+      {isMonthBlocked ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-5">
+          <div className="w-16 h-16 rounded-[1.5rem] bg-violet-600/15 border border-violet-500/20 flex items-center justify-center">
+            <Zap size={28} className="text-violet-400 fill-violet-400" />
+          </div>
+          <div className="text-center">
+            <p className="text-white font-black text-lg mb-1">Historial extendido</p>
+            <p className="text-neutral-500 text-sm">Con Pro accedes a los últimos<br />90 días de historial completo.</p>
+          </div>
+          <button
+            onClick={() => setProModalOpen(true)}
+            className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold px-8 py-3.5 rounded-2xl active:scale-95 transition-all shadow-lg shadow-indigo-500/20"
+          >
+            Ver con Pro
+          </button>
+          <button onClick={() => setSelectedMonth(currentMonthStr)} className="text-neutral-600 text-xs hover:text-neutral-400 transition-colors">
+            Volver al mes actual
+          </button>
+        </div>
+      ) : grouped.length === 0 ? (
         <div className="radius-card border border-white/5 bg-neutral-800/30 p-6 text-center text-neutral-400 shadow-apple-soft">
           <p className="text-body font-medium">{t('history_empty')}</p>
         </div>
@@ -183,11 +249,10 @@ export default function History({ user, onClose }) {
                           )}
                         </div>
                         <div className="mt-1">
-                          {isDone ? (
-                            <CheckCircle2 size={18} className="text-emerald-400" />
-                          ) : (
-                            <XCircle size={18} className="text-red-400" />
-                          )}
+                          {isDone
+                            ? <CheckCircle2 size={18} className="text-emerald-400" />
+                            : <XCircle size={18} className="text-red-400" />
+                          }
                         </div>
                       </div>
                     )

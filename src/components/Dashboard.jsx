@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { Check, X, Circle, Menu, Plus, Trash2, Settings, Star, Frown } from "lucide-react";
+import { Check, X, Circle, Menu, Plus, Trash2, Settings, Star, Frown, Zap } from "lucide-react";
 import Sidebar from "./Sidebar";
 import SettingsModal from "./SettingsModal";
 import ProfileModal from "./ProfileModal";
 import HabitCreator from "./HabitCreator";
+import ProModal from "./ProModal";
 import { supabase } from "../lib/supabaseClient";
-import { useLanguage } from "../context/LanguageContext"; // Importar hook
+import { useLanguage } from "../context/LanguageContext";
+
+const TEST_ACCOUNT = "test@test.com";
 
 function CircularProgress({ percentage }) {
   const { t } = useLanguage();
@@ -16,7 +19,9 @@ function CircularProgress({ percentage }) {
     <div className="relative flex h-48 w-48 items-center justify-center">
       <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 160 160">
         <circle cx="80" cy="80" r={radius} stroke="currentColor" strokeWidth="12" fill="none" className="text-neutral-800" />
-        <circle cx="80" cy="80" r={radius} stroke="currentColor" strokeWidth="12" fill="none" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="text-emerald-500 transition-all duration-500" />
+        <circle cx="80" cy="80" r={radius} stroke="currentColor" strokeWidth="12" fill="none"
+          strokeDasharray={circumference} strokeDashoffset={offset}
+          strokeLinecap="round" className="text-emerald-500 transition-all duration-500" />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <p className="text-4xl font-bold text-white tracking-tighter">{Math.round(percentage)}%</p>
@@ -26,32 +31,33 @@ function CircularProgress({ percentage }) {
   );
 }
 
-function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmin, onOpenUpdates, hasUpdates, isTestAccount, onResetTutorial, onResetUpdates, onOpenHistory }) {
+function Dashboard({
+  user, habits, todayLogs, onStartReview, version, onOpenAdmin, onOpenUpdates,
+  hasUpdates, isTestAccount, onResetTutorial, onResetUpdates, onOpenHistory,
+  isPro, onToggleTestPro
+}) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [isCreatorOpen, setCreatorOpen] = useState(false);
   const [editHabit, setEditHabit] = useState(null);
   const [isProfileOpen, setProfileOpen] = useState(false);
   const [isHardDayModalOpen, setHardDayModalOpen] = useState(false);
+  const [isProModalOpen, setProModalOpen] = useState(false);
   const [expandedHabitId, setExpandedHabitId] = useState(null);
   const [hardDayEnabled, setHardDayEnabled] = useState(() => {
-    try {
-      return localStorage.getItem("mivida_hard_day_enabled") === "true";
-    } catch {
-      return false;
-    }
+    try { return localStorage.getItem("mivida_hard_day_enabled") === "true"; }
+    catch { return false; }
   });
   const [hardDayIds, setHardDayIds] = useState(() => {
     try {
       const raw = localStorage.getItem("mivida_hard_day_ids");
       return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   });
-  
-  const { t } = useLanguage(); // Hook
+
+  const { t } = useLanguage();
   const MAX_HARD_DAY = 3;
+  const MAX_FREE_HABITS = 5;
 
   const logsMap = new Map();
   (todayLogs || []).forEach(l => logsMap.set(l.habit_id, { status: l.status, logId: l.id }));
@@ -59,20 +65,17 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
   const completed = (habits || []).filter(h => logsMap.get(h.id)?.status === "completed").length;
   const percentage = habits?.length > 0 ? (completed / habits.length) * 100 : 0;
 
+  const canCreateHabit = isPro || (habits || []).length < MAX_FREE_HABITS;
+  const atFreeLimit = !isPro && (habits || []).length >= MAX_FREE_HABITS;
+
   useEffect(() => {
-    try {
-      localStorage.setItem("mivida_hard_day_enabled", String(hardDayEnabled));
-    } catch {
-      // No-op: entorno sin localStorage
-    }
+    try { localStorage.setItem("mivida_hard_day_enabled", String(hardDayEnabled)); }
+    catch { }
   }, [hardDayEnabled]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem("mivida_hard_day_ids", JSON.stringify(hardDayIds));
-    } catch {
-      // No-op: entorno sin localStorage
-    }
+    try { localStorage.setItem("mivida_hard_day_ids", JSON.stringify(hardDayIds)); }
+    catch { }
   }, [hardDayIds]);
 
   useEffect(() => {
@@ -91,8 +94,20 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
     });
   };
 
+  const handleAddHabit = () => {
+    if (canCreateHabit) {
+      setCreatorOpen(true);
+    } else {
+      setProModalOpen(true);
+    }
+  };
+
   const shouldFilterHabits = hardDayEnabled && hardDayIds.length > 0;
-  const visibleHabits = shouldFilterHabits ? (habits || []).filter(h => hardDayIds.includes(h.id)) : (habits || []);
+  const visibleHabits = shouldFilterHabits
+    ? (habits || []).filter(h => hardDayIds.includes(h.id))
+    : (habits || []);
+
+  const isTest = user?.email === TEST_ACCOUNT;
 
   return (
     <div className="app-screen bg-neutral-900 px-4 relative">
@@ -102,9 +117,24 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
         </button>
       )}
 
-      <Sidebar 
-        isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} user={user} 
-        onLogout={() => supabase.auth.signOut().then(() => window.location.reload())} 
+      {/* Toggle Free/Pro — solo cuenta test */}
+      {isTest && onToggleTestPro && (
+        <button
+          onClick={onToggleTestPro}
+          className={`absolute top-6 right-4 z-[100] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black border transition-all ${
+            isPro
+              ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+              : 'bg-neutral-800 border-white/10 text-neutral-400'
+          }`}
+        >
+          <Zap size={11} />
+          {isPro ? 'PRO' : 'FREE'}
+        </button>
+      )}
+
+      <Sidebar
+        isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} user={user}
+        onLogout={() => supabase.auth.signOut().then(() => window.location.reload())}
         onOpenSettings={() => setSettingsOpen(true)} version={version}
         onOpenProfile={() => setProfileOpen(true)}
         onOpenAdmin={onOpenAdmin}
@@ -114,17 +144,43 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
         isTestAccount={isTestAccount}
         onResetTutorial={onResetTutorial}
         onResetUpdates={onResetUpdates}
+        isPro={isPro}
+        onUpgradePro={() => setProModalOpen(true)}
       />
-      
+
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setSettingsOpen(false)} user={user} appVersion={version} />
       <ProfileModal isOpen={isProfileOpen} onClose={() => setProfileOpen(false)} user={user} />
-      <HabitCreator isOpen={isCreatorOpen || !!editHabit} onClose={() => { setCreatorOpen(false); setEditHabit(null); }} userId={user?.id} habitToEdit={editHabit} onHabitCreated={() => window.location.reload()} />
+      <HabitCreator
+        isOpen={isCreatorOpen || !!editHabit}
+        onClose={() => { setCreatorOpen(false); setEditHabit(null); }}
+        userId={user?.id}
+        habitToEdit={editHabit}
+        onHabitCreated={() => window.location.reload()}
+        isPro={isPro}
+      />
+      <ProModal isOpen={isProModalOpen} onClose={() => setProModalOpen(false)} />
 
       <div className="mx-auto w-full max-w-md mt-6">
         <header className="mb-10 text-center">
           <h2 className="text-lg font-light text-neutral-500 italic">{t('hello')}</h2>
-          <h1 className="text-3xl font-black text-white tracking-tight capitalize leading-none">{user?.user_metadata?.full_name || 'Usuario'}</h1>
+          <h1 className="text-3xl font-black text-white tracking-tight capitalize leading-none">
+            {user?.user_metadata?.full_name || 'Usuario'}
+          </h1>
         </header>
+
+        {/* Banner límite Free */}
+        {atFreeLimit && (
+          <div className="mb-6 flex items-center gap-3 px-4 py-3 rounded-2xl bg-violet-500/10 border border-violet-500/20">
+            <Zap size={16} className="text-violet-400 flex-shrink-0" />
+            <p className="text-[12px] text-violet-300 flex-1">
+              Has llegado al límite de {MAX_FREE_HABITS} hábitos.{' '}
+              <button onClick={() => setProModalOpen(true)} className="underline font-bold">
+                Hazte Pro
+              </button>{' '}
+              para añadir más.
+            </p>
+          </div>
+        )}
 
         {hardDayEnabled && (
           <div className="mb-6 flex items-center justify-between text-[11px] text-neutral-500">
@@ -136,7 +192,9 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
           <p className="mb-6 text-[11px] text-neutral-600">{t('hard_day_empty')}</p>
         )}
 
-        <div className="mb-10 flex justify-center"><CircularProgress percentage={percentage} /></div>
+        <div className="mb-10 flex justify-center">
+          <CircularProgress percentage={percentage} />
+        </div>
 
         {visibleHabits.length === 0 ? (
           <div className="radius-card border border-white/5 bg-neutral-800/30 p-6 text-center text-neutral-400 shadow-apple-soft">
@@ -165,20 +223,36 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
                     <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 transition-opacity pr-2">
                       {hardDayEnabled && (
                         <button
-                          onClick={(event) => { event.stopPropagation(); toggleHardDayHabit(habit.id); }}
+                          onClick={(e) => { e.stopPropagation(); toggleHardDayHabit(habit.id); }}
                           className={`p-2 rounded-lg transition-colors ${isCritical ? 'text-neutral-200' : 'text-neutral-600 hover:text-neutral-300'}`}
-                          title={t('hard_day_title')}
                         >
                           <Star size={18} fill={isCritical ? 'currentColor' : 'none'} />
                         </button>
                       )}
-                      <button onClick={(event) => { event.stopPropagation(); setEditHabit(habit); }} className="p-2 text-neutral-400 hover:text-blue-400 rounded-lg"><Settings size={18} /></button>
-                      <button onClick={async (event) => { event.stopPropagation(); if(confirm(t('confirm_delete'))){ await supabase.from('daily_logs').delete().eq('habit_id', habit.id); await supabase.from('habits').delete().eq('id', habit.id); window.location.reload(); }}} className="p-2 text-neutral-400 hover:text-red-500 rounded-lg"><Trash2 size={18} /></button>
+                      <button onClick={(e) => { e.stopPropagation(); setEditHabit(habit); }} className="p-2 text-neutral-400 hover:text-blue-400 rounded-lg">
+                        <Settings size={18} />
+                      </button>
+                      <button onClick={async (e) => {
+                        e.stopPropagation();
+                        if (confirm(t('confirm_delete'))) {
+                          await supabase.from('daily_logs').delete().eq('habit_id', habit.id);
+                          await supabase.from('habits').delete().eq('id', habit.id);
+                          window.location.reload();
+                        }
+                      }} className="p-2 text-neutral-400 hover:text-red-500 rounded-lg">
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                     <div className="flex-shrink-0 ml-1">
                       {log ? (
-                        <button onClick={async (event) => { event.stopPropagation(); await supabase.from('daily_logs').delete().eq('id', log.logId); window.location.reload(); }} className="flex h-10 w-10 items-center justify-center rounded-full transition-all active:scale-75 bg-white/10 shadow-lg">
-                          {log.status === "completed" ? <Check className="h-6 w-6 text-emerald-500" /> : <X className="h-6 w-6 text-red-500" />}
+                        <button onClick={async (e) => {
+                          e.stopPropagation();
+                          await supabase.from('daily_logs').delete().eq('id', log.logId);
+                          window.location.reload();
+                        }} className="flex h-10 w-10 items-center justify-center rounded-full transition-all active:scale-75 bg-white/10 shadow-lg">
+                          {log.status === "completed"
+                            ? <Check className="h-6 w-6 text-emerald-500" />
+                            : <X className="h-6 w-6 text-red-500" />}
                         </button>
                       ) : <Circle className="h-6 w-6 text-neutral-700" />}
                     </div>
@@ -211,13 +285,24 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
         )}
 
         {(habits || []).some(h => !logsMap.has(h.id)) && (
-          <button onClick={onStartReview} className="mt-8 w-full rounded-[2rem] bg-white px-6 py-5 text-lg font-black text-black shadow-2xl active:scale-95 transition-all">{t('start_review')}</button>
+          <button onClick={onStartReview} className="mt-8 w-full rounded-[2rem] bg-white px-6 py-5 text-lg font-black text-black shadow-2xl active:scale-95 transition-all">
+            {t('start_review')}
+          </button>
         )}
       </div>
 
-      <button onClick={() => setCreatorOpen(true)} className="fixed bottom-32 right-6 h-16 w-16 bg-white text-black rounded-[1.5rem] shadow-2xl flex items-center justify-center active:scale-90 transition-all z-40">
-        <Plus size={36} strokeWidth={3} />
+      {/* Botón + con gate Pro */}
+      <button
+        onClick={handleAddHabit}
+        className={`fixed bottom-32 right-6 h-16 w-16 rounded-[1.5rem] shadow-2xl flex items-center justify-center active:scale-90 transition-all z-40 ${
+          atFreeLimit
+            ? 'bg-violet-500 text-white shadow-violet-500/30'
+            : 'bg-white text-black'
+        }`}
+      >
+        {atFreeLimit ? <Zap size={28} /> : <Plus size={36} strokeWidth={3} />}
       </button>
+
       <button
         onClick={() => setHardDayModalOpen(true)}
         className={`fixed bottom-52 right-6 h-12 w-12 rounded-[1rem] flex items-center justify-center transition-all z-40 ${
@@ -225,7 +310,6 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
             ? 'bg-white text-black shadow-2xl scale-110'
             : 'bg-neutral-800/70 text-neutral-300 border border-white/5 shadow-apple-soft'
         }`}
-        title={t('hard_day_title')}
       >
         <Frown size={20} />
       </button>
@@ -242,10 +326,9 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
                 <p className="text-xs text-neutral-500">{t('hard_day_confirm')}</p>
               </div>
             </div>
-
             <div className="premium-divider max-h-56 overflow-y-auto">
               {(habits || []).map((habit) => {
-                const selected = hardDayIds.includes(habit.id)
+                const selected = hardDayIds.includes(habit.id);
                 return (
                   <button
                     key={habit.id}
@@ -259,14 +342,15 @@ function Dashboard({ user, habits, todayLogs, onStartReview, version, onOpenAdmi
                     </div>
                     <div className="flex-1 text-left">
                       <p className="text-sm text-white font-medium">{habit.title}</p>
-                      <p className="text-[10px] text-neutral-500">{selected ? t('hard_day_selected_label') : t('hard_day_select_label')}</p>
+                      <p className="text-[10px] text-neutral-500">
+                        {selected ? t('hard_day_selected_label') : t('hard_day_select_label')}
+                      </p>
                     </div>
                     <Star size={16} className={selected ? 'text-white' : 'text-neutral-600'} fill={selected ? 'currentColor' : 'none'} />
                   </button>
-                )
+                );
               })}
             </div>
-
             <div className="mt-5 flex gap-3">
               <button
                 onClick={() => { setHardDayEnabled(false); setHardDayIds([]); setHardDayModalOpen(false); }}

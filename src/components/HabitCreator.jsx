@@ -272,13 +272,14 @@ export default function HabitCreator({
     try {
       const { data: { user } = {} } = await supabase.auth.getUser();
 
-      // Sin límite: plan Pro, email con "admin" o email de test hardcodeado
+      // Sin límite: plan Pro, admin, o test sin "simular free"
       const ADMIN_EMAIL = "hemmings.nacho@gmail.com";
       const TEST_EMAIL = "test@test.com";
+      const simulateFree = typeof localStorage !== "undefined" && localStorage.getItem("dayclose_simulate_free") === "true";
       const isPrivileged =
         userPlan === "pro" ||
         user?.email === ADMIN_EMAIL ||
-        user?.email === TEST_EMAIL;
+        (user?.email === TEST_EMAIL && !simulateFree);
 
       if (!isPrivileged) {
         const { data: existingHabits, error: countError } = await supabase

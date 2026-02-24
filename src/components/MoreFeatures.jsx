@@ -19,9 +19,6 @@ export default function MoreFeatures() {
           <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">{t('more_premium_title')}</h2>
           <p className="text-[11px] text-neutral-500">{t('more_premium_subtitle')}</p>
         </div>
-        <div className="h-9 w-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center">
-          <span className="text-[10px] text-neutral-400 font-bold">+</span>
-        </div>
       </div>
 
       <div className="grid gap-2 sm:gap-3">

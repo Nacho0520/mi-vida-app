@@ -22,7 +22,7 @@ function normalizeFrequency(value) {
   return []
 }
 
-export default function ReminderPopup({ session }) {
+export default function ReminderPopup({ session, isPro }) {
   const [visible, setVisible] = useState(false)
   const [currentHabit, setCurrentHabit] = useState(null)
   const [snoozedHabits, setSnoozedHabits] = useState([]) 
@@ -30,6 +30,7 @@ export default function ReminderPopup({ session }) {
 
   const checkPendingHabits = async () => {
     if (!session) return
+    if (!isPro) return
     const lastShownStr = localStorage.getItem('lastPopupTime')
     if (lastShownStr) {
       if (Date.now() - parseInt(lastShownStr) < COOLDOWN_MS) return 
