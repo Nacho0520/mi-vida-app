@@ -31,7 +31,7 @@ export default defineConfig({
       manifest: {
         name: "DayClose",
         short_name: "DayClose",
-        description: "App de seguimiento de hábitos y rutina diaria",
+        description: "Cierra tu día con intención.",
         theme_color: "#171717",
         background_color: "#171717",
         display: "standalone", // Esto quita la barra del navegador

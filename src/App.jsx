@@ -17,7 +17,6 @@ import ProgressComparison from './components/ProgressComparison'
 import BlockedScreen from './components/BlockedScreen'
 import UpdateShowcase from './components/UpdateShowcase'
 import MoreFeatures from './components/MoreFeatures'
-import FriendsSection from './components/FriendsSection'
 import FutureLettersSection from './components/FutureLettersSection'
 import FeedbackSection from './components/FeedbackSection'
 import CommunityHub from './components/CommunityHub'
@@ -489,7 +488,7 @@ function App() {
     saveResults()
   }, [session, reviewHabits, currentIndex, results, hasSaved, saving, mode, fetchTodayLogs, t])
 
-  if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white font-black italic tracking-tighter">MIVIDA...</div>
+  if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white font-black italic tracking-tighter">DAYCLOSE</div>
   const isTestAccount = session?.user?.email === TEST_EMAIL
   const effectiveIsPro = isTestAccount ? testProOverride : isPro
 
