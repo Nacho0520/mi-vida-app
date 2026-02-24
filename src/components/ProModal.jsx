@@ -1,9 +1,8 @@
 import { createPortal } from 'react-dom'
 import { X, Zap, BarChart2, Infinity, Bell } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { supabase } from '../lib/supabaseClient'
 
-export default function ProModal({ isOpen, onClose }) {
+export default function ProModal({ isOpen, onClose, userEmail }) {
   if (!isOpen) return null
 
   const features = [
@@ -13,39 +12,10 @@ export default function ProModal({ isOpen, onClose }) {
     { icon: Zap, text: 'Acceso anticipado a nuevas funciones' },
   ]
 
-  const handleCheckout = async () => {
-    try {
-      const { data: { user } = {} } = await supabase.auth.getUser()
-
-      if (!user?.id) {
-        alert('Debes iniciar sesión para continuar.')
-        return
-      }
-
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { userId: user.id }
-      })
-
-      if (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error creando la sesión de Stripe:', error)
-        alert('No se ha podido iniciar el pago. Inténtalo de nuevo más tarde.')
-        return
-      }
-
-      const url = data?.url
-      if (!url) {
-        alert('No se ha podido obtener la página de pago.')
-        return
-      }
-
-      onClose()
-      window.location.href = url
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Error conectando con Stripe:', err)
-      alert('Ha ocurrido un error al conectar con el servicio de pago.')
-    }
+  // TODO: implementar con LemonSqueezy
+  const handleCheckout = () => {
+    // placeholder — se conectará con LemonSqueezy
+    console.log('Checkout pendiente de configurar')
   }
 
   const content = (
@@ -114,7 +84,7 @@ export default function ProModal({ isOpen, onClose }) {
                   </p>
                 </div>
 
-                {/* CTA Button — inicia Stripe Checkout en modo test */}
+                {/* CTA Button */}
                 <button
                   onClick={handleCheckout}
                   className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 
