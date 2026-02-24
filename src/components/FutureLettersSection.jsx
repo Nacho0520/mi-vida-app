@@ -259,10 +259,21 @@ export default function FutureLettersSection({ isPro }) {
               </div>
             </div>
           </div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-neutral-900/60 rounded-[2rem] backdrop-blur-sm">
-            <Zap size={22} className="text-violet-400" />
-            <p className="text-sm font-black text-white">Cartas del futuro</p>
-            <p className="text-[11px] text-neutral-400 text-center px-4">Disponible con el Plan Pro</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-neutral-900/70 to-neutral-900/95 rounded-[2rem] backdrop-blur-[2px]">
+            <div className="w-12 h-12 rounded-[1.2rem] bg-violet-600/20 border border-violet-500/30 flex items-center justify-center shadow-lg shadow-violet-500/10">
+              <Zap size={22} className="text-violet-400 fill-violet-400/30" />
+            </div>
+            <div className="text-center">
+              <p className="text-base font-black text-white tracking-tight">{t('pro_letters_title')}</p>
+              <p className="text-[11px] text-neutral-400 mt-1">{t('pro_letters_desc')}</p>
+            </div>
+            <button
+              onClick={() => setProModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-violet-500/25 active:scale-95 transition-all"
+            >
+              <Zap size={13} className="fill-white" />
+              {t('upgrade_to_pro')}
+            </button>
           </div>
         </div>
       )}
