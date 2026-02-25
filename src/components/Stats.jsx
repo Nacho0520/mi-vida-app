@@ -4,7 +4,7 @@ import { Flame, Trophy, TrendingUp, Calendar, Loader2, Lock, Zap } from 'lucide-
 import { motion } from 'framer-motion'
 import { useLanguage } from '../context/LanguageContext'
 
-export default function Stats({ user, isPro }) {
+export default function Stats({ user, isPro, onUpgrade }) {
   const [loading, setLoading] = useState(true)
   const [streak, setStreak] = useState(0)
   const [totalCompleted, setTotalCompleted] = useState(0)
@@ -96,7 +96,7 @@ export default function Stats({ user, isPro }) {
       setProtectorActive(protectedDays.has(yesterdayStr))
 
       // Weekly data
-      const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+      const days = ['Dom', 'Lun', 'Mar', 'Mi\u00e9', 'Jue', 'Vie', 'S\u00e1b']
       const currentWeekData = []
       const curr = new Date()
       const currentDay = curr.getDay()
@@ -117,7 +117,7 @@ export default function Stats({ user, isPro }) {
       })
       setIsPerfectWeek(isPerfectWeek && currentWeekData.filter(d => new Date(d.date) <= new Date()).every(d => d.count > 0))
 
-      // Heatmap — últimos 28 días
+      // Heatmap — \u00faltimos 28 d\u00edas
       const heatmap = []
       for (let i = 27; i >= 0; i--) {
         const d = new Date(today)
@@ -209,7 +209,7 @@ export default function Stats({ user, isPro }) {
           <h3 className="text-sm font-black text-white uppercase tracking-wider">{t('weekly_perf')}</h3>
           {isPerfectWeek && (
             <span className="ml-auto flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-400 text-[10px] font-black uppercase tracking-wider animate-pulse">
-              🏆 {t('perfect_week') || 'Semana perfecta'}
+              \ud83c\udfc6 {t('perfect_week') || 'Semana perfecta'}
             </span>
           )}
         </div>
@@ -247,7 +247,7 @@ export default function Stats({ user, isPro }) {
         </div>
       </div>
 
-      {/* Heatmap anual (28 días) — gate Pro */}
+      {/* Heatmap anual (28 d\u00edas) \u2014 gate Pro */}
       <div className="relative bg-neutral-800/30 p-6 rounded-[2.5rem] border border-white/5">
         <div className="flex items-center gap-3 mb-5">
           <Calendar size={18} className="text-neutral-400" />
@@ -287,6 +287,7 @@ export default function Stats({ user, isPro }) {
                 {t('pro_heatmap_desc')}
               </p>
               <button
+                onClick={onUpgrade}
                 className="mt-1 flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-violet-500 text-white text-xs font-black shadow-lg shadow-violet-500/30 active:scale-95 transition-all"
               >
                 <Zap size={13} /> {t('pro_heatmap_cta')}
