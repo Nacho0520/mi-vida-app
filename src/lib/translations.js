@@ -365,6 +365,13 @@ export const translations = {
 
     all_done: '¡Todo listo!',
 
+    days: "días",
+    weekly_summary_title: "Resumen semanal",
+    weekly_summary_rate: "Constancia esta semana",
+    weekly_summary_empty: "Sin actividad esta semana",
+    weekly_summary_cta: "Ver desglose con Pro",
+
+
   },
   en: {
     // Auth & General
@@ -730,6 +737,13 @@ export const translations = {
     history_days_pro: "Last 90 days",
 
     all_done: 'All done!',
+
+    days: "days",
+    weekly_summary_title: "Weekly summary",
+    weekly_summary_rate: "Consistency this week",
+    weekly_summary_empty: "No activity this week",
+    weekly_summary_cta: "See breakdown with Pro",
+
 
   }
 }
