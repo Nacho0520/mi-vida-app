@@ -72,6 +72,7 @@ serve(async (req) => {
   );
 
   // ——— ACTIVAR PRO ———
+  // Sincroniza is_pro=true Y plan='pro' para mantener consistencia
   if (
     eventName === "order_created" ||
     eventName === "subscription_created" ||
@@ -81,6 +82,7 @@ serve(async (req) => {
       .from("profiles")
       .update({
         is_pro: true,
+        plan: "pro",
         pro_since: new Date().toISOString(),
         ls_order_id: orderId,
       })
@@ -91,17 +93,21 @@ serve(async (req) => {
       return new Response("DB Error", { status: 500 });
     }
 
-    console.log(`Pro ACTIVADO para ${email}`);
+    console.log(`✅ Pro ACTIVADO para ${email}`);
   }
 
   // ——— DESACTIVAR PRO ———
+  // Sincroniza is_pro=false Y plan='free'
   if (
     eventName === "subscription_cancelled" ||
     eventName === "subscription_expired"
   ) {
     const { error } = await supabase
       .from("profiles")
-      .update({ is_pro: false })
+      .update({
+        is_pro: false,
+        plan: "free",
+      })
       .eq("email", email);
 
     if (error) {
@@ -109,7 +115,7 @@ serve(async (req) => {
       return new Response("DB Error", { status: 500 });
     }
 
-    console.log(`Pro DESACTIVADO para ${email}`);
+    console.log(`❌ Pro DESACTIVADO para ${email}`);
   }
 
   return new Response("OK", { status: 200 });
