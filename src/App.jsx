@@ -22,32 +22,38 @@ import FeedbackSection from './components/FeedbackSection'
 import CommunityHub from './components/CommunityHub'
 import History from './components/History'
 import ProWelcomeModal from './components/ProWelcomeModal'
+import ProModal from './components/ProModal'
 import { useLanguage } from './context/LanguageContext' 
+
 
 const CURRENT_SOFTWARE_VERSION = '1.1.40'; 
 
+
 function getDefaultIconForTitle(title = '', index) {
-  const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
+  const mapping = ['\ud83d\udcd6', '\ud83d\udca7', '\ud83e\uddd8', '\ud83d\udca4', '\ud83c\udf4e', '\ud83d\udcaa', '\ud83d\udcdd', '\ud83d\udeb6']
   const lower = title.toLowerCase()
-  if (lower.includes('leer') || lower.includes('lectura')) return '📖'
-  if (lower.includes('agua')) return '💧'
-  if (lower.includes('meditar') || lower.includes('respir')) return '🧘'
-  if (lower.includes('dormir') || lower.includes('pantalla')) return '💤'
-  if (lower.includes('comer') || lower.includes('dieta')) return '🍎'
-  if (lower.includes('ejercicio') || lower.includes('flexion') || lower.includes('correr')) return '💪'
+  if (lower.includes('leer') || lower.includes('lectura')) return '\ud83d\udcd6'
+  if (lower.includes('agua')) return '\ud83d\udca7'
+  if (lower.includes('meditar') || lower.includes('respir')) return '\ud83e\uddd8'
+  if (lower.includes('dormir') || lower.includes('pantalla')) return '\ud83d\udca4'
+  if (lower.includes('comer') || lower.includes('dieta')) return '\ud83c\udf4e'
+  if (lower.includes('ejercicio') || lower.includes('flexion') || lower.includes('correr')) return '\ud83d\udcaa'
   return mapping[index % mapping.length]
 }
+
 
 function getDefaultColorForIndex(index) {
   const colors = ['bg-blue-500', 'bg-cyan-500', 'bg-emerald-500', 'bg-purple-500', 'bg-pink-500', 'bg-orange-500', 'bg-amber-500']
   return colors[index % colors.length]
 }
 
+
 function getTodayFrequencyCode() {
   const day = new Date().getDay()
   const map = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
   return map[day]
 }
+
 
 function normalizeFrequency(value) {
   if (!value) return []
@@ -57,6 +63,7 @@ function normalizeFrequency(value) {
   }
   return []
 }
+
 
 function normalizeMiniHabits(value) {
   if (!value) return []
@@ -135,6 +142,7 @@ function normalizeMiniHabits(value) {
   return []
 }
 
+
 function parseAnnouncementMessage(raw, language) {
   if (!raw) return { update: null }
   try {
@@ -148,6 +156,7 @@ function parseAnnouncementMessage(raw, language) {
   }
   return { update: null }
 }
+
 
 function App() {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -172,6 +181,7 @@ function App() {
   const [maintenanceMessage, setMaintenanceMessage] = useState('')
   const [isBlocked, setIsBlocked] = useState(false)
   const [isWhitelisted, setIsWhitelisted] = useState(false)
+  const [proModalOpen, setProModalOpen] = useState(false)
   const AUTO_UPDATE_DELAY_MS = 8000
   const ADMIN_EMAIL = 'hemmings.nacho@gmail.com' 
   const TEST_EMAIL = 'test@test.com'
@@ -198,6 +208,7 @@ function App() {
     } catch { return true }
   })
 
+
   const reviewHabits = useMemo(() => {
     try {
       const hardDayEnabled = localStorage.getItem('mivida_hard_day_enabled') === 'true'
@@ -212,7 +223,9 @@ function App() {
     }
   }, [habits])
 
+
   const currentHabit = reviewHabits[currentIndex]
+
 
   useEffect(() => {
     const handleVersionCheck = (dbVersion) => {
@@ -248,6 +261,7 @@ function App() {
     if (!loadingSession) initSettings();
   }, [session, loadingSession]);
 
+
   useEffect(() => {
     const updateWidth = () => {
       const width = tabContainerRef.current?.getBoundingClientRect?.().width || window.innerWidth
@@ -265,6 +279,7 @@ function App() {
     }
   }, [])
 
+
   useEffect(() => {
     if (!effectiveWidth || tabIndex < 0) return
     const controls = animate(x, -tabIndex * effectiveWidth, {
@@ -276,6 +291,7 @@ function App() {
     return controls.stop
   }, [effectiveWidth, tabIndex, x])
 
+
   useEffect(() => {
     if (!session?.user?.id) return
     const loadPlan = async () => {
@@ -284,6 +300,7 @@ function App() {
     }
     loadPlan()
   }, [session?.user?.id])
+
 
   useEffect(() => {
     if (!session) return
@@ -323,11 +340,13 @@ function App() {
     }
   }, [session, language])
 
+
   useEffect(() => {
     if (mode === 'dashboard' && updateUnread && updatePayload && !updateOpen) {
       queueMicrotask(() => setUpdateOpen(true))
     }
   }, [mode, updateUnread, updatePayload, updateOpen])
+
 
   const handleCloseUpdate = () => {
     if (updatePayload?.id) {
@@ -341,6 +360,7 @@ function App() {
     setUpdateOpen(false)
   }
 
+
   useEffect(() => {
     if (!updateAvailable) return
     const timer = setTimeout(() => {
@@ -349,12 +369,15 @@ function App() {
     return () => clearTimeout(timer)
   }, [updateAvailable, AUTO_UPDATE_DELAY_MS])
 
+
   const handleFinishTutorial = async () => {
     await supabase.auth.updateUser({ data: { has_finished_tutorial: true } });
     setMode('dashboard');
   };
 
+
   const getTodayDateString = () => new Date().toISOString().split('T')[0]
+
 
   const fetchTodayLogs = useCallback(async () => {
     if (!session) return
@@ -363,6 +386,7 @@ function App() {
     setTodayLogs(data || [])
   }, [session])
 
+
   const handleResetToday = async () => {
     if (!session) return
     const today = getTodayDateString()
@@ -370,16 +394,19 @@ function App() {
     if (!error) { await fetchTodayLogs(); setMode('dashboard'); }
   }
 
+
   const handleStartReview = () => {
     setMode('reviewing'); setCurrentIndex(0); setResults([]); setHasSaved(false); setSaveSuccess(null);
     setShowDaySummary(false); setDayScore(null); setDayMood(null);
   }
+
 
   const handleResetTutorial = async () => {
     if (!session) return
     await supabase.auth.updateUser({ data: { has_finished_tutorial: false } })
     setMode('tutorial')
   }
+
 
   const handleResetUpdates = () => {
     if (updatePayload?.id) {
@@ -393,6 +420,7 @@ function App() {
     setUpdateOpen(true)
   }
 
+
   useEffect(() => {
     const checkout = new URLSearchParams(window.location.search).get('checkout')
     if (checkout === 'success') {
@@ -400,6 +428,7 @@ function App() {
       window.history.replaceState({}, '', '/')
     }
   }, [])
+
 
   useEffect(() => {
     const initSession = async () => {
@@ -416,6 +445,7 @@ function App() {
     })
     return () => subscription.unsubscribe()
   }, [])
+
 
   useEffect(() => {
     if (!session) return
@@ -442,6 +472,7 @@ function App() {
     updateProfileState()
   }, [session])
 
+
   useEffect(() => {
     if (!session || !isMaintenance) return
     const checkWhitelist = async () => {
@@ -450,6 +481,7 @@ function App() {
     }
     checkWhitelist()
   }, [session, isMaintenance])
+
 
   useEffect(() => {
     if (!session || mode === 'tutorial') return
@@ -473,13 +505,14 @@ function App() {
     fetchHabits()
   }, [session, mode])
 
+
   useEffect(() => {
     if (session && mode !== 'tutorial') {
       queueMicrotask(() => fetchTodayLogs())
     }
   }, [session, habits, fetchTodayLogs, mode])
 
-  // FIX 2 + FIX 3: solo guarda cuando showDaySummary es true, y espera fetchTodayLogs antes de cambiar de modo
+
   useEffect(() => {
     if (!session || !reviewHabits.length || mode !== 'reviewing' || currentIndex < reviewHabits.length || !results.length || hasSaved || saving || !showDaySummary) return
     const saveResults = async () => {
@@ -499,9 +532,11 @@ function App() {
     saveResults()
   }, [session, reviewHabits, currentIndex, results, hasSaved, saving, mode, fetchTodayLogs, t, showDaySummary])
 
+
   if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white font-black italic tracking-tighter">DAYCLOSE</div>
   const isTestAccount = session?.user?.email === TEST_EMAIL
   const effectiveIsPro = isTestAccount ? testProOverride : isPro
+
 
   const handleToggleTestPro = () => {
     setTestProOverride(prev => {
@@ -513,6 +548,7 @@ function App() {
     })
   }
 
+
   if (isMaintenance && session?.user?.email !== ADMIN_EMAIL && !isWhitelisted && !isTestAccount) {
     return <MaintenanceScreen message={maintenanceMessage} />
   }
@@ -521,6 +557,7 @@ function App() {
   if (isBlocked && session?.user?.email !== ADMIN_EMAIL && !isTestAccount) {
     return <BlockedScreen title={t('blocked_title')} message={t('blocked_desc')} />
   }
+
 
   if (mode === 'tutorial') {
     return (
@@ -539,6 +576,7 @@ function App() {
     )
   }
 
+
   if (mode === 'history') {
     return (
       <>
@@ -548,10 +586,12 @@ function App() {
     )
   }
 
+
   if (mode === 'dashboard') {
     return (
       <div className="relative min-h-screen bg-neutral-900 overflow-x-hidden flex flex-col">
         <ProWelcomeModal isOpen={showCheckoutSuccessToast} onClose={() => setShowCheckoutSuccessToast(false)} />
+        <ProModal isOpen={proModalOpen} onClose={() => setProModalOpen(false)} />
         <TopBanner onOpenUpdates={() => setUpdateOpen(true)} />
         <UpdateShowcase isOpen={updateOpen} onClose={handleCloseUpdate} payload={updatePayload} />
         {updateAvailable && (
@@ -606,10 +646,15 @@ function App() {
                 onOpenHistory={() => setMode('history')}
                 isPro={effectiveIsPro}
                 onToggleTestPro={handleToggleTestPro}
+                onUpgrade={() => setProModalOpen(true)}
               />
             </div>
             <div style={{ width: effectiveWidth }} className="shrink-0">
-              <Stats user={session.user} isPro={effectiveIsPro} />
+              <Stats
+                user={session.user}
+                isPro={effectiveIsPro}
+                onUpgrade={() => setProModalOpen(true)}
+              />
             </div>
             <div style={{ width: effectiveWidth }} className="shrink-0">
               <CommunityHub user={session.user} />
@@ -617,8 +662,8 @@ function App() {
             <div style={{ width: effectiveWidth }} className="shrink-0">
               <div className="flex flex-col items-center justify-center flex-1 text-white p-6 text-center">
                 <div className="w-full max-w-md space-y-6">
-                  <ProgressComparison user={session.user} isPro={effectiveIsPro} />
-                  <FutureLettersSection isPro={effectiveIsPro} />
+                  <ProgressComparison user={session.user} isPro={effectiveIsPro} onUpgrade={() => setProModalOpen(true)} />
+                  <FutureLettersSection isPro={effectiveIsPro} onUpgrade={() => setProModalOpen(true)} />
                   <FeedbackSection user={session.user} />
                   <MoreFeatures />
                 </div>
@@ -627,11 +672,13 @@ function App() {
           </MotionDiv>
         </div>
 
+
         <Dock activeTab={activeTab} onTabChange={handleTabChange} />
         <ReminderPopup session={session} isPro={effectiveIsPro} />
       </div>
     )
   }
+
 
   return (
     <div className={`app-screen flex items-center justify-center ${swipeStatus === 'done' ? 'bg-emerald-900' : swipeStatus === 'not-done' ? 'bg-red-900' : 'bg-neutral-900'} transition-colors duration-300 relative`}>
@@ -650,11 +697,11 @@ function App() {
         ) : !showDaySummary ? (
           <div className="w-full max-w-sm mx-auto">
             <div className="bg-neutral-800/60 rounded-[2rem] border border-white/5 p-6 text-center shadow-xl">
-              <p className="text-2xl mb-1">✅</p>
+              <p className="text-2xl mb-1">\u2705</p>
               <p className="text-lg font-black text-white mb-1">{t('review_completed')}</p>
-              <p className="text-[11px] text-neutral-500 mb-6">{t('day_summary_subtitle') || 'Antes de cerrar, ¿cómo fue tu día?'}</p>
+              <p className="text-[11px] text-neutral-500 mb-6">{t('day_summary_subtitle') || 'Antes de cerrar, \u00bfc\u00f3mo fue tu d\u00eda?'}</p>
 
-              <p className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 mb-3">{t('day_score_label') || 'Puntúa tu día'}</p>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 mb-3">{t('day_score_label') || 'Punt\u00faa tu d\u00eda'}</p>
               <div className="flex justify-center gap-1.5 mb-6 flex-wrap">
                 {[1,2,3,4,5,6,7,8,9,10].map(n => (
                   <button
@@ -671,9 +718,9 @@ function App() {
                 ))}
               </div>
 
-              <p className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 mb-3">{t('day_mood_label') || 'Estado de ánimo'}</p>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 mb-3">{t('day_mood_label') || 'Estado de \u00e1nimo'}</p>
               <div className="flex justify-center gap-3 mb-6">
-                {['😩','😕','😐','🙂','😄'].map(emoji => (
+                {['\ud83d\ude29','\ud83d\ude15','\ud83d\ude10','\ud83d\ude42','\ud83d\ude04'].map(emoji => (
                   <button
                     key={emoji}
                     onClick={() => setDayMood(emoji)}
@@ -693,7 +740,7 @@ function App() {
                 disabled={!dayScore || !dayMood}
                 className="w-full py-4 rounded-2xl bg-white text-black font-black text-sm active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none"
               >
-                {t('close_day_btn') || 'Cerrar el día →'}
+                {t('close_day_btn') || 'Cerrar el d\u00eda \u2192'}
               </button>
               <button
                 onClick={() => setShowDaySummary(true)}
@@ -716,5 +763,6 @@ function App() {
     </div>
   )
 }
+
 
 export default App
