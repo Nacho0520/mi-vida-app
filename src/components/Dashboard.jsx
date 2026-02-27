@@ -249,6 +249,11 @@ function Dashboard({
         onClose={() => setSettingsOpen(false)}
         user={user}
         appVersion={version}
+        isPro={isPro}
+        onUpgrade={() => {
+          setSettingsOpen(false);
+          setProModalOpen(true);
+        }}
       />
       <ProfileModal
         isOpen={isProfileOpen}
@@ -270,6 +275,8 @@ function Dashboard({
       <ProModal
         isOpen={isProModalOpen}
         onClose={() => setProModalOpen(false)}
+        user={user}
+        onProActivated={() => window.location.reload()}
       />
 
       <div className="mx-auto w-full max-w-md mt-6">

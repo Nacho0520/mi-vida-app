@@ -4,7 +4,7 @@ import SwipeCard from './components/SwipeCard'
 import NoteModal from './components/NoteModal'
 import Dashboard from './components/Dashboard'
 import Auth from './components/Auth'
-import LandingPage from './components/LandingPage' // <-- 1. Importación añadida
+import LandingPage from './components/LandingPage'
 import { supabase } from './lib/supabaseClient'
 import ReminderPopup from './components/ReminderPopup'
 import TopBanner from './components/TopBanner'
@@ -175,7 +175,7 @@ function App() {
   const [isBlocked, setIsBlocked] = useState(false)
   const [isWhitelisted, setIsWhitelisted] = useState(false)
   const [proModalOpen, setProModalOpen] = useState(false)
-  const [showAuth, setShowAuth] = useState(false) // <-- 2. Nuevo estado añadido
+  const [showAuth, setShowAuth] = useState(false)
   const AUTO_UPDATE_DELAY_MS = 8000
   const ADMIN_EMAIL = 'hemmings.nacho@gmail.com' 
   const TEST_EMAIL = 'test@test.com'
@@ -228,6 +228,17 @@ function App() {
       } catch {}
       return next
     })
+  }
+
+  // ── Helper: determinar si el plan Pro está activo y no caducado ──────────
+  const resolveIsPro = (profileData, userEmail) => {
+    const adminEmails = [ADMIN_EMAIL]
+    if (adminEmails.includes(userEmail)) return true
+    if (profileData?.plan !== 'pro') return false
+    const expiresAt = profileData?.pro_expires_at
+    // Si no tiene fecha de expiración (activado manualmente), lo consideramos válido
+    if (!expiresAt) return true
+    return new Date(expiresAt) > new Date()
   }
 
   useEffect(() => {
@@ -295,15 +306,6 @@ function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }, [activeTab])
-
-  useEffect(() => {
-    if (!session?.user?.id) return
-    const loadPlan = async () => {
-      const { data } = await supabase.from('profiles').select('plan').eq('id', session.user.id).maybeSingle()
-      setIsPro(data?.plan === 'pro')
-    }
-    loadPlan()
-  }, [session?.user?.id])
 
   useEffect(() => {
     if (!session) return
@@ -437,23 +439,26 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // ── Cargar plan del usuario al iniciar sesión ────────────────────────────
   useEffect(() => {
     if (!session) return
     const updateProfileState = async () => {
-      const { data } = await supabase
+      const { data: userProfileData } = await supabase
         .from('user_profiles')
         .select('is_blocked')
         .eq('user_id', session.user.id)
         .single()
-      setIsBlocked(Boolean(data?.is_blocked))
+      setIsBlocked(Boolean(userProfileData?.is_blocked))
+
+      // ✅ Leer plan Y pro_expires_at para determinar isPro correctamente
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('plan')
+        .select('plan, pro_expires_at')
         .eq('id', session.user.id)
         .single()
-      const adminEmails = [ADMIN_EMAIL]
-      const isAdmin = adminEmails.includes(session.user.email)
-      setIsPro(isAdmin || profileData?.plan === 'pro')
+
+      setIsPro(resolveIsPro(profileData, session.user.email))
+
       await supabase
         .from('user_profiles')
         .update({ last_seen: new Date().toISOString() })
@@ -518,25 +523,19 @@ function App() {
     saveResults()
   }, [session, reviewHabits, currentIndex, results, hasSaved, saving, mode, fetchTodayLogs, t, showDaySummary])
 
-  // --- MODIFICACIÓN DEL RENDERIZADO FINAL ---
-
   if (loadingSession) return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white font-black italic tracking-tighter uppercase text-3xl">
         DAYCLOSE
     </div>
   );
 
-  // SI NO HAY SESIÓN:
   if (!session) {
     if (showAuth) {
-      // Si el usuario clicó en "Empezar" en la Landing, mostramos Auth
       return <Auth onBack={() => setShowAuth(false)} />;
     }
-    // Por defecto, mostramos la Landing Page
     return <LandingPage onGetStarted={() => setShowAuth(true)} />;
   }
 
-  // SI HAY SESIÓN:
   if (isBlocked && session?.user?.email !== ADMIN_EMAIL && !isTestAccount) {
     return <BlockedScreen title={t('blocked_title')} message={t('blocked_desc')} />
   }
@@ -571,7 +570,15 @@ function App() {
     return (
       <div className="relative min-h-screen bg-neutral-900 overflow-x-hidden flex flex-col">
         <ProWelcomeModal isOpen={showCheckoutSuccessToast} onClose={() => setShowCheckoutSuccessToast(false)} />
-        <ProModal isOpen={proModalOpen} onClose={() => setProModalOpen(false)} />
+
+        {/* ✅ ProModal con user y onProActivated */}
+        <ProModal
+          isOpen={proModalOpen}
+          onClose={() => setProModalOpen(false)}
+          user={session.user}
+          onProActivated={() => window.location.reload()}
+        />
+
         <TopBanner onOpenUpdates={() => setUpdateOpen(true)} />
         <UpdateShowcase isOpen={updateOpen} onClose={handleCloseUpdate} payload={updatePayload} />
         {updateAvailable && (
