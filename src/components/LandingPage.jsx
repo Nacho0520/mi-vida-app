@@ -125,7 +125,7 @@ export default function LandingPage({ onGetStarted }) {
           {/* Logo */}
           <div className="flex items-center gap-2.5">
             <img
-              src="public/pwa-192x192.png"
+              src="/pwa-192x192.png"
               alt="DayClose icon"
               className="w-8 h-8 rounded-lg object-cover"
             />
@@ -378,7 +378,7 @@ export default function LandingPage({ onGetStarted }) {
       <footer className="py-8 px-6 border-t border-white/5 text-center">
         <div className="flex items-center justify-center gap-2">
           <img
-            src="public/pwa-192x192.png"
+            src="/pwa-192x192.png"
             alt="DayClose icon"
             className="w-5 h-5 rounded-md object-cover opacity-50"
           />
