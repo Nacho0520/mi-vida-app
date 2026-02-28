@@ -410,9 +410,6 @@ export const translations = {
     // Pro modal
     pro_modal_subtitle: "Lleva tu rutina al siguiente nivel",
     pro_how_it_works: "Cómo funciona",
-    pro_step_1: "Hazte Pro",
-    pro_step_2: "Recibirás un código único por email",
-    pro_step_3: "Actívalo aquí y disfruta de Pro",
     pro_kofi_cta: "Hazte Pro",
     pro_have_code: "Ya tengo un código",
     pro_continue_free: "Continuar con el plan gratuito",
@@ -427,6 +424,12 @@ export const translations = {
     pro_code_invalid: "Código no válido. Compruébalo e inténtalo de nuevo.",
     pro_code_used: "Este código ya ha sido usado.",
     pro_code_expired: "Este código ha caducado. Contacta con soporte.",
+
+    pro_patreon_cta: "Hazte Pro",
+    pro_price_monthly: "4,99€/mes",
+    pro_step_1: "Únete al plan Pro",
+    pro_step_2: "Recibirás un código único por email",
+    pro_step_3: "Actívalo aquí y disfruta de Pro",
   },
   en: {
     // Auth & General
@@ -829,9 +832,6 @@ export const translations = {
     // Pro modal
     pro_modal_subtitle: "Take your routine to the next level",
     pro_how_it_works: "How it works",
-    pro_step_1: "Upgrade to Pro",
-    pro_step_2: "You'll receive a unique code by email",
-    pro_step_3: "Activate it here and enjoy Pro",
     pro_kofi_cta: "Upgrade to Pro",
     pro_have_code: "I already have a code",
     pro_continue_free: "Continue with the free plan",
@@ -846,5 +846,11 @@ export const translations = {
     pro_code_invalid: "Invalid code. Please check and try again.",
     pro_code_used: "This code has already been used.",
     pro_code_expired: "This code has expired. Please contact support.",
+
+    pro_patreon_cta: "Upgrade to Pro",
+    pro_price_monthly: "€4.99/month",
+    pro_step_1: "Join the Pro plan",
+    pro_step_2: "You'll receive a unique code by email",
+    pro_step_3: "Activate it here and enjoy Pro",
   },
 };
