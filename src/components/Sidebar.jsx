@@ -1,8 +1,9 @@
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, LogOut, Settings, ShieldCheck, Heart, ChevronRight, Sparkles, Beaker, Archive } from 'lucide-react'
+import { X, LogOut, Settings, ShieldCheck, ChevronRight, Sparkles, Beaker, Archive, Zap } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 
-export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSettings, onOpenProfile, version, onOpenAdmin, onOpenUpdates, hasUpdates, isTestAccount, onResetTutorial, onResetUpdates, onOpenHistory }) {
+export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSettings, onOpenProfile, version, onOpenAdmin, onOpenUpdates, hasUpdates, isTestAccount, onResetTutorial, onResetUpdates, onOpenHistory, isPro, onUpgradePro }) {
   const email = user?.email || ''
   const isAdmin = email === 'hemmings.nacho@gmail.com'
   const { t } = useLanguage()
@@ -87,15 +88,23 @@ export default function Sidebar({ isOpen, onClose, user, onLogout, onOpenSetting
                   </button>
                 )}
               </nav>
-              <div className="mb-4">
-                <a href="https://ko-fi.com/nachohemmings" target="_blank" rel="noopener noreferrer" className="group flex items-center justify-between w-full px-5 py-5 bg-emerald-500/10 border border-emerald-500/20 rounded-[2rem] transition-all hover:bg-emerald-500/20 active:scale-95 shadow-lg shadow-emerald-500/5">
+              {!isPro && (
+                <button
+                  onClick={() => { onUpgradePro?.(); onClose(); }}
+                  className="mb-4 group flex items-center justify-between w-full px-5 py-5 bg-violet-500/10 border border-violet-500/20 rounded-[2rem] transition-all hover:bg-violet-500/20 active:scale-95 shadow-lg shadow-violet-500/5"
+                >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform"><Heart size={20} className="text-emerald-400 fill-emerald-400/20" /></div>
-                    <div className="text-left"><p className="text-xs font-black text-emerald-400 uppercase tracking-tight leading-none">{t('support_project')}</p><p className="text-[10px] text-emerald-500/60 font-medium mt-1">{t('buy_coffee')}</p></div>
+                    <div className="p-2 bg-violet-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                      <Zap size={20} className="text-violet-400" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-black text-violet-400 uppercase tracking-tight leading-none">Plan Pro</p>
+                      <p className="text-[10px] text-violet-500/60 font-medium mt-1">Desbloquea todo</p>
+                    </div>
                   </div>
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                </a>
-              </div>
+                  <div className="h-2 w-2 rounded-full bg-violet-500 animate-pulse" />
+                </button>
+              )}
               <div className="mt-auto pt-6 border-t border-white/5">
                 <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-4 text-red-400 hover:bg-red-900/20 rounded-2xl transition-all font-bold text-sm mb-6" >
                   <LogOut size={20} /> <span>{t('logout')}</span>

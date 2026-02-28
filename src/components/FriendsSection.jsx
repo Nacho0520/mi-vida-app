@@ -17,7 +17,7 @@ import {
 
 const MotionDiv = motion.div
 const DAY_MS = 24 * 60 * 60 * 1000
-const FRIENDS_NEW_KEY = 'mivida_friends_new_since'
+const FRIENDS_NEW_KEY = 'dayclose_friends_new_since'
 const FRIENDS_NEW_DAYS = 3
 
 export default function FriendsSection({ user }) {

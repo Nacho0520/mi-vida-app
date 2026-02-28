@@ -17,7 +17,7 @@ serve(async (req) => {
     // 1. Configurar las llaves VAPID
     // IMPORTANTE: Asegúrate de haber añadido VAPID_PUBLIC_KEY y VAPID_PRIVATE_KEY
     // en los "Secrets" de tu panel de Supabase.
-    const vapidEmail = 'mailto:admin@mivida.app' 
+    const vapidEmail = 'mailto:admin@dayclose.app' 
     const publicKey = Deno.env.get('VAPID_PUBLIC_KEY')
     const privateKey = Deno.env.get('VAPID_PRIVATE_KEY')
 

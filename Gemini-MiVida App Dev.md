@@ -1,4 +1,4 @@
-# MiVida App Dev
+# DayClose App Dev
 
 **Exported:** 1/30/2026 10:36:53  
 **Link:** [https://gemini.google.com/app/c0eb08f6d3f3f236](https://gemini.google.com/app/c0eb08f6d3f3f236)
@@ -159,7 +159,7 @@ Para gestionar el "Recordar más tarde".
 
 Para que Cursor te ayude de verdad, no escribas el código tú solo. Usa este _prompt_ inicial en el chat de Cursor (Command + L) cuando crees el proyecto:
 
-> "Actúa como un experto en React y UX. Quiero crear una PWA para seguimiento de hábitos llamada 'MiVida'. Usaremos Tailwind CSS para el estilo y Supabase para el backend. El diseño debe ser Mobile-First, oscuro y minimalista. Por favor, inicializa la estructura del proyecto con Vite y configura el archivo manifest.json para que sea instalable."
+> "Actúa como un experto en React y UX. Quiero crear una PWA para seguimiento de hábitos llamada 'DayClose'. Usaremos Tailwind CSS para el estilo y Supabase para el backend. El diseño debe ser Mobile-First, oscuro y minimalista. Por favor, inicializa la estructura del proyecto con Vite y configura el archivo manifest.json para que sea instalable."
 
 ### ¿Por dónde empezamos?
 
@@ -206,7 +206,7 @@ Antes de tocar código, necesitamos el lugar donde se guardarán tus datos.
     [supabase.com](https://supabase.com/)
      y regístrate (es gratis).
 2.  Dale al botón **"New Project"**.
-3.  Ponle nombre (ej: `MiVidaApp`) y una contraseña segura para la base de datos (apúntala).
+3.  Ponle nombre (ej: `DayCloseApp`) y una contraseña segura para la base de datos (apúntala).
 4.  Elige una región cercana a ti (ej: Europe/Frankfurt o US East).
 5.  Espera unos minutos a que se cree.
 
@@ -4737,7 +4737,7 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
         name: 'Mi Vida Organizada',
-        short_name: 'MiVida',
+        short_name: 'DayClose',
         description: 'App de seguimiento de hábitos y rutina diaria',
         theme_color: '#171717',
         background_color: '#171717',
@@ -9058,7 +9058,7 @@ Las PWAs son muy agresivas guardando datos en caché (para funcionar rápido), a
 ¡Ahora deberías ver tu propio logo brillando en tu pantalla! 🌟
 
 ## Prompt:
-crea una imagen para MiVida App teniendo en cuenta todo lo que sabes sobre el y el estilo de la app. en 1024x1024
+crea una imagen para DayClose App teniendo en cuenta todo lo que sabes sobre el y el estilo de la app. en 1024x1024
 
 ## Response:
 ![Imagen de ](https://lh3.googleusercontent.com/gg/AMW1TPr71b44AhJceKusG6ecrV5mZTi6BSIh2XbiLwz13kokNk82tT8itgW5lEQSsM9kPqZXbgRmmNBOs5hjjBQHkNv7349rlvlSLqh5hgoSR3nxngkzYhsgULKBv_JQ0ED3mSKkun3OtpvSiPsDMyxZZQ675Z7VEhCn4LwOqYqlLjzZB4qkic9eMGyLnDb3PQGAYx1wNPaA8Gr5VszuwxeuftkAp3YfqeGeMUikAZdQ_tEI-D9XpTrTygMGOJTmqdatBVoxezeoR6Cd-9Jsgk-U4Tw3vfvRLfoYmzJ4tlTiS1NrOVdAFdX_IG38fbWHaoehiPKHxyxru1h5e03iPCOFd5OF=s1024-rj)
@@ -9070,13 +9070,13 @@ solo dame el icono no añadas texto adicional. no edites nada de la imagen esta 
 ![Imagen de ](https://lh3.googleusercontent.com/gg/AMW1TPr5glK_sgULGtO8_CIDJwKVIVssrVFi38SUTaBZX1frbPtVic5ODaHJOZawlzUzsMG0QnQnT-eU6pyf_f3o6fdWrALB_Sfb_5_UzpguctqbtYYkfBzwVapamH2pIVENzXfDi4DMxyM6Nl-186-v1p6WFc2YsSuvcSoM-vBTOY8GLz5rpAiziVDzRdkxzglZJbTD4EbKvSydwqitihWesvWLbiapqoj28uqFGILAGP6uCOu4EdRzDi5FmR393WMpTcStHdnh83j07i-YxKWjmg81-0x-18FcFwZPlSNkqiWR6WTC9XJt7w0f1y625R46QT0jBK7MVOiGjAYtM2w3IEOK=s1024-rj)
 
 ## Prompt:
-deja el texto MiVida, y los borde blancos. el icono debe ser completo
+deja el texto DayClose, y los borde blancos. el icono debe ser completo
 
 ## Response:
 ![Imagen de ](https://lh3.googleusercontent.com/gg/AMW1TPp7u1hqSHVYi4mdxGXxK0wdNK0IHz-HTcnnr8yUpZRJEhecGyQ6kKLHUl4ms-HusKQ_6C_aSTp6A3lSmD73SuqRLbcu-n3Y0mo7Gf2KiM8ijzQ5pFM1xEL1Zg0PCtxWqb1ktKTUPgPAlVIFQYAILgPEIr52vDK5JyhlpQzbEGfApSOu9g9HYwsTI_TnyrBdfPASeTJWWaHDwfOPiHxwHxkhb7uBzYERIXgpbMlVjEMJlOUCm5XxsIco_OS6lIXm4BRhOj3ALjQJbQWFmJj0pARhy2lVe2AtNDMCAcJ5pEA13NF-eJEosW03xskDe6I2lzvuDADvQcBpuHshswC6aksE=s1024-rj)
 
 ## Prompt:
-la imagen al descargarla no aparece el nombre de MiVida
+la imagen al descargarla no aparece el nombre de DayClose
 
 ## Response:
 ![Imagen de ](https://lh3.googleusercontent.com/gg/AMW1TPp3sjboJYRAbJavYaRHpmhz2v_pcHoPXuX2aiiT8RuaBQaIYyw86SXymyvPmJIMuDi6M6LJ34jCo6DmwsoaKe43sODUy3xsplIf3inrMjTi5yQYYZDNJ2EW6lGHIq5QTJgm0w0sEuRve0tqBGt4ByeejFLdCdk44zIgF6wpjZqtxDpFIKWhoI3BeuwFZOu1GtEpvXrN8Wr5fDT7t95SJ-gcniPUOWx9DvmF1PxtsrbCWR8y2w7c_LMmsamhnmp_2Gv0HtU1iRQwG9yo-FOll6Oi-lhVu8JmV3CiMmmo0na2_iom78nLSqWvOVlAX-BJHPJmVt26HWpFbytwdUqtDRA=s1024-rj)
@@ -9228,7 +9228,7 @@ que otras ideas me das para completar mas aun la app? ya sea visual, software, u
 ## Response:
 ¡Me encanta esa actitud! Tienes la base sólida (CRUD, PWA, Auth, Admin), ahora toca meterle **"alma"** a la app. Hay que pasar de una "lista de tareas" a una **experiencia**.
 
-Aquí tienes 4 ideas creativas (mezcla de visual, utilidad y "enganche" psicológico) para llevar **MiVida** al siguiente nivel. Elige la que más te guste y la implementamos.
+Aquí tienes 4 ideas creativas (mezcla de visual, utilidad y "enganche" psicológico) para llevar **DayClose** al siguiente nivel. Elige la que más te guste y la implementamos.
 
 * * *
 
@@ -9266,7 +9266,7 @@ Muchos hábitos son de tiempo (ej: "Leer 20 min", "Meditar 10 min").
 *   **La Idea:** Que al pulsar en un hábito, en lugar de marcarse directo, te dé la opción de **"Iniciar Temporizador"**.
 *   **La Pantalla:** La pantalla se pone negra, sale un círculo con una cuenta atrás y música de fondo opcional (lluvia/white noise).
 *   **El Premio:** Al terminar el tiempo, el hábito se marca solo automáticamente.
-*   **Valor:** Ya no necesitas salir de tu app para poner la alarma del móvil. Todo ocurre en _MiVida_.
+*   **Valor:** Ya no necesitas salir de tu app para poner la alarma del móvil. Todo ocurre en _DayClose_.
 
 * * *
 
@@ -10249,7 +10249,7 @@ manifest: {
 
 name: "Mi Vida Organizada",
 
-short\_name: "MiVida",
+short\_name: "DayClose",
 
 description: "App de seguimiento de hábitos y rutina diaria",
 
@@ -11056,7 +11056,7 @@ Solo nos queda el paso final: decirle a internet que pulse ese interruptor autom
     ** (es gratis).
 3.  Crea una cuenta rápida y pulsa en **"Create Cronjob"** (o "New Cronjob").
 4.  Rellena esto:
-    *   **Title:** Aviso MiVida
+    *   **Title:** Aviso DayClose
     *   **URL:** (Pega tu URL de Supabase aquí)
     *   **Execution schedule:** "Every day" a las **22:00** (o la hora que quieras).
     *   **Method:** Importante, cámbialo a **POST**.
@@ -11418,7 +11418,7 @@ serve(async (req) => {
     for (const sub of subscriptions) {
       const payload = JSON.stringify({
         title: '🌙 Momento de reflexión',
-        body: '¿Qué tal ha ido el día? Entra en MiVida para cerrar tus hábitos.',
+        body: '¿Qué tal ha ido el día? Entra en DayClose para cerrar tus hábitos.',
         icon: '/pwa-192x192.png', // Asegúrate de tener este icono en tu carpeta public
         badge: '/pwa-192x192.png',
         url: 'https://mi-vida-app.vercel.app' // TU URL REAL
@@ -11636,7 +11636,7 @@ serve(async (req) => {
     for (const sub of subscriptions) {
       const payload = JSON.stringify({
         title: '🌙 Momento de reflexión',
-        body: '¿Qué tal ha ido el día? Entra en MiVida para cerrar tus hábitos.',
+        body: '¿Qué tal ha ido el día? Entra en DayClose para cerrar tus hábitos.',
         icon: '/pwa-192x192.png',
         badge: '/pwa-192x192.png',
         url: 'https://mi-vida-app.vercel.app'
@@ -11763,7 +11763,7 @@ serve(async (req) => {
     for (const sub of subscriptions) {
       const payload = JSON.stringify({
         title: '🌙 Momento de reflexión',
-        body: '¿Qué tal ha ido el día? Entra en MiVida para cerrar tus hábitos.',
+        body: '¿Qué tal ha ido el día? Entra en DayClose para cerrar tus hábitos.',
         icon: '/pwa-192x192.png',
         badge: '/pwa-192x192.png',
         url: 'https://mi-vida-app.vercel.app'
@@ -21903,7 +21903,7 @@ manifest: {
 
 name: "Mi Vida Organizada",
 
-short\_name: "MiVida",
+short\_name: "DayClose",
 
 description: "App de seguimiento de hábitos y rutina diaria",
 
@@ -25191,7 +25191,7 @@ function App() {
 
   useEffect(() => { if (session) fetchTodayLogs() }, [session, habits, fetchTodayLogs])
 
-  if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-neutral-300 font-light italic">Cargando MiVida...</div>
+  if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-neutral-300 font-light italic">Cargando DayClose...</div>
   if (isMaintenance && session?.user?.email !== ADMIN_EMAIL) return <MaintenanceScreen />
   if (!session) return <><TopBanner /><Auth /></>
   if (mode === 'admin') return <AdminPanel onClose={() => setMode('dashboard')} version={CURRENT_SOFTWARE_VERSION} />
@@ -26003,7 +26003,7 @@ export default function Auth() {
         className="w-full max-w-sm rounded-[2.5rem] bg-neutral-800/50 p-8 shadow-2xl border border-neutral-700/50 backdrop-blur-xl"
       >
         <h1 className="mb-2 text-center text-3xl font-black text-white tracking-tighter">
-          {isSignUp ? 'Crear Cuenta' : 'MiVida'}
+          {isSignUp ? 'Crear Cuenta' : 'DayClose'}
         </h1>
         <p className="mb-8 text-center text-xs font-bold uppercase tracking-widest text-neutral-500">
           {isSignUp ? 'Empieza a organizar tu rutina' : 'Inicia sesión para continuar'}
@@ -26165,7 +26165,7 @@ Para el concepto de **"a la voluntad"**, te recomiendo evitar Patreon por ahora.
 
 Para que sea elegante y no moleste, te sugiero colocarlo en el **pie de la Sidebar**, justo encima de la versión del software. Así, el usuario solo lo ve cuando va a "Ajustes" o a "Cerrar Sesión", momentos en los que ya está interactuando con la gestión de la App.
 
-> **Tip de Diseño:** No uses la palabra "Donar" (suena a ONG). Usa frases como **"Invítame a un café"**, **"Apoya el proyecto"** o **"¿Te gusta MiVida?"**. Es mucho más cercano.
+> **Tip de Diseño:** No uses la palabra "Donar" (suena a ONG). Usa frases como **"Invítame a un café"**, **"Apoya el proyecto"** o **"¿Te gusta DayClose?"**. Es mucho más cercano.
 
 * * *
 
@@ -26737,7 +26737,7 @@ function App() {
 
   useEffect(() => { if (session) fetchTodayLogs() }, [session, habits, fetchTodayLogs])
 
-  if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-neutral-300 font-light italic">Cargando MiVida...</div>
+  if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-neutral-300 font-light italic">Cargando DayClose...</div>
   if (isMaintenance && session?.user?.email !== ADMIN_EMAIL) return <MaintenanceScreen />
   if (!session) return <><TopBanner /><Auth /></>
   if (mode === 'admin') return <AdminPanel onClose={() => setMode('dashboard')} version={CURRENT_SOFTWARE_VERSION} />
@@ -27078,7 +27078,7 @@ function App() {
     saveResults()
   }, [session, habits, currentIndex, results, hasSaved, saving, mode])
 
-  if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-neutral-300">Cargando MiVida...</div>
+  if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-neutral-300">Cargando DayClose...</div>
   if (isMaintenance && session?.user?.email !== ADMIN_EMAIL) return <MaintenanceScreen />
   if (!session) return <><TopBanner /><Auth /></>
   if (mode === 'admin') return <AdminPanel onClose={() => setMode('dashboard')} version={CURRENT_SOFTWARE_VERSION} />
@@ -27294,7 +27294,7 @@ import { Check, X, Info, Zap } from 'lucide-react'
 const TUTORIAL_STEPS = [
   {
     id: 't1',
-    title: "¡Bienvenido a MiVida!",
+    title: "¡Bienvenido a DayClose!",
     desc: "Tu nueva rutina empieza aquí. Vamos a enseñarte los dos movimientos maestros.",
     icon: "🚀",
     color: "bg-blue-600",
@@ -27510,7 +27510,7 @@ export default App
 **¿Te gustaría que añadamos un efecto de confeti 🎉 cuando el usuario termine la última carta del tutorial para celebrar que ya es un experto?** Sería el toque final perfecto.
 
 ## Prompt:
-quiero implementar a tu idea lo siguiente: una pantalla de bienvenida flotante que explica como funciona MiVida y a continuación tu idea con un tutorial interactivo para mejor entendimiento.
+quiero implementar a tu idea lo siguiente: una pantalla de bienvenida flotante que explica como funciona DayClose y a continuación tu idea con un tutorial interactivo para mejor entendimiento.
 
 ## Response:
 Es una evolución lógica y muy potente. Al separar la **teoría** (pantalla flotante) de la **práctica** (tutorial interactivo), eliminamos la fricción y aseguramos que el usuario no se sienta abrumado \[cite: 2026-01-28\].
@@ -27576,12 +27576,12 @@ export default function Tutorial({ user, onComplete }) {
             </div>
             
             <h1 className="text-3xl font-black text-white text-center tracking-tighter mb-4 leading-none">
-              Bienvenido a MiVida
+              Bienvenido a DayClose
             </h1>
             
             <p className="text-neutral-400 text-center text-sm mb-8 leading-relaxed font-medium">
               Hola <span className="text-white font-bold">{user?.user_metadata?.full_name || 'campeón'}</span>. 
-              Has dado el primer paso para dominar tu rutina. MiVida te ayudará a ser constante mediante revisiones nocturnas rápidas y visuales.
+              Has dado el primer paso para dominar tu rutina. DayClose te ayudará a ser constante mediante revisiones nocturnas rápidas y visuales.
             </p>
 
             <div className="space-y-4 mb-8">
@@ -28012,7 +28012,7 @@ saveResults()
 
 }, \[session, habits, currentIndex, results, hasSaved, saving, mode\])
 
-if (loadingSession) return \<div className="min-h-screen flex items-center justify-center bg-neutral-900 text-neutral-300"\>Cargando MiVida...\</div\>
+if (loadingSession) return \<div className="min-h-screen flex items-center justify-center bg-neutral-900 text-neutral-300"\>Cargando DayClose...\</div\>
 
 if (isMaintenance && session?.user?.email !== ADMIN\_EMAIL) return \<MaintenanceScreen /\>
 
@@ -28356,7 +28356,7 @@ export default function Tutorial({ user, onComplete }) {
             </div>
             
             <h1 className="text-3xl font-black text-white text-center tracking-tighter mb-4 leading-none">
-              Bienvenido a MiVida
+              Bienvenido a DayClose
             </h1>
             
             <p className="text-neutral-400 text-center text-sm mb-8 leading-relaxed font-medium">
@@ -28443,7 +28443,7 @@ Con esto implementado, el gesto de swipe debería funcionar perfectamente. **¿Q
 cuando se desliza hacia la derecha para poner el habito como incompleto, no muestra la opción de poner una nota. ademas de que quiero poner un mensaje de enhorabuena por completar el tutorial y dando paso a la app.
 
 ## Response:
-Entiendo perfectamente el desajuste. En la lógica que hemos construido para **MiVida**, el movimiento para marcar como incompleto (y por tanto abrir la nota) es hacia la **izquierda**, mientras que la **derecha** es para el éxito directo.
+Entiendo perfectamente el desajuste. En la lógica que hemos construido para **DayClose**, el movimiento para marcar como incompleto (y por tanto abrir la nota) es hacia la **izquierda**, mientras que la **derecha** es para el éxito directo.
 
 He ajustado el **`Tutorial.jsx`** para que sea un simulador completo: ahora, cuando el usuario deslice hacia la izquierda en la práctica, aparecerá una versión simplificada del **NoteModal** dentro del tutorial para que aprenda a usarlo. Además, he añadido la pantalla de **Enhorabuena** con un diseño festivo antes de entrar a la App.
 
@@ -28511,7 +28511,7 @@ export default function Tutorial({ user, onComplete }) {
                 <Star size={32} fill="currentColor" />
               </div>
             </div>
-            <h1 className="text-3xl font-black text-white tracking-tighter mb-4 leading-none">MiVida</h1>
+            <h1 className="text-3xl font-black text-white tracking-tighter mb-4 leading-none">DayClose</h1>
             <p className="text-neutral-400 text-sm mb-8 leading-relaxed font-medium">
               Hola <span className="text-white font-bold">{user?.user_metadata?.full_name || 'campeón'}</span>. Vamos a aprender a usar la App en 30 segundos.
             </p>
@@ -28600,7 +28600,7 @@ export default function Tutorial({ user, onComplete }) {
             
             <h1 className="text-4xl font-black text-white tracking-tighter mb-4 leading-none">¡Enhorabuena!</h1>
             <p className="text-neutral-300 text-lg font-medium mb-10 leading-snug px-4">
-              Ya eres un experto en <span className="text-emerald-400 font-black italic">MiVida</span>. Estás listo para tomar el control de tu rutina.
+              Ya eres un experto en <span className="text-emerald-400 font-black italic">DayClose</span>. Estás listo para tomar el control de tu rutina.
             </p>
 
             <button 
@@ -29360,7 +29360,7 @@ Con este código, el flujo del **Tutorial** hacia el **Dashboard** y de ahí a l
 quiero añadir nuevas funciones a la app, quiero empezar añadiendo nuevas funciones en la sidebar, se creativo y dame ideas y funciones que vendrían bien para la app que tenga coherencia y sea limpio (manteniendo la visual que tiene actualmente la app).
 
 ## Response:
-Para elevar **MiVida** al siguiente nivel manteniendo esa estética "Apple-Dark" tan limpia que hemos construido, he seleccionado tres funciones para la Sidebar que aportan valor real sin saturar la interfaz.
+Para elevar **DayClose** al siguiente nivel manteniendo esa estética "Apple-Dark" tan limpia que hemos construido, he seleccionado tres funciones para la Sidebar que aportan valor real sin saturar la interfaz.
 
 Aquí tienes las propuestas creativas:
 
@@ -35725,7 +35725,7 @@ export default function Auth() {
 
       <div className="w-full max-w-sm space-y-8 text-center">
         <div className="space-y-2">
-          <h1 className="text-4xl font-black tracking-tighter text-white">MiVida</h1>
+          <h1 className="text-4xl font-black tracking-tighter text-white">DayClose</h1>
           <p className="text-neutral-400">{t('login_subtitle')}</p>
         </div>
 
@@ -36057,7 +36057,7 @@ className="w-full max-w-sm rounded-\[2.5rem\] bg-neutral-800/50 p-8 shadow-2xl b
 
 \<h1 className="mb-2 text-center text-3xl font-black text-white tracking-tighter"\>
 
-{isSignUp ? 'Crear Cuenta' : 'MiVida'}
+{isSignUp ? 'Crear Cuenta' : 'DayClose'}
 
 \</h1\>
 
@@ -36272,7 +36272,7 @@ Este archivo no lo tenías, así que créalo. Contiene todos los textos que usa 
 export const translations = {
   es: {
     // Auth
-    app_name: "MiVida",
+    app_name: "DayClose",
     create_account: "Crear Cuenta",
     login_subtitle: "Inicia sesión para continuar",
     signup_subtitle: "Empieza a organizar tu rutina",
@@ -36340,7 +36340,7 @@ export const translations = {
   },
   en: {
     // Auth
-    app_name: "MiVida",
+    app_name: "DayClose",
     create_account: "Create Account",
     login_subtitle: "Sign in to continue",
     signup_subtitle: "Start organizing your routine",
@@ -36701,7 +36701,7 @@ Este archivo servirá de diccionario. Créalo dentro de tu carpeta `lib` existen
 ```
 export const translations = {
   es: {
-    app_name: "MiVida",
+    app_name: "DayClose",
     create_account: "Crear Cuenta",
     login_subtitle: "Inicia sesión para continuar",
     signup_subtitle: "Empieza a organizar tu rutina",
@@ -36720,7 +36720,7 @@ export const translations = {
     switch_to_signup: "¿No tienes cuenta? Regístrate"
   },
   en: {
-    app_name: "MiVida",
+    app_name: "DayClose",
     create_account: "Create Account",
     login_subtitle: "Log in to continue",
     signup_subtitle: "Start organizing your routine",
@@ -37029,7 +37029,7 @@ Primero, aseguremos que el diccionario tenga **todas** las palabras de la App (S
 export const translations = {
   es: {
     // Auth
-    app_name: "MiVida",
+    app_name: "DayClose",
     create_account: "Crear Cuenta",
     login_subtitle: "Inicia sesión para continuar",
     signup_subtitle: "Empieza a organizar tu rutina",
@@ -37097,7 +37097,7 @@ export const translations = {
   },
   en: {
     // Auth
-    app_name: "MiVida",
+    app_name: "DayClose",
     create_account: "Create Account",
     login_subtitle: "Sign in to continue",
     signup_subtitle: "Start organizing your routine",
@@ -38566,11 +38566,11 @@ className="w-full max-w-sm bg-neutral-800 border border-neutral-700 rounded-\[3r
 
 \</div\>
 
-\<h1 className="text-3xl font-black text-white tracking-tighter mb-4 leading-none"\>MiVida\</h1\>
+\<h1 className="text-3xl font-black text-white tracking-tighter mb-4 leading-none"\>DayClose\</h1\>
 
 \<p className="text-neutral-400 text-sm mb-8 leading-relaxed font-medium"\>
 
-Hola \<span className="text-white font-bold"\>{user?.user\_metadata?.full\_name || 'campeón'}\</span\>. La función de MiVida es hacer que tu vida sea mas organizada cumpliendo 'mini-retos' que usted mismo se propone. Vamos a aprender a usar la App en 30 segundos.
+Hola \<span className="text-white font-bold"\>{user?.user\_metadata?.full\_name || 'campeón'}\</span\>. La función de DayClose es hacer que tu vida sea mas organizada cumpliendo 'mini-retos' que usted mismo se propone. Vamos a aprender a usar la App en 30 segundos.
 
 \</p\>
 
@@ -38734,7 +38734,7 @@ className="flex justify-center mb-8"
 
 \<p className="text-neutral-300 text-lg font-medium mb-10 leading-snug px-4"\>
 
-Ya eres un experto en \<span className="text-emerald-400 font-black italic"\>MiVida\</span\>. Estás listo para tomar el control de tu rutina.
+Ya eres un experto en \<span className="text-emerald-400 font-black italic"\>DayClose\</span\>. Estás listo para tomar el control de tu rutina.
 
 \</p\>
 
@@ -40114,11 +40114,11 @@ export default function Tutorial({ user, onComplete }) {
 
             \</div\>
 
-            \<h1 className="text-3xl font-black text-white tracking-tighter mb-4 leading-none"\>MiVida\</h1\>
+            \<h1 className="text-3xl font-black text-white tracking-tighter mb-4 leading-none"\>DayClose\</h1\>
 
             \<p className="text-neutral-400 text-sm mb-8 leading-relaxed font-medium"\>
 
-              Hola \<span className="text-white font-bold"\>{user?.user\_metadata?.full\_name || 'campeón'}\</span\>. La función de MiVida es hacer que tu vida sea mas organizada cumpliendo 'mini-retos' que usted mismo se propone. Vamos a aprender a usar la App en 30 segundos.
+              Hola \<span className="text-white font-bold"\>{user?.user\_metadata?.full\_name || 'campeón'}\</span\>. La función de DayClose es hacer que tu vida sea mas organizada cumpliendo 'mini-retos' que usted mismo se propone. Vamos a aprender a usar la App en 30 segundos.
 
             \</p\>
 
@@ -40282,7 +40282,7 @@ export default function Tutorial({ user, onComplete }) {
 
             \<p className="text-neutral-300 text-lg font-medium mb-10 leading-snug px-4"\>
 
-              Ya eres un experto en \<span className="text-emerald-400 font-black italic"\>MiVida\</span\>. Estás listo para tomar el control de tu rutina.
+              Ya eres un experto en \<span className="text-emerald-400 font-black italic"\>DayClose\</span\>. Estás listo para tomar el control de tu rutina.
 
             \</p\>
 
@@ -40800,15 +40800,15 @@ export const translations = {
     tut_step2_title: "Añade contexto",
     tut_step2_desc: "Si no pudiste cumplirlo, desliza a la IZQUIERDA. Podrás explicar qué te detuvo.",
     tut_step2_instr: "Desliza a la IZQUIERDA para poner una nota",
-    tut_welcome_title: "MiVida",
-    tut_welcome_desc: "La función de MiVida es hacer que tu vida sea más organizada cumpliendo 'mini-retos' que usted mismo se propone. Vamos a aprender a usar la App en 30 segundos.",
+    tut_welcome_title: "DayClose",
+    tut_welcome_desc: "La función de DayClose es hacer que tu vida sea más organizada cumpliendo 'mini-retos' que usted mismo se propone. Vamos a aprender a usar la App en 30 segundos.",
     tut_teach_me: "¡ENSEÑAME!",
     tut_note_title: "Escribe una nota",
     tut_sim: "Simulación",
     tut_note_placeholder: "Ej: Hoy no pude porque tuve una reunión...",
     tut_save_note: "GUARDAR NOTA",
     tut_congrats_title: "¡Enhorabuena!",
-    tut_congrats_desc: "Ya eres un experto en MiVida. Estás listo para tomar el control de tu rutina.",
+    tut_congrats_desc: "Ya eres un experto en DayClose. Estás listo para tomar el control de tu rutina.",
     tut_enter_app: "ENTRAR A LA APP",
     hello: "Hola",
     
@@ -40871,15 +40871,15 @@ export const translations = {
     tut_step2_title: "Add context",
     tut_step2_desc: "If you couldn't do it, swipe LEFT. You can explain what stopped you.",
     tut_step2_instr: "Swipe LEFT to add a note",
-    tut_welcome_title: "MiVida",
-    tut_welcome_desc: "MiVida's function is to organize your life by fulfilling 'mini-challenges' you set for yourself. Let's learn to use the App in 30 seconds.",
+    tut_welcome_title: "DayClose",
+    tut_welcome_desc: "DayClose's function is to organize your life by fulfilling 'mini-challenges' you set for yourself. Let's learn to use the App in 30 seconds.",
     tut_teach_me: "TEACH ME!",
     tut_note_title: "Write a note",
     tut_sim: "Simulation",
     tut_note_placeholder: "Ex: I couldn't today because I had a meeting...",
     tut_save_note: "SAVE NOTE",
     tut_congrats_title: "Congratulations!",
-    tut_congrats_desc: "You are now a MiVida expert. You are ready to take control of your routine.",
+    tut_congrats_desc: "You are now a DayClose expert. You are ready to take control of your routine.",
     tut_enter_app: "ENTER APP",
     hello: "Hello",
     
@@ -42146,9 +42146,9 @@ tut\_step2\_desc: "Si no pudiste cumplirlo, desliza a la IZQUIERDA. Podrás expl
 
 tut\_step2\_instr: "Desliza a la IZQUIERDA para poner una nota",
 
-tut\_welcome\_title: "MiVida",
+tut\_welcome\_title: "DayClose",
 
-tut\_welcome\_desc: "La función de MiVida es hacer que tu vida sea más organizada cumpliendo 'mini-retos' que usted mismo se propone. Vamos a aprender a usar la App en 30 segundos.",
+tut\_welcome\_desc: "La función de DayClose es hacer que tu vida sea más organizada cumpliendo 'mini-retos' que usted mismo se propone. Vamos a aprender a usar la App en 30 segundos.",
 
 tut\_teach\_me: "¡ENSEÑAME!",
 
@@ -42162,7 +42162,7 @@ tut\_save\_note: "GUARDAR NOTA",
 
 tut\_congrats\_title: "¡Enhorabuena!",
 
-tut\_congrats\_desc: "Ya eres un experto en MiVida. Estás listo para tomar el control de tu rutina.",
+tut\_congrats\_desc: "Ya eres un experto en DayClose. Estás listo para tomar el control de tu rutina.",
 
 tut\_enter\_app: "ENTRAR A LA APP",
 
@@ -42278,9 +42278,9 @@ tut\_step2\_desc: "If you couldn't do it, swipe LEFT. You can explain what stopp
 
 tut\_step2\_instr: "Swipe LEFT to add a note",
 
-tut\_welcome\_title: "MiVida",
+tut\_welcome\_title: "DayClose",
 
-tut\_welcome\_desc: "MiVida's function is to organize your life by fulfilling 'mini-challenges' you set for yourself. Let's learn to use the App in 30 seconds.",
+tut\_welcome\_desc: "DayClose's function is to organize your life by fulfilling 'mini-challenges' you set for yourself. Let's learn to use the App in 30 seconds.",
 
 tut\_teach\_me: "TEACH ME!",
 
@@ -42294,7 +42294,7 @@ tut\_save\_note: "SAVE NOTE",
 
 tut\_congrats\_title: "Congratulations!",
 
-tut\_congrats\_desc: "You are now a MiVida expert. You are ready to take control of your routine.",
+tut\_congrats\_desc: "You are now a DayClose expert. You are ready to take control of your routine.",
 
 tut\_enter\_app: "ENTER APP",
 
@@ -43916,7 +43916,7 @@ manifest: {
 
 name: "Mi Vida Organizada",
 
-short\_name: "MiVida",
+short\_name: "DayClose",
 
 description: "App de seguimiento de hábitos y rutina diaria",
 
@@ -43974,7 +43974,7 @@ type: "image/png",
 
 \<meta name="theme-color" content="#171717" /\>
 
-\<title\>MiVida\</title\>
+\<title\>DayClose\</title\>
 
 \<meta name="description" content="Mi agenda personal y seguimiento de hábitos" /\>
 
@@ -44009,7 +44009,7 @@ Este es el diccionario maestro. Cópialo entero.
 export const translations = {
   es: {
     // Auth & General
-    app_name: "MiVida",
+    app_name: "DayClose",
     create_account: "Crear Cuenta",
     login_subtitle: "Inicia sesión para continuar",
     signup_subtitle: "Empieza a organizar tu rutina",
@@ -44119,20 +44119,20 @@ export const translations = {
     btn_skip: "Saltar",
 
     // Tutorial
-    tut_welcome_title: "MiVida",
-    tut_welcome_desc: "La función de MiVida es hacer que tu vida sea más organizada cumpliendo 'mini-retos'.",
+    tut_welcome_title: "DayClose",
+    tut_welcome_desc: "La función de DayClose es hacer que tu vida sea más organizada cumpliendo 'mini-retos'.",
     tut_teach_me: "¡ENSEÑAME!",
     tut_step1_title: "El gesto del éxito",
     tut_step1_instr: "Desliza a la DERECHA para completar",
     tut_step2_title: "Añade contexto",
     tut_step2_instr: "Desliza a la IZQUIERDA para poner una nota",
     tut_congrats_title: "¡Enhorabuena!",
-    tut_congrats_desc: "Ya eres un experto en MiVida.",
+    tut_congrats_desc: "Ya eres un experto en DayClose.",
     tut_enter_app: "ENTRAR A LA APP"
   },
   en: {
     // Auth & General
-    app_name: "MiVida",
+    app_name: "DayClose",
     create_account: "Create Account",
     login_subtitle: "Log in to continue",
     signup_subtitle: "Start organizing your routine",
@@ -44242,15 +44242,15 @@ export const translations = {
     btn_skip: "Skip",
 
     // Tutorial
-    tut_welcome_title: "MiVida",
-    tut_welcome_desc: "MiVida's function is to organize your life by fulfilling 'mini-challenges'.",
+    tut_welcome_title: "DayClose",
+    tut_welcome_desc: "DayClose's function is to organize your life by fulfilling 'mini-challenges'.",
     tut_teach_me: "TEACH ME!",
     tut_step1_title: "The gesture of success",
     tut_step1_instr: "Swipe RIGHT to complete",
     tut_step2_title: "Add context",
     tut_step2_instr: "Swipe LEFT to add a note",
     tut_congrats_title: "Congratulations!",
-    tut_congrats_desc: "You are now a MiVida expert.",
+    tut_congrats_desc: "You are now a DayClose expert.",
     tut_enter_app: "ENTER APP"
   }
 }
@@ -45428,7 +45428,7 @@ export default function AdminPanel({ onClose, version }) {
     }
     
     if (Notification.permission === 'granted') {
-      new Notification('MiVida - Test Admin', {
+      new Notification('DayClose - Test Admin', {
         body: 'Si lees esto, tu dispositivo recibe notificaciones correctamente. Ahora configura el Cronjob con tu ID.',
         icon: '/pwa-192x192.png' // Asegúrate de que esta ruta exista o usa un emoji
       })
@@ -45783,7 +45783,7 @@ es: {
 
 // Auth & General
 
-app\_name: "MiVida",
+app\_name: "DayClose",
 
 create\_account: "Crear Cuenta",
 
@@ -45983,9 +45983,9 @@ btn\_skip: "Saltar",
 
 // Tutorial
 
-tut\_welcome\_title: "MiVida",
+tut\_welcome\_title: "DayClose",
 
-tut\_welcome\_desc: "La función de MiVida es hacer que tu vida sea más organizada cumpliendo 'mini-retos'.",
+tut\_welcome\_desc: "La función de DayClose es hacer que tu vida sea más organizada cumpliendo 'mini-retos'.",
 
 tut\_teach\_me: "¡ENSEÑAME!",
 
@@ -45999,7 +45999,7 @@ tut\_step2\_instr: "Desliza a la IZQUIERDA para poner una nota",
 
 tut\_congrats\_title: "¡Enhorabuena!",
 
-tut\_congrats\_desc: "Ya eres un experto en MiVida.",
+tut\_congrats\_desc: "Ya eres un experto en DayClose.",
 
 tut\_enter\_app: "ENTRAR A LA APP"
 
@@ -46009,7 +46009,7 @@ en: {
 
 // Auth & General
 
-app\_name: "MiVida",
+app\_name: "DayClose",
 
 create\_account: "Create Account",
 
@@ -46209,9 +46209,9 @@ btn\_skip: "Skip",
 
 // Tutorial
 
-tut\_welcome\_title: "MiVida",
+tut\_welcome\_title: "DayClose",
 
-tut\_welcome\_desc: "MiVida's function is to organize your life by fulfilling 'mini-challenges'.",
+tut\_welcome\_desc: "DayClose's function is to organize your life by fulfilling 'mini-challenges'.",
 
 tut\_teach\_me: "TEACH ME!",
 
@@ -46225,7 +46225,7 @@ tut\_step2\_instr: "Swipe LEFT to add a note",
 
 tut\_congrats\_title: "Congratulations!",
 
-tut\_congrats\_desc: "You are now a MiVida expert.",
+tut\_congrats\_desc: "You are now a DayClose expert.",
 
 tut\_enter\_app: "ENTER APP"
 
@@ -46486,7 +46486,7 @@ Se ha añadido la clave `icon_label` necesaria para el nuevo selector.
 export const translations = {
   es: {
     // Auth & General
-    app_name: "MiVida",
+    app_name: "DayClose",
     create_account: "Crear Cuenta",
     login_subtitle: "Inicia sesión para continuar",
     signup_subtitle: "Empieza a organizar tu rutina",
@@ -46597,20 +46597,20 @@ export const translations = {
     btn_skip: "Saltar",
 
     // Tutorial
-    tut_welcome_title: "MiVida",
-    tut_welcome_desc: "La función de MiVida es hacer que tu vida sea más organizada cumpliendo 'mini-retos'.",
+    tut_welcome_title: "DayClose",
+    tut_welcome_desc: "La función de DayClose es hacer que tu vida sea más organizada cumpliendo 'mini-retos'.",
     tut_teach_me: "¡ENSEÑAME!",
     tut_step1_title: "El gesto del éxito",
     tut_step1_instr: "Desliza a la DERECHA para completar",
     tut_step2_title: "Añade contexto",
     tut_step2_instr: "Desliza a la IZQUIERDA para poner una nota",
     tut_congrats_title: "¡Enhorabuena!",
-    tut_congrats_desc: "Ya eres un experto en MiVida.",
+    tut_congrats_desc: "Ya eres un experto en DayClose.",
     tut_enter_app: "ENTRAR A LA APP"
   },
   en: {
     // Auth & General
-    app_name: "MiVida",
+    app_name: "DayClose",
     create_account: "Create Account",
     login_subtitle: "Log in to continue",
     signup_subtitle: "Start organizing your routine",
@@ -46721,15 +46721,15 @@ export const translations = {
     btn_skip: "Skip",
 
     // Tutorial
-    tut_welcome_title: "MiVida",
-    tut_welcome_desc: "MiVida's function is to organize your life by fulfilling 'mini-challenges'.",
+    tut_welcome_title: "DayClose",
+    tut_welcome_desc: "DayClose's function is to organize your life by fulfilling 'mini-challenges'.",
     tut_teach_me: "TEACH ME!",
     tut_step1_title: "The gesture of success",
     tut_step1_instr: "Swipe RIGHT to complete",
     tut_step2_title: "Add context",
     tut_step2_instr: "Swipe LEFT to add a note",
     tut_congrats_title: "Congratulations!",
-    tut_congrats_desc: "You are now a MiVida expert.",
+    tut_congrats_desc: "You are now a DayClose expert.",
     tut_enter_app: "ENTER APP"
   }
 }
@@ -46909,17 +46909,17 @@ export default function HabitCreator({ isOpen, onClose, userId, onHabitCreated, 
 ¿Deseas que añadamos una funcionalidad para que los usuarios puedan subir sus propios **iconos personalizados** o buscar en una base de datos de emojis externa?
 
 ## Prompt:
-A partir de todo lo que sabes de MiVida, haz un texto explicando cada función y la finalidad de la app.
+A partir de todo lo que sabes de DayClose, haz un texto explicando cada función y la finalidad de la app.
 
 ## Response:
-A continuación, presento un resumen detallado de las capacidades y el propósito de **MiVida**, basado en el desarrollo integral que hemos realizado hasta la fecha.
+A continuación, presento un resumen detallado de las capacidades y el propósito de **DayClose**, basado en el desarrollo integral que hemos realizado hasta la fecha.
 
 * * *
 
-Finalidad de MiVida
+Finalidad de DayClose
 -------------------
 
-La finalidad principal de **MiVida** es proporcionar una herramienta de organización personal que permite a los usuarios tomar el control de su rutina diaria mediante el cumplimiento de "mini-retos" o hábitos propuestos por ellos mismos. La aplicación busca transformar la disciplina en una experiencia satisfactoria y visual, eliminando la fricción de la planificación compleja.
+La finalidad principal de **DayClose** es proporcionar una herramienta de organización personal que permite a los usuarios tomar el control de su rutina diaria mediante el cumplimiento de "mini-retos" o hábitos propuestos por ellos mismos. La aplicación busca transformar la disciplina en una experiencia satisfactoria y visual, eliminando la fricción de la planificación compleja.
 
 * * *
 
@@ -46966,7 +46966,7 @@ Aquí tienes una lista para añadir a la aplicación que iremos implemendo poco 
 
 No hagas nada de código simplemente elabora como se hará cada función sin molestar a las funciones ya existentes.
 
-📌 Funciones Propuestas para Integrar en MiVida
+📌 Funciones Propuestas para Integrar en DayClose
 
 1\. Streak Inteligente (Protector de Racha)
 
@@ -47035,7 +47035,7 @@ competir contigo mismo, no con otros.
 Ayuda al usuario a detectar mejoras graduales y tomar control consciente de su rutina.
 
 ## Response:
-¡Excelente hoja de ruta! Me parece una evolución natural y muy potente para **MiVida**. Estas funciones transforman la app de un simple "tracker" a un **asistente de bienestar personal**.
+¡Excelente hoja de ruta! Me parece una evolución natural y muy potente para **DayClose**. Estas funciones transforman la app de un simple "tracker" a un **asistente de bienestar personal**.
 
 He analizado la arquitectura actual de tu código y aquí tienes el plan de desarrollo técnico para cada función. Este enfoque garantiza que **ninguna funcionalidad actual se rompa**, ya que todo se construirá como capas aditivas.
 

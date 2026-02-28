@@ -4,6 +4,7 @@ import SwipeCard from './components/SwipeCard'
 import NoteModal from './components/NoteModal'
 import Dashboard from './components/Dashboard'
 import Auth from './components/Auth'
+import LandingPage from './components/LandingPage'
 import { supabase } from './lib/supabaseClient'
 import ReminderPopup from './components/ReminderPopup'
 import TopBanner from './components/TopBanner'
@@ -17,11 +18,11 @@ import ProgressComparison from './components/ProgressComparison'
 import BlockedScreen from './components/BlockedScreen'
 import UpdateShowcase from './components/UpdateShowcase'
 import MoreFeatures from './components/MoreFeatures'
-import FriendsSection from './components/FriendsSection'
 import FutureLettersSection from './components/FutureLettersSection'
 import FeedbackSection from './components/FeedbackSection'
 import CommunityHub from './components/CommunityHub'
 import History from './components/History'
+import ProModal from './components/ProModal'
 import { useLanguage } from './context/LanguageContext' 
 
 const CURRENT_SOFTWARE_VERSION = '1.1.40'; 
@@ -164,11 +165,16 @@ function App() {
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(null)
   const [hasSaved, setHasSaved] = useState(false)
+  const [showDaySummary, setShowDaySummary] = useState(false)
+  const [dayScore, setDayScore] = useState(null)
+  const [dayMood, setDayMood] = useState(null)
   const [isMaintenance, setIsMaintenance] = useState(false)
   const [updateAvailable, setUpdateAvailable] = useState(false)
   const [maintenanceMessage, setMaintenanceMessage] = useState('')
   const [isBlocked, setIsBlocked] = useState(false)
   const [isWhitelisted, setIsWhitelisted] = useState(false)
+  const [proModalOpen, setProModalOpen] = useState(false)
+  const [showAuth, setShowAuth] = useState(false)
   const AUTO_UPDATE_DELAY_MS = 8000
   const ADMIN_EMAIL = 'hemmings.nacho@gmail.com' 
   const TEST_EMAIL = 'test@test.com'
@@ -187,12 +193,18 @@ function App() {
   const [updatePayload, setUpdatePayload] = useState(null)
   const [updateOpen, setUpdateOpen] = useState(false)
   const [updateUnread, setUpdateUnread] = useState(false)
+  const [isPro, setIsPro] = useState(false)
+  const [testProOverride, setTestProOverride] = useState(() => {
+    try {
+      return localStorage.getItem('dayclose_simulate_free') !== 'true'
+    } catch { return true }
+  })
 
   const reviewHabits = useMemo(() => {
     try {
-      const hardDayEnabled = localStorage.getItem('mivida_hard_day_enabled') === 'true'
+      const hardDayEnabled = localStorage.getItem('dayclose_hard_day_enabled') === 'true'
       if (!hardDayEnabled) return habits
-      const rawIds = localStorage.getItem('mivida_hard_day_ids')
+      const rawIds = localStorage.getItem('dayclose_hard_day_ids')
       const hardDayIds = rawIds ? JSON.parse(rawIds) : []
       if (!Array.isArray(hardDayIds) || hardDayIds.length === 0) return habits
       const allowed = new Set(hardDayIds)
@@ -203,6 +215,29 @@ function App() {
   }, [habits])
 
   const currentHabit = reviewHabits[currentIndex]
+
+  const isTestAccount = session?.user?.email === TEST_EMAIL
+  const effectiveIsPro = isTestAccount ? testProOverride : isPro
+  const handleToggleTestPro = () => {
+    setTestProOverride(prev => {
+      const next = !prev
+      try {
+        localStorage.setItem('dayclose_simulate_free', next ? 'false' : 'true')
+      } catch {}
+      return next
+    })
+  }
+
+  // ── Helper: determinar si el plan Pro está activo y no caducado ──────────
+  const resolveIsPro = (profileData, userEmail) => {
+    const adminEmails = [ADMIN_EMAIL]
+    if (adminEmails.includes(userEmail)) return true
+    if (profileData?.plan !== 'pro') return false
+    const expiresAt = profileData?.pro_expires_at
+    // Si no tiene fecha de expiración (activado manualmente), lo consideramos válido
+    if (!expiresAt) return true
+    return new Date(expiresAt) > new Date()
+  }
 
   useEffect(() => {
     const handleVersionCheck = (dbVersion) => {
@@ -267,6 +302,10 @@ function App() {
   }, [effectiveWidth, tabIndex, x])
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [activeTab])
+
+  useEffect(() => {
     if (!session) return
     let active = true
     const applyAnnouncement = (message) => {
@@ -274,7 +313,7 @@ function App() {
       if (!active) return
       setUpdatePayload(update || null)
       if (update?.id) {
-        const key = `mivida_update_seen_${update.id}`
+        const key = `dayclose_update_seen_${update.id}`
         const seen = localStorage.getItem(key) === 'true'
         setUpdateUnread(!seen)
       } else {
@@ -313,7 +352,7 @@ function App() {
   const handleCloseUpdate = () => {
     if (updatePayload?.id) {
       try {
-        localStorage.setItem(`mivida_update_seen_${updatePayload.id}`, 'true')
+        localStorage.setItem(`dayclose_update_seen_${updatePayload.id}`, 'true')
       } catch {
         // ignore
       }
@@ -353,6 +392,7 @@ function App() {
 
   const handleStartReview = () => {
     setMode('reviewing'); setCurrentIndex(0); setResults([]); setHasSaved(false); setSaveSuccess(null);
+    setShowDaySummary(false); setDayScore(null); setDayMood(null);
   }
 
   const handleResetTutorial = async () => {
@@ -364,7 +404,7 @@ function App() {
   const handleResetUpdates = () => {
     if (updatePayload?.id) {
       try {
-        localStorage.removeItem(`mivida_update_seen_${updatePayload.id}`)
+        localStorage.removeItem(`dayclose_update_seen_${updatePayload.id}`)
       } catch {
         // ignore
       }
@@ -389,15 +429,26 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // ── Cargar plan del usuario al iniciar sesión ────────────────────────────
   useEffect(() => {
     if (!session) return
     const updateProfileState = async () => {
-      const { data } = await supabase
+      const { data: userProfileData } = await supabase
         .from('user_profiles')
         .select('is_blocked')
         .eq('user_id', session.user.id)
         .single()
-      setIsBlocked(Boolean(data?.is_blocked))
+      setIsBlocked(Boolean(userProfileData?.is_blocked))
+
+      // ✅ Leer plan Y pro_expires_at para determinar isPro correctamente
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('plan, pro_expires_at')
+        .eq('id', session.user.id)
+        .single()
+
+      setIsPro(resolveIsPro(profileData, session.user.email))
+
       await supabase
         .from('user_profiles')
         .update({ last_seen: new Date().toISOString() })
@@ -444,41 +495,76 @@ function App() {
   }, [session, habits, fetchTodayLogs, mode])
 
   useEffect(() => {
-    if (!session || !reviewHabits.length || mode !== 'reviewing' || currentIndex < reviewHabits.length || !results.length || hasSaved || saving) return
+    if (!session || !reviewHabits.length || mode !== 'reviewing' || currentIndex < reviewHabits.length || !results.length || hasSaved || saving || !showDaySummary) return
     const saveResults = async () => {
       setSaving(true);
       const payload = results.map(i => ({ user_id: session.user.id, habit_id: i.id, status: i.status, note: i.note || null, created_at: new Date().toISOString() }))
       const { error } = await supabase.from('daily_logs').insert(payload)
-      if (!error) { setSaveSuccess(t('saved_success')); setHasSaved(true); setTimeout(() => { fetchTodayLogs(); setMode('dashboard'); }, 1500); } 
-      else { console.error('Error guardando logs:', error.message) }
+      if (!error) {
+        setSaveSuccess(t('saved_success'));
+        setHasSaved(true);
+        await fetchTodayLogs();
+        setTimeout(() => { setSwipeStatus(null); setMode('dashboard'); }, 1200);
+      } else {
+        console.error('Error guardando logs:', error.message)
+      }
       setSaving(false)
     }
     saveResults()
-  }, [session, reviewHabits, currentIndex, results, hasSaved, saving, mode, fetchTodayLogs, t])
+  }, [session, reviewHabits, currentIndex, results, hasSaved, saving, mode, fetchTodayLogs, t, showDaySummary])
 
-  if (loadingSession) return <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white font-black italic tracking-tighter">MIVIDA...</div>
-  const isTestAccount = session?.user?.email === TEST_EMAIL
+  if (loadingSession) return (
+    <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white font-black italic tracking-tighter uppercase text-3xl">
+        DAYCLOSE
+    </div>
+  );
 
-  if (isMaintenance && session?.user?.email !== ADMIN_EMAIL && !isWhitelisted && !isTestAccount) {
-    return <MaintenanceScreen message={maintenanceMessage} />
+  if (!session) {
+    if (showAuth) {
+      return <Auth onBack={() => setShowAuth(false)} />;
+    }
+    return <LandingPage onGetStarted={() => setShowAuth(true)} />;
   }
-  
-  if (!session) return <><Auth /></>
+
   if (isBlocked && session?.user?.email !== ADMIN_EMAIL && !isTestAccount) {
     return <BlockedScreen title={t('blocked_title')} message={t('blocked_desc')} />
   }
 
-  if (mode === 'tutorial') return <Tutorial user={session.user} onComplete={handleFinishTutorial} />
-  if (mode === 'admin') return <AdminPanel onClose={() => setMode('dashboard')} version={CURRENT_SOFTWARE_VERSION} />
+  if (mode === 'tutorial') {
+    return (
+      <>
+        <Tutorial user={session.user} onComplete={handleFinishTutorial} />
+      </>
+    )
+  }
+  if (mode === 'admin') {
+    return (
+      <>
+        <AdminPanel onClose={() => setMode('dashboard')} version={CURRENT_SOFTWARE_VERSION} />
+      </>
+    )
+  }
 
   if (mode === 'history') {
-    return <History user={session.user} onClose={() => setMode('dashboard')} />
+    return (
+      <>
+        <History user={session.user} onClose={() => setMode('dashboard')} isPro={effectiveIsPro} />
+      </>
+    )
   }
 
   if (mode === 'dashboard') {
     return (
       <div className="relative min-h-screen bg-neutral-900 overflow-x-hidden flex flex-col">
-        {/* TopBanner renderizado como bloque flexible, no flotante */}
+
+        {/* ✅ ProModal con user y onProActivated */}
+        <ProModal
+          isOpen={proModalOpen}
+          onClose={() => setProModalOpen(false)}
+          user={session.user}
+          onProActivated={() => window.location.reload()}
+        />
+
         <TopBanner onOpenUpdates={() => setUpdateOpen(true)} />
         <UpdateShowcase isOpen={updateOpen} onClose={handleCloseUpdate} payload={updatePayload} />
         {updateAvailable && (
@@ -531,19 +617,26 @@ function App() {
                 onResetTutorial={handleResetTutorial}
                 onResetUpdates={handleResetUpdates}
                 onOpenHistory={() => setMode('history')}
+                isPro={effectiveIsPro}
+                onToggleTestPro={handleToggleTestPro}
+                onUpgrade={() => setProModalOpen(true)}
               />
             </div>
             <div style={{ width: effectiveWidth }} className="shrink-0">
-              <Stats user={session.user} /> 
+              <Stats
+                user={session.user}
+                isPro={effectiveIsPro}
+                onUpgrade={() => setProModalOpen(true)}
+              />
             </div>
             <div style={{ width: effectiveWidth }} className="shrink-0">
               <CommunityHub user={session.user} />
             </div>
-            <div style={{ width: effectiveWidth }} className="shrink-0">
+            <div style={{ width: effectiveWidth }} className="shrink-0" onPointerDownCapture={e => e.stopPropagation()}>
               <div className="flex flex-col items-center justify-center flex-1 text-white p-6 text-center">
                 <div className="w-full max-w-md space-y-6">
-                  <ProgressComparison user={session.user} />
-                  <FutureLettersSection />
+                  <ProgressComparison user={session.user} isPro={effectiveIsPro} onUpgrade={() => setProModalOpen(true)} />
+                  <FutureLettersSection isPro={effectiveIsPro} onUpgrade={() => setProModalOpen(true)} />
                   <FeedbackSection user={session.user} />
                   <MoreFeatures />
                 </div>
@@ -553,7 +646,7 @@ function App() {
         </div>
 
         <Dock activeTab={activeTab} onTabChange={handleTabChange} />
-        <ReminderPopup session={session} />
+        <ReminderPopup session={session} isPro={effectiveIsPro} />
       </div>
     )
   }
@@ -571,6 +664,62 @@ function App() {
             onSwipeComplete={(d) => { if (d === 'right') { setResults(p => [...p, { id: currentHabit.id, title: currentHabit.title, status: 'completed' }]); setCurrentIndex(c => c + 1); } else { setPendingHabit(currentHabit); setIsModalOpen(true); } }} 
             onDrag={(x) => setSwipeStatus(x > 100 ? 'done' : x < -100 ? 'not-done' : null)} 
           />
+        ) : !showDaySummary ? (
+          <div className="w-full max-w-sm mx-auto">
+            <div className="bg-neutral-800/60 rounded-[2rem] border border-white/5 p-6 text-center shadow-xl">
+              <p className="text-2xl mb-1">✅</p>
+              <p className="text-lg font-black text-white mb-1">{t('review_completed')}</p>
+              <p className="text-[11px] text-neutral-500 mb-6">{t('day_summary_subtitle') || 'Antes de cerrar, ¿cómo fue tu día?'}</p>
+
+              <p className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 mb-3">{t('day_score_label') || 'Puntúa tu día'}</p>
+              <div className="flex justify-center gap-1.5 mb-6 flex-wrap">
+                {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setDayScore(n)}
+                    className={`w-9 h-9 rounded-xl text-sm font-black transition-all active:scale-90 ${
+                      dayScore === n
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'bg-neutral-700/60 text-neutral-400 border border-white/5'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+
+              <p className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 mb-3">{t('day_mood_label') || 'Estado de ánimo'}</p>
+              <div className="flex justify-center gap-3 mb-6">
+                {['😩','😕','😐','🙂','😄'].map(emoji => (
+                  <button
+                    key={emoji}
+                    onClick={() => setDayMood(emoji)}
+                    className={`text-2xl w-12 h-12 rounded-2xl transition-all active:scale-90 ${
+                      dayMood === emoji
+                        ? 'bg-neutral-600 ring-2 ring-white/30 scale-110'
+                        : 'bg-neutral-700/40 border border-white/5'
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setShowDaySummary(true)}
+                disabled={!dayScore || !dayMood}
+                className="w-full py-4 rounded-2xl bg-white text-black font-black text-sm active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none"
+              >
+                {t('close_day_btn') || 'Cerrar el día →'}
+              </button>
+              <button
+                onClick={() => setShowDaySummary(true)}
+                className="mt-3 w-full text-[11px] text-neutral-600 active:text-neutral-400"
+              >
+                {t('skip_summary') || 'Saltar'}
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="rounded-2xl bg-neutral-800 p-6 text-center">
             <p className="text-xl font-bold mb-2">{t('review_completed')}</p>

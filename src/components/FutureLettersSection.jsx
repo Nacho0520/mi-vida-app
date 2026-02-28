@@ -1,218 +1,240 @@
-import { useEffect, useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { motion } from 'framer-motion'
-import { Mail, Clock } from 'lucide-react'
-import { useLanguage } from '../context/LanguageContext'
+import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { Clock, Zap, Send, Trash2 } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
+import ProModal from "./ProModal";
 
-const MotionDiv = motion.div
-const DAY_MS = 24 * 60 * 60 * 1000
-const LETTER_STORAGE_KEY = 'mivida_future_letters'
-const LETTER_NEW_KEY = 'mivida_letters_new_since'
-const LETTER_NEW_DAYS = 3
-const LETTER_DELAYS = [7, 14, 30]
+const DAY_MS = 24 * 60 * 60 * 1000;
+const LETTER_STORAGE_KEY = "dayclose_future_letters";
+const LETTER_DELAYS = [7, 14, 30];
+const MAX_FREE_LETTERS = 1;
 
 const loadLetters = () => {
   try {
-    const saved = localStorage.getItem(LETTER_STORAGE_KEY)
-    const parsed = saved ? JSON.parse(saved) : []
-    return Array.isArray(parsed) ? parsed : []
+    const saved = localStorage.getItem(LETTER_STORAGE_KEY);
+    const data = saved;
+    const parsed = data ? JSON.parse(data) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
-    return []
+    return [];
   }
-}
+};
 
-export default function FutureLettersSection() {
-  const { t } = useLanguage()
-  const [letters, setLetters] = useState(() => loadLetters())
-  const [isLetterOpen, setIsLetterOpen] = useState(false)
-  const [letterText, setLetterText] = useState('')
-  const [letterDelay, setLetterDelay] = useState(7)
-  const [activeLetter, setActiveLetter] = useState(null)
-  const [showLettersNew, setShowLettersNew] = useState(false)
+export default function FutureLettersSection({ isPro }) {
+  const { t } = useLanguage();
+  const [letters, setLetters] = useState(() => loadLetters());
+  const [isLetterOpen, setIsLetterOpen] = useState(false);
+  const [letterText, setLetterText] = useState("");
+  const [letterDelay, setLetterDelay] = useState(7);
+  const [activeLetter, setActiveLetter] = useState(null);
+  const [proModalOpen, setProModalOpen] = useState(false);
 
-  const orderedLetters = useMemo(() => {
-    return [...letters].sort((a, b) => a.openAt - b.openAt)
-  }, [letters])
-
-  const nextLetter = orderedLetters[0]
-  const now = Date.now()
-  const readyLetters = orderedLetters.filter((letter) => letter.openAt <= now)
-  const daysLeft = nextLetter ? Math.max(0, Math.ceil((nextLetter.openAt - now) / DAY_MS)) : null
+  const orderedLetters = useMemo(
+    () => [...letters].sort((a, b) => a.openAt - b.openAt),
+    [letters],
+  );
+  const now = Date.now();
+  const readyLetters = orderedLetters.filter((l) => l.openAt <= now);
+  const daysLeft = orderedLetters[0]
+    ? Math.max(0, Math.ceil((orderedLetters[0].openAt - now) / DAY_MS))
+    : null;
 
   const persistLetters = (next) => {
-    setLetters(next)
-    localStorage.setItem(LETTER_STORAGE_KEY, JSON.stringify(next))
-  }
+    setLetters(next);
+    localStorage.setItem(LETTER_STORAGE_KEY, JSON.stringify(next));
+  };
+
+  const handleOpenWriter = () => {
+    if (!isPro && letters.length >= MAX_FREE_LETTERS) {
+      setProModalOpen(true);
+      return;
+    }
+    setIsLetterOpen(true);
+  };
 
   const handleSaveLetter = () => {
-    const trimmed = letterText.trim()
-    if (!trimmed) return
-    const openAt = Date.now() + letterDelay * DAY_MS
+    if (!letterText.trim()) return;
     const next = [
       ...letters,
-      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, message: trimmed, openAt }
-    ]
-    persistLetters(next)
-    setLetterText('')
-    setLetterDelay(7)
-    setIsLetterOpen(false)
-  }
-
-  const handleDeleteLetter = (id) => {
-    persistLetters(letters.filter((letter) => letter.id !== id))
-    if (activeLetter?.id === id) setActiveLetter(null)
-  }
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(LETTER_NEW_KEY)
-      const since = stored ? Number(stored) : Date.now()
-      if (!stored) localStorage.setItem(LETTER_NEW_KEY, String(since))
-      const elapsedDays = (Date.now() - since) / DAY_MS
-      setShowLettersNew(elapsedDays <= LETTER_NEW_DAYS)
-    } catch {
-      setShowLettersNew(false)
-    }
-  }, [])
+      {
+        id: `${Date.now()}`,
+        message: letterText.trim(),
+        openAt: Date.now() + letterDelay * DAY_MS,
+      },
+    ];
+    persistLetters(next);
+    setLetterText("");
+    setIsLetterOpen(false);
+  };
 
   const renderPortal = (node) => {
-    if (typeof document === 'undefined') return null
-    return createPortal(node, document.body)
-  }
+    if (typeof document === "undefined") return null;
+    return createPortal(node, document.body);
+  };
 
   return (
-    <div className="bg-neutral-900/40 p-5 sm:p-6 radius-card border border-white/5 shadow-apple-soft relative overflow-hidden">
-      <div className="absolute -top-24 left-6 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl" />
-      <div className="flex items-center justify-between mb-3 relative z-10">
+    <div className="bg-neutral-900/40 p-5 rounded-2xl border border-white/5 relative overflow-hidden">
+      <ProModal isOpen={proModalOpen} onClose={() => setProModalOpen(false)} />
+
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">{t('more_letters_title')}</h2>
-          <p className="text-[11px] text-neutral-500">{t('more_letters_desc')}</p>
+          <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+            {t("more_letters_title")}
+          </h2>
+          <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
+            {t("more_letters_desc")}
+          </p>
         </div>
-        {showLettersNew && <span className="badge-subtle">{t('friends_new')}</span>}
+        {!isPro && letters.length >= MAX_FREE_LETTERS && (
+          <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-400">
+            <Zap size={10} /> Pro
+          </span>
+        )}
       </div>
 
-      <div className="flex items-center justify-between mt-2 relative z-10">
-        <div className="flex items-center gap-2 text-[10px] text-neutral-500">
-          <Clock size={12} />
-          {nextLetter ? (
-            readyLetters.length > 0 ? (
-              <span>{t('more_letters_ready')}</span>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between bg-neutral-900/60 p-3 rounded-xl border border-white/5">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-neutral-500 uppercase tracking-tight">
+            <Clock size={12} />
+            {orderedLetters[0] ? (
+              readyLetters.length > 0 ? (
+                <span className="text-emerald-400 font-black">
+                  {t("more_letters_ready")}
+                </span>
+              ) : (
+                <span>{daysLeft}d</span>
+              )
             ) : (
-              <span>
-                {t('more_letters_opens_in')} {daysLeft}d
-              </span>
-            )
-          ) : (
-            <span>{t('more_letters_empty')}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {readyLetters[0] ? (
+              <span>{t("more_letters_empty")}</span>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            {readyLetters.length > 0 && (
+              <button
+                onClick={() => setActiveLetter(readyLetters[0])}
+                className="text-[10px] font-black text-white bg-emerald-500 px-3 py-1.5 rounded-lg active:scale-95 transition-all"
+              >
+                {t("more_letters_open")}
+              </button>
+            )}
             <button
-              onClick={() => setActiveLetter(readyLetters[0])}
-              className="text-[11px] text-white bg-white/5 border border-white/10 px-3 py-1.5 rounded-full"
+              onClick={handleOpenWriter}
+              className="text-[10px] font-black text-white bg-white/10 px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1.5 border border-white/5"
             >
-              {t('more_letters_open')}
+              <Send size={10} /> {t("more_letters_action")}
             </button>
-          ) : null}
-          <button
-            onClick={() => setIsLetterOpen(true)}
-            className="text-[11px] text-white bg-white/10 border border-white/10 px-3 py-1.5 rounded-full hover:bg-white/15 transition"
-          >
-            {t('more_letters_action')}
-          </button>
+          </div>
         </div>
+
+        {orderedLetters.length > 0 && (
+          <div className="flex gap-1.5 px-1">
+            {orderedLetters.map((l) => (
+              <div
+                key={l.id}
+                className={`h-1 w-6 rounded-full transition-colors ${l.openAt <= now ? "bg-emerald-500" : "bg-neutral-800"}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {isLetterOpen &&
-        renderPortal(
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <MotionDiv
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="w-full max-w-sm bg-neutral-900/90 radius-card p-5 shadow-apple border border-white/5"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-9 w-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center">
-                  <Mail size={14} className="text-neutral-300" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">{t('more_letters_modal_title')}</h3>
-                  <p className="text-[11px] text-neutral-500">{t('more_letters_modal_subtitle')}</p>
-                </div>
-              </div>
-              <textarea
-                value={letterText}
-                onChange={(event) => setLetterText(event.target.value)}
-                placeholder={t('more_letters_placeholder')}
-                className="w-full mt-3 h-28 rounded-xl bg-neutral-950 border border-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20"
-              />
-              <div className="mt-3">
-                <p className="text-[11px] text-neutral-500 mb-2">{t('more_letters_schedule')}</p>
-                <div className="flex gap-2">
-                  {LETTER_DELAYS.map((days) => (
-                    <button
-                      key={days}
-                      onClick={() => setLetterDelay(days)}
-                      className={`px-3 py-1.5 rounded-full text-[11px] border ${
-                        letterDelay === days
-                          ? 'bg-white text-black border-white'
-                          : 'bg-white/5 text-neutral-300 border-white/10'
-                      }`}
-                    >
-                      {days}d
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-4">
-                <button
-                  onClick={() => setIsLetterOpen(false)}
-                  className="text-xs text-neutral-300 px-3 py-2 rounded-full border border-white/10"
-                >
-                  {t('more_letters_cancel')}
-                </button>
-                <button
-                  onClick={handleSaveLetter}
-                  className="text-xs text-black bg-white px-4 py-2 rounded-full font-semibold"
-                >
-                  {t('more_letters_save')}
-                </button>
-              </div>
-            </MotionDiv>
-          </div>
-        )}
+      {/* Modal escritor */}
+      {isLetterOpen && renderPortal(
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setIsLetterOpen(false)}
+        >
+          <div
+            className="w-full max-w-xs bg-neutral-900 rounded-[2rem] p-6 border border-white/10 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-white font-bold mb-1 text-base">
+              {t("more_letters_modal_title")}
+            </h3>
+            <p className="text-[10px] text-neutral-500 uppercase font-black mb-4">
+              {t("more_letters_modal_subtitle")}
+            </p>
 
-      {activeLetter &&
-        renderPortal(
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <MotionDiv
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="w-full max-w-sm bg-neutral-900/90 radius-card p-5 shadow-apple border border-white/5"
-            >
-              <h3 className="text-lg font-bold text-white">{t('more_letters_open_title')}</h3>
-              <p className="text-[11px] text-neutral-500 mt-1">{t('more_letters_open_subtitle')}</p>
-              <div className="mt-3 rounded-xl bg-neutral-950 border border-white/5 px-3 py-3 text-sm text-neutral-100 whitespace-pre-wrap">
-                {activeLetter.message}
-              </div>
-              <div className="flex items-center justify-between mt-4">
+            <textarea
+              autoFocus
+              value={letterText}
+              onChange={(e) => setLetterText(e.target.value)}
+              className="w-full h-24 bg-black border border-white/5 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-white/20 mb-4 resize-none"
+              placeholder={t("more_letters_placeholder")}
+            />
+
+            <div className="flex gap-2 mb-6">
+              {LETTER_DELAYS.map((d) => (
                 <button
-                  onClick={() => setActiveLetter(null)}
-                  className="text-xs text-neutral-300 px-3 py-2 rounded-full border border-white/10"
+                  key={d}
+                  onClick={() => setLetterDelay(d)}
+                  className={`flex-1 py-2 rounded-lg text-[10px] font-black border transition-all ${
+                    letterDelay === d
+                      ? "bg-white text-black border-white"
+                      : "bg-neutral-800 text-neutral-400 border-white/5"
+                  }`}
                 >
-                  {t('more_letters_close')}
+                  {d}d
                 </button>
-                <button
-                  onClick={() => handleDeleteLetter(activeLetter.id)}
-                  className="text-xs text-red-300 px-3 py-2 rounded-full border border-red-400/30"
-                >
-                  {t('more_letters_delete')}
-                </button>
-              </div>
-            </MotionDiv>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsLetterOpen(false)}
+                className="flex-1 py-3 text-xs font-black text-neutral-500"
+              >
+                {t("more_letters_cancel")}
+              </button>
+              <button
+                onClick={handleSaveLetter}
+                className="flex-1 py-3 bg-white text-black text-xs font-black rounded-xl active:scale-95 transition-all"
+              >
+                {t("more_letters_save")}
+              </button>
+            </div>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Modal carta abierta */}
+      {activeLetter && renderPortal(
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setActiveLetter(null)}
+        >
+          <div
+            className="w-full max-w-xs bg-neutral-900 rounded-[2rem] p-6 border border-white/10 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-white font-bold text-base mb-4">
+              {t("more_letters_open_title")}
+            </h3>
+            <div className="bg-black p-4 rounded-xl text-sm text-neutral-300 italic mb-6 border border-white/5 whitespace-pre-wrap">
+              "{activeLetter.message}"
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveLetter(null)}
+                className="flex-1 py-3 text-xs font-black text-neutral-500 bg-neutral-800 rounded-xl"
+              >
+                {t("more_letters_close")}
+              </button>
+              <button
+                onClick={() => {
+                  persistLetters(letters.filter((l) => l.id !== activeLetter.id));
+                  setActiveLetter(null);
+                }}
+                className="px-4 py-3 bg-red-500/10 text-red-500 rounded-xl border border-red-500/10"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }

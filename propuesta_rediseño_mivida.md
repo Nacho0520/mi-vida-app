@@ -2,7 +2,7 @@
 
 ## 🎯 VISIÓN GENERAL
 
-Transformar MiVida en una experiencia premium iOS/Android manteniendo todas las funcionalidades actuales, pero con una estética limpia, espaciada y minimalista que invite al uso diario sin fatiga visual.
+Transformar DayClose en una experiencia premium iOS/Android manteniendo todas las funcionalidades actuales, pero con una estética limpia, espaciada y minimalista que invite al uso diario sin fatiga visual.
 
 ---
 
@@ -525,7 +525,7 @@ const checkmarkVariants = {
 > "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away."
 > — Antoine de Saint-Exupéry
 
-**Aplicado a MiVida**:
+**Aplicado a DayClose**:
 - Cada pixel tiene un propósito
 - La información más importante ocupa más espacio
 - Las animaciones celebran, no distraen
@@ -550,10 +550,10 @@ const checkmarkVariants = {
 
 ## 🚀 CONCLUSIÓN
 
-Esta propuesta transforma MiVida de una app funcional a una **experiencia premium** que los usuarios querrán usar diariamente. El rediseño mantiene todas las funcionalidades actuales pero las presenta de forma más accesible, elegante y motivadora.
+Esta propuesta transforma DayClose de una app funcional a una **experiencia premium** que los usuarios querrán usar diariamente. El rediseño mantiene todas las funcionalidades actuales pero las presenta de forma más accesible, elegante y motivadora.
 
-**Diferenciador clave**: Mientras otras apps de hábitos se enfocan en gamificación o productividad extrema, MiVida será **la app más bella y fácil de usar** en su categoría.
+**Diferenciador clave**: Mientras otras apps de hábitos se enfocan en gamificación o productividad extrema, DayClose será **la app más bella y fácil de usar** en su categoría.
 
-[Inferencia] Con este diseño, MiVida podría posicionarse como competidor directo de Streaks (€4.99) pero con mejor UX social y modelo freemium más accesible.
+[Inferencia] Con este diseño, DayClose podría posicionarse como competidor directo de Streaks (€4.99) pero con mejor UX social y modelo freemium más accesible.
 
 **Próximo paso**: ¿Comenzamos con mockups de alta fidelidad en Figma antes de implementar?
