@@ -25,7 +25,7 @@ import History from './components/History'
 import ProModal from './components/ProModal'
 import { useLanguage } from './context/LanguageContext' 
 
-const CURRENT_SOFTWARE_VERSION = '1.1.40'; 
+const CURRENT_SOFTWARE_VERSION = '2.0.0'; 
 
 function getDefaultIconForTitle(title = '', index) {
   const mapping = ['📖', '💧', '🧘', '💤', '🍎', '💪', '📝', '🚶']
