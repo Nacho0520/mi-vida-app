@@ -1,13 +1,14 @@
 import { motion } from 'framer-motion'
-import { Sparkles, Activity, Zap } from 'lucide-react'
+import { Activity, Zap } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 
 const MotionDiv = motion.div
 
-// "goals" ya no es Coming Soon — tiene componente propio (WeeklyGoals.jsx)
+// "goals"    → WeeklyGoals.jsx   (real, tab Apps)
+// "insights" → SmartInsights.jsx (real, tab Stats)
+// Solo "energy" permanece como Coming Soon
 const FEATURES = [
-  { id: 'insights', icon: Sparkles },
-  { id: 'energy',   icon: Activity  },
+  { id: 'energy', icon: Activity },
 ]
 
 export default function MoreFeatures() {
@@ -16,10 +17,9 @@ export default function MoreFeatures() {
   return (
     <div className="bg-neutral-800/20 rounded-[2.5rem] border border-white/5 p-6 shadow-xl relative overflow-hidden mb-6 text-left">
 
-      {/* ── Cabecera Maestra — consistente con el resto de secciones ── */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <Sparkles size={18} className="text-white" />
+          <Activity size={18} className="text-white" />
           <h2 className="text-sm font-black text-white uppercase tracking-[0.2em]">
             {t('more_premium_title')}
           </h2>
@@ -53,7 +53,6 @@ export default function MoreFeatures() {
           )
         })}
       </div>
-
     </div>
   )
 }

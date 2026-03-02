@@ -448,6 +448,24 @@ export const translations = {
     more_goals_save: "Guardar meta",
 
     weekly_progress: "Progreso semanal",
+
+    insights_title: "Análisis inteligente",
+    insights_empty: "Completa hábitos para ver tu análisis.",
+    insights_streak_label: "Racha activa",
+    insights_streak_days: "días seguidos 🔥",
+    insights_streak_zero: "Sin racha activa aún",
+    insights_avg_label: "Últimos 30 días",
+    insights_avg_unit: "completados / día",
+    insights_best_day_label: "Tu día más fuerte",
+    insights_day_hits: "veces",
+    insights_week_chart_label: "Patrón semanal",
+    insights_day_sun: "Domingo",
+    insights_day_mon: "Lunes",
+    insights_day_tue: "Martes",
+    insights_day_wed: "Miércoles",
+    insights_day_thu: "Jueves",
+    insights_day_fri: "Viernes",
+    insights_day_sat: "Sábado",
   },
   en: {
     // Auth & General
@@ -889,5 +907,23 @@ export const translations = {
     more_goals_save: "Save goal",
 
     weekly_progress: "Weekly progress",
+
+    insights_title: "Smart analysis",
+    insights_empty: "Complete habits to see your analysis.",
+    insights_streak_label: "Active streak",
+    insights_streak_days: "days in a row 🔥",
+    insights_streak_zero: "No active streak yet",
+    insights_avg_label: "Last 30 days",
+    insights_avg_unit: "completed / day",
+    insights_best_day_label: "Your strongest day",
+    insights_day_hits: "times",
+    insights_week_chart_label: "Weekly pattern",
+    insights_day_sun: "Sunday",
+    insights_day_mon: "Monday",
+    insights_day_tue: "Tuesday",
+    insights_day_wed: "Wednesday",
+    insights_day_thu: "Thursday",
+    insights_day_fri: "Friday",
+    insights_day_sat: "Saturday",
   },
 };

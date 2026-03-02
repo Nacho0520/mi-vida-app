@@ -319,7 +319,7 @@ export default function Stats({ user, isPro, onUpgrade }) {
   const maxCount = Math.max(...weeklyData.map((d) => d.count), 1);
 
   return (
-    <div className="w-full max-w-md mx-auto px-6 pb-32 pt-6 animate-in fade-in duration-500">
+    <div className="w-full animate-in fade-in duration-500">
 
       {/* ── Streak card ─────────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-[2.5rem] p-8 text-center border border-white/5 shadow-2xl mb-6">
