@@ -466,6 +466,19 @@ export const translations = {
     insights_day_thu: "Jueves",
     insights_day_fri: "Viernes",
     insights_day_sat: "Sábado",
+
+    // ── CommunityHub: Check-in y Círculo (ES) ─────────────────────────────────────
+    community_circle_title: "Tu círculo",
+    community_circle_label: "personas activas hoy",
+    community_circle_desc:
+      "Usuarios que ya hicieron check-in en las últimas 24 h",
+
+    community_checkin_title: "Check-in del día",
+    community_checkin_desc: "Marca tu presencia en la comunidad",
+    community_checkin_cta: "Hacer check-in",
+    community_checkin_done_title: "¡Check-in completado!",
+    community_checkin_done_desc: "Ya marcaste tu presencia hoy",
+    community_checkin_done_badge: "Hecho",
   },
   en: {
     // Auth & General
@@ -925,5 +938,17 @@ export const translations = {
     insights_day_thu: "Thursday",
     insights_day_fri: "Friday",
     insights_day_sat: "Saturday",
+
+    // ── CommunityHub: Check-in and Circle (EN) ────────────────────────────────────
+    community_circle_title: "Your circle",
+    community_circle_label: "people active today",
+    community_circle_desc: "Users who checked in within the last 24 h",
+
+    community_checkin_title: "Daily check-in",
+    community_checkin_desc: "Mark your presence in the community",
+    community_checkin_cta: "Check in",
+    community_checkin_done_title: "Check-in complete!",
+    community_checkin_done_desc: "You already marked your presence today",
+    community_checkin_done_badge: "Done",
   },
 };
