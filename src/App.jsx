@@ -43,6 +43,7 @@ const FutureLettersSection = lazy(
 );
 const FeedbackSection = lazy(() => import("./components/FeedbackSection"));
 const MoreFeatures = lazy(() => import("./components/MoreFeatures"));
+const WeeklyGoals = lazy(() => import("./components/WeeklyGoals"));
 
 // Hooks y Contexto
 import { supabase } from "./lib/supabaseClient";
@@ -215,6 +216,11 @@ function DashboardLayout({
                   user={session.user}
                   isPro={effectiveIsPro}
                   onUpgrade={() => setProModalOpen(true)}
+                />
+                <WeeklyGoals
+                  isPro={effectiveIsPro}
+                  onUpgrade={() => setProModalOpen(true)}
+                  user={session.user}
                 />
                 <FutureLettersSection
                   isPro={effectiveIsPro}
