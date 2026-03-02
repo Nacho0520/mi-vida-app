@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Check, X, Circle, Menu, Plus, Trash2, Settings, Star, Frown, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 import Sidebar from "./Sidebar";
 import SettingsModal from "./SettingsModal";
 import ProfileModal from "./ProfileModal";
@@ -11,6 +12,7 @@ import { useLanguage } from "../context/LanguageContext";
 // isTestAccount y isAdmin llegan como props desde App.jsx.
 // Ningún email está hardcodeado en este componente.
 
+// ── Sub-componente: CircularProgress (sin cambios) ────────────────────────────
 function CircularProgress({ percentage, completed, total }) {
   const { t } = useLanguage();
   const radius = 70;
@@ -49,6 +51,57 @@ function CircularProgress({ percentage, completed, total }) {
   );
 }
 
+// ── Sub-componente: WeeklySummaryBar ──────────────────────────────────────────
+// Barra minimalista de progreso de metas semanales.
+// Solo se renderiza si hay al menos una meta con target_value > 0.
+function WeeklySummaryBar({ weeklyGoals }) {
+  const { t } = useLanguage();
+
+  const { pct } = useMemo(() => {
+    if (!weeklyGoals || weeklyGoals.length === 0) return { pct: 0 }
+    const totalTarget  = weeklyGoals.reduce((sum, g) => sum + (g.target_value  || 0), 0)
+    const totalCurrent = weeklyGoals.reduce((sum, g) => sum + (g.current_value || 0), 0)
+    if (totalTarget === 0) return { pct: 0 }
+    return { pct: Math.min(100, Math.round((totalCurrent / totalTarget) * 100)) }
+  }, [weeklyGoals])
+
+  // No renderizar si no hay metas o no hay objetivos definidos
+  if (!weeklyGoals || weeklyGoals.length === 0) return null
+
+  const isComplete = pct >= 100
+
+  return (
+    <div className="mb-6 px-1">
+      {/* Etiqueta + porcentaje */}
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-neutral-600">
+          {t("weekly_progress")}
+        </p>
+        <span className={`text-[10px] font-black tabular-nums ${
+          isComplete ? "text-emerald-400" : "text-neutral-500"
+        }`}>
+          {pct}%
+        </span>
+      </div>
+
+      {/* Barra de progreso */}
+      <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ type: "spring", damping: 22, stiffness: 180, delay: 0.1 }}
+          className={`h-full rounded-full ${
+            isComplete
+              ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]"
+              : "bg-emerald-500"
+          }`}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── Componente principal Dashboard ───────────────────────────────────────────
 function Dashboard({
   user,
   habits,
@@ -65,17 +118,18 @@ function Dashboard({
   isPro,
   onToggleTestPro,
   onUpgrade,
-  isAdmin,        // ← viene de App → useSession → RPC is_admin()
+  isAdmin,          // ← viene de App → useSession → RPC is_admin()
+  weeklyGoals,      // ← NUEVO — array [{current_value, target_value}]
 }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isSettingsOpen, setSettingsOpen] = useState(false);
-  const [isCreatorOpen, setCreatorOpen] = useState(false);
-  const [editHabit, setEditHabit] = useState(null);
-  const [isProfileOpen, setProfileOpen] = useState(false);
-  const [isHardDayModalOpen, setHardDayModalOpen] = useState(false);
-  const [isProModalOpen, setProModalOpen] = useState(false);
-  const [expandedHabitId, setExpandedHabitId] = useState(null);
-  const [hardDayEnabled, setHardDayEnabled] = useState(() => {
+  const [isSidebarOpen,     setSidebarOpen]     = useState(false);
+  const [isSettingsOpen,    setSettingsOpen]    = useState(false);
+  const [isCreatorOpen,     setCreatorOpen]     = useState(false);
+  const [editHabit,         setEditHabit]       = useState(null);
+  const [isProfileOpen,     setProfileOpen]     = useState(false);
+  const [isHardDayModalOpen,setHardDayModalOpen]= useState(false);
+  const [isProModalOpen,    setProModalOpen]    = useState(false);
+  const [expandedHabitId,   setExpandedHabitId] = useState(null);
+  const [hardDayEnabled,    setHardDayEnabled]  = useState(() => {
     try { return localStorage.getItem("dayclose_hard_day_enabled") === "true" } catch { return false }
   });
   const [hardDayIds, setHardDayIds] = useState(() => {
@@ -86,16 +140,16 @@ function Dashboard({
   });
 
   const { t } = useLanguage();
-  const MAX_HARD_DAY = 3;
+  const MAX_HARD_DAY   = 3;
   const MAX_FREE_HABITS = 5;
 
   const logsMap = new Map();
   (todayLogs || []).forEach((l) => logsMap.set(l.habit_id, { status: l.status, logId: l.id }));
 
-  const completed = (habits || []).filter((h) => logsMap.get(h.id)?.status === "completed").length;
-  const percentage = habits?.length > 0 ? (completed / habits.length) * 100 : 0;
+  const completed    = (habits || []).filter((h) => logsMap.get(h.id)?.status === "completed").length;
+  const percentage   = habits?.length > 0 ? (completed / habits.length) * 100 : 0;
   const canCreateHabit = isPro || (habits || []).length < MAX_FREE_HABITS;
-  const atFreeLimit = !isPro && (habits || []).length >= MAX_FREE_HABITS;
+  const atFreeLimit  = !isPro && (habits || []).length >= MAX_FREE_HABITS;
   const nearFreeLimit = !isPro && (habits || []).length === MAX_FREE_HABITS - 1;
 
   useEffect(() => {
@@ -123,7 +177,9 @@ function Dashboard({
   const handleAddHabit = () => { canCreateHabit ? setCreatorOpen(true) : setProModalOpen(true) };
 
   const shouldFilterHabits = hardDayEnabled && hardDayIds.length > 0;
-  const visibleHabits = shouldFilterHabits ? (habits || []).filter((h) => hardDayIds.includes(h.id)) : habits || [];
+  const visibleHabits = shouldFilterHabits
+    ? (habits || []).filter((h) => hardDayIds.includes(h.id))
+    : habits || [];
 
   return (
     <div className="app-screen bg-neutral-900 px-4 relative">
@@ -171,11 +227,19 @@ function Dashboard({
       <ProModal isOpen={isProModalOpen} onClose={() => setProModalOpen(false)} user={user} onProActivated={() => window.location.reload()} />
 
       <div className="mx-auto w-full max-w-md mt-6">
-        <header className="mb-10 text-center">
+
+        {/* ── Saludo ──────────────────────────────────────────────── */}
+        <header className="mb-4 text-center">
           <h2 className="text-lg font-light text-neutral-500 italic">{t("hello")}</h2>
-          <h1 className="text-3xl font-black text-white tracking-tight capitalize leading-none">{user?.user_metadata?.full_name || "Usuario"}</h1>
+          <h1 className="text-3xl font-black text-white tracking-tight capitalize leading-none">
+            {user?.user_metadata?.full_name || "Usuario"}
+          </h1>
         </header>
 
+        {/* ── WeeklySummaryBar — debajo del saludo, antes del Hard Day ─ */}
+        <WeeklySummaryBar weeklyGoals={weeklyGoals} />
+
+        {/* ── Banners de límite de hábitos ────────────────────────── */}
         {nearFreeLimit && (
           <button onClick={() => setProModalOpen(true)} className="mb-4 w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-amber-500/8 border border-amber-500/15 active:scale-98 transition-all group">
             <div className="flex items-center gap-2">
@@ -196,6 +260,7 @@ function Dashboard({
           </div>
         )}
 
+        {/* ── Hard Day mode ────────────────────────────────────────── */}
         {hardDayEnabled && (
           <div className="mb-6 flex items-center justify-between text-[11px] text-neutral-500">
             <span>{t("hard_day_help")}</span>
@@ -206,10 +271,12 @@ function Dashboard({
           <p className="mb-6 text-[11px] text-neutral-600">{t("hard_day_empty")}</p>
         )}
 
+        {/* ── CircularProgress ─────────────────────────────────────── */}
         <div className="mb-10 flex justify-center">
           <CircularProgress percentage={percentage} completed={completed} total={(habits || []).length} />
         </div>
 
+        {/* ── Lista de hábitos ─────────────────────────────────────── */}
         {visibleHabits.length === 0 ? (
           <div className="radius-card border border-white/5 bg-neutral-800/30 p-6 text-center text-neutral-400 shadow-apple-soft">
             <p className="text-body font-medium">{t("no_habits_today")}</p>
@@ -217,7 +284,7 @@ function Dashboard({
         ) : (
           <div className="premium-divider">
             {visibleHabits.map((habit) => {
-              const log = logsMap.get(habit.id);
+              const log        = logsMap.get(habit.id);
               const isCritical = hardDayIds.includes(habit.id);
               const miniHabits = (habit.mini_habits || []).filter(Boolean);
               const isExpanded = expandedHabitId === habit.id;
@@ -236,7 +303,10 @@ function Dashboard({
                     </div>
                     <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 transition-opacity pr-2">
                       {hardDayEnabled && (
-                        <button onClick={(e) => { e.stopPropagation(); toggleHardDayHabit(habit.id) }} className={`p-2 rounded-lg transition-colors ${isCritical ? "text-neutral-200" : "text-neutral-600 hover:text-neutral-300"}`}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleHardDayHabit(habit.id) }}
+                          className={`p-2 rounded-lg transition-colors ${isCritical ? "text-neutral-200" : "text-neutral-600 hover:text-neutral-300"}`}
+                        >
                           <Star size={18} fill={isCritical ? "currentColor" : "none"} />
                         </button>
                       )}
@@ -267,13 +337,18 @@ function Dashboard({
                           }}
                           className="flex h-10 w-10 items-center justify-center rounded-full transition-all active:scale-75 bg-white/10 shadow-lg"
                         >
-                          {log.status === "completed" ? <Check className="h-6 w-6 text-emerald-500" /> : <X className="h-6 w-6 text-red-500" />}
+                          {log.status === "completed"
+                            ? <Check className="h-6 w-6 text-emerald-500" />
+                            : <X className="h-6 w-6 text-red-500" />
+                          }
                         </button>
                       ) : (
                         <Circle className="h-6 w-6 text-neutral-700" />
                       )}
                     </div>
                   </div>
+
+                  {/* Mini hábitos expandidos */}
                   {isExpanded && miniHabits.length > 0 && (
                     <div className="mt-3 pl-16">
                       <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold mb-2">{t("mini_habits_title")}</p>
@@ -299,6 +374,7 @@ function Dashboard({
           </div>
         )}
 
+        {/* ── Botón de revisión ─────────────────���──────────────────── */}
         {(habits || []).some((h) => !logsMap.has(h.id)) && (
           <button onClick={onStartReview} className="mt-8 w-full rounded-[2rem] bg-white px-6 py-5 text-lg font-black text-black shadow-2xl active:scale-95 transition-all">
             {t("start_review")}
@@ -306,6 +382,7 @@ function Dashboard({
         )}
       </div>
 
+      {/* ── FABs flotantes ───────────────────────────────────────── */}
       <button onClick={handleAddHabit} className={`fixed bottom-32 right-6 h-16 w-16 rounded-[1.5rem] shadow-2xl flex items-center justify-center active:scale-90 transition-all z-40 ${atFreeLimit ? "bg-violet-500 text-white shadow-violet-500/30" : "bg-white text-black"}`}>
         {atFreeLimit ? <Zap size={28} /> : <Plus size={36} strokeWidth={3} />}
       </button>
@@ -314,6 +391,7 @@ function Dashboard({
         <Frown size={20} />
       </button>
 
+      {/* ── Modal: Hard Day ──────────────────────────────────────── */}
       {isHardDayModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm bg-neutral-800/80 radius-card p-6 shadow-apple border border-white/5 relative backdrop-blur-xl">
@@ -330,7 +408,11 @@ function Dashboard({
               {(habits || []).map((habit) => {
                 const selected = hardDayIds.includes(habit.id);
                 return (
-                  <button key={habit.id} onClick={() => toggleHardDayHabit(habit.id)} className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl border transition-colors ${selected ? "border-white/20 bg-white/10" : "border-white/5 bg-neutral-900/40"}`}>
+                  <button
+                    key={habit.id}
+                    onClick={() => toggleHardDayHabit(habit.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl border transition-colors ${selected ? "border-white/20 bg-white/10" : "border-white/5 bg-neutral-900/40"}`}
+                  >
                     <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${habit.color}`}>
                       <span className="text-lg">{habit.icon}</span>
                     </div>
@@ -344,10 +426,16 @@ function Dashboard({
               })}
             </div>
             <div className="mt-5 flex gap-3">
-              <button onClick={() => { setHardDayEnabled(false); setHardDayIds([]); setHardDayModalOpen(false) }} className="flex-1 rounded-xl bg-neutral-900/60 border border-white/5 text-neutral-300 py-3 text-sm font-bold">
+              <button
+                onClick={() => { setHardDayEnabled(false); setHardDayIds([]); setHardDayModalOpen(false) }}
+                className="flex-1 rounded-xl bg-neutral-900/60 border border-white/5 text-neutral-300 py-3 text-sm font-bold"
+              >
                 {t("hard_day_cancel")}
               </button>
-              <button onClick={() => { setHardDayEnabled(true); setHardDayModalOpen(false) }} className="flex-1 rounded-xl bg-white text-black py-3 text-sm font-bold">
+              <button
+                onClick={() => { setHardDayEnabled(true); setHardDayModalOpen(false) }}
+                className="flex-1 rounded-xl bg-white text-black py-3 text-sm font-bold"
+              >
                 {t("hard_day_confirm_btn")}
               </button>
             </div>

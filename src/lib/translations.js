@@ -446,6 +446,8 @@ export const translations = {
     more_goals_placeholder_unit: "Ej: km, págs",
     more_goals_cancel: "Cancelar",
     more_goals_save: "Guardar meta",
+
+    weekly_progress: "Progreso semanal",
   },
   en: {
     // Auth & General
@@ -885,5 +887,7 @@ export const translations = {
     more_goals_placeholder_unit: "E.g. km, pages",
     more_goals_cancel: "Cancel",
     more_goals_save: "Save goal",
+
+    weekly_progress: "Weekly progress",
   },
 };

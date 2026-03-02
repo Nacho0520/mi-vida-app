@@ -132,7 +132,7 @@ function GoalRow({ goal, onIncrement, onDelete, t }) {
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
-export default function WeeklyGoals({ isPro, onUpgrade, user }) {
+export default function WeeklyGoals({ isPro, onUpgrade, user, onRefresh }) {
   const { t } = useLanguage()
 
   const [goals,      setGoals]      = useState([])
@@ -187,6 +187,7 @@ export default function WeeklyGoals({ isPro, onUpgrade, user }) {
       setFormUnit('')
       setShowModal(false)
       await loadGoals()
+      await onRefresh?.()           // ← sincroniza WeeklySummaryBar del Dashboard
     }
     setSaving(false)
   }
@@ -201,9 +202,11 @@ export default function WeeklyGoals({ isPro, onUpgrade, user }) {
     if (error) {
       console.error('[WeeklyGoals] Error actualizando meta:', error.message)
     } else {
+      // Optimistic update local para respuesta instantánea en UI
       setGoals(prev =>
         prev.map(g => g.id === goal.id ? { ...g, current_value: newValue } : g)
       )
+      await onRefresh?.()           // ← sincroniza WeeklySummaryBar del Dashboard
     }
   }
 
@@ -214,6 +217,7 @@ export default function WeeklyGoals({ isPro, onUpgrade, user }) {
       console.error('[WeeklyGoals] Error eliminando meta:', error.message)
     } else {
       setGoals(prev => prev.filter(g => g.id !== id))
+      await onRefresh?.()           // ← sincroniza WeeklySummaryBar del Dashboard
     }
   }
 
@@ -228,8 +232,7 @@ export default function WeeklyGoals({ isPro, onUpgrade, user }) {
 
   if (!user) return null
 
-  // ── Condición del badge en la fila de acción:
-  // Solo FREE + ya tiene 1 meta creada
+  // Condición del badge en la fila de acción: solo FREE + ya tiene 1 meta
   const showProBadgeInCTA = !isPro && goals.length >= MAX_FREE_GOALS
 
   return (
@@ -306,7 +309,7 @@ export default function WeeklyGoals({ isPro, onUpgrade, user }) {
               <p className="text-[11px] text-neutral-500 font-medium">{t('more_goals_add_desc')}</p>
             </div>
 
-            {/* ── Badge: solo cuando FREE y ya tiene ≥1 meta ──────── */}
+            {/* Badge: solo cuando FREE y ya tiene ≥1 meta */}
             {showProBadgeInCTA ? (
               <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 shrink-0">
                 <Zap size={10} fill="currentColor" /> Pro
@@ -319,7 +322,7 @@ export default function WeeklyGoals({ isPro, onUpgrade, user }) {
         </div>
       )}
 
-      {/* ═══���══════════════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════════════════════════
           MODAL: Crear nueva meta — paperUnfold
       ══════════════════════════════════════════════════════════════ */}
       {portal(
