@@ -479,6 +479,7 @@ export const translations = {
     community_checkin_done_title: "¡Check-in completado!",
     community_checkin_done_desc: "Ya marcaste tu presencia hoy",
     community_checkin_done_badge: "Hecho",
+    community_features_title: "Funciones de comunidad",
   },
   en: {
     // Auth & General
@@ -950,5 +951,6 @@ export const translations = {
     community_checkin_done_title: "Check-in complete!",
     community_checkin_done_desc: "You already marked your presence today",
     community_checkin_done_badge: "Done",
+    community_features_title: "Community features",
   },
 };
