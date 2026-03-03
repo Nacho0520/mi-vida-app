@@ -146,6 +146,7 @@ export const translations = {
     confirm_delete:
       "¿Seguro que quieres borrar este hábito y todo su historial?",
     error_delete: "Error al borrar: ",
+    free_limit_hint: "Gratis: máx {{n}} por hábito",
 
     // Stats
     stats_title: "Mis Estadísticas",
@@ -335,7 +336,7 @@ export const translations = {
     // Reminder
     reminder_title: "Recordatorio",
     reminder_one_left: "¡Solo te queda uno para un día perfecto!",
-    reminder_many_left: "Tienes {n} tareas pendientes para cerrar el día.",
+    reminder_many_left: "Tienes {{n}} tareas pendientes para cerrar el día.",
     streak_danger_title: "Racha en peligro",
     streak_danger_desc: "Salva tu progreso hoy",
     btn_done: "Hecho",
@@ -513,6 +514,11 @@ export const translations = {
     friends_sent_success: "¡Invitación enviada!",
     friends_sent_success_desc: "Se notificará cuando la acepten. Cerrando...",
     friends_decline: "Rechazar",
+
+    // Future features
+    yesterday_reflection_title: "Ayer pusiste",
+    trial_banner_active: "Estás explorando Pro — quedan {{days}} días",
+    pause_habit_title: "Pausar hábito",
   },
   en: {
     // Auth & General
@@ -656,6 +662,7 @@ export const translations = {
     confirm_delete:
       "Are you sure you want to delete this habit and its history?",
     error_delete: "Error deleting: ",
+    free_limit_hint: "Free: max {{n}} per habit",
 
     // Stats
     stats_title: "My Statistics",
@@ -844,7 +851,7 @@ export const translations = {
     // Reminder
     reminder_title: "Reminder",
     reminder_one_left: "Only one left for a perfect day!",
-    reminder_many_left: "You have {n} pending habits to close the day.",
+    reminder_many_left: "You have {{n}} pending habits to close the day.",
     streak_danger_title: "Streak in danger",
     streak_danger_desc: "Save your progress today",
     btn_done: "Done",
@@ -1019,5 +1026,10 @@ export const translations = {
     friends_sent_success_desc:
       "They'll be notified when they accept. Closing...",
     friends_decline: "Decline",
+
+    // Future features
+    yesterday_reflection_title: "Yesterday you scored",
+    trial_banner_active: "You're exploring Pro — {{days}} days left",
+    pause_habit_title: "Pause habit",
   },
 };

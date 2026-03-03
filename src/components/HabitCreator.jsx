@@ -30,13 +30,74 @@ const COLORS = [
 ];
 
 const ICONS = [
-  "📚", "💧", "🏃", "🧘", "💊", "💤", "📝", "🧹", "🥦", "💰",
-  "🎸", "📵", "🏋️", "🚴", "🏊", "🚶", "🍎", "🥗", "🥤", "🦷",
-  "💻", "✍️", "🧠", "🎯", "⏰", "📧", "💼", "🎓", "🧺", "🍳",
-  "🪴", "🛁", "🛌", "🚿", "🧼", "🎨", "🎮", "🎬", "📷", "🎧",
-  "♟️", "🧶", "👫", "🐕", "🐈", "☕", "🍺", "🍦", "✈️", "🛒",
-  "👔", "🛠️", "🚗", "📈", "💎", "💡", "☀️", "🌑", "🌊", "⛰️",
-  "🌳", "🕯️", "✨", "🔓", "🚭", "💪", "🤳", "🧽",
+  "📚",
+  "💧",
+  "🏃",
+  "🧘",
+  "💊",
+  "💤",
+  "📝",
+  "🧹",
+  "🥦",
+  "💰",
+  "🎸",
+  "📵",
+  "🏋️",
+  "🚴",
+  "🏊",
+  "🚶",
+  "🍎",
+  "🥗",
+  "🥤",
+  "🦷",
+  "💻",
+  "✍️",
+  "🧠",
+  "🎯",
+  "⏰",
+  "📧",
+  "💼",
+  "🎓",
+  "🧺",
+  "🍳",
+  "🪴",
+  "🛁",
+  "🛌",
+  "🚿",
+  "🧼",
+  "🎨",
+  "🎮",
+  "🎬",
+  "📷",
+  "🎧",
+  "♟️",
+  "🧶",
+  "👫",
+  "🐕",
+  "🐈",
+  "☕",
+  "🍺",
+  "🍦",
+  "✈️",
+  "🛒",
+  "👔",
+  "🛠️",
+  "🚗",
+  "📈",
+  "💎",
+  "💡",
+  "☀️",
+  "🌑",
+  "🌊",
+  "⛰️",
+  "🌳",
+  "🕯️",
+  "✨",
+  "🔓",
+  "🚭",
+  "💪",
+  "🤳",
+  "🧽",
 ];
 
 const DAYS = [
@@ -82,7 +143,11 @@ const normalizeFreq = (f) => {
   if (!f) return ALL_DAYS;
   if (Array.isArray(f)) return f.length === 0 ? ALL_DAYS : f;
   if (typeof f === "string") {
-    const arr = f.replace(/[{}]/g, "").split(",").map(v => v.trim()).filter(Boolean);
+    const arr = f
+      .replace(/[{}]/g, "")
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
     return arr.length === 0 ? ALL_DAYS : arr;
   }
   return ALL_DAYS;
@@ -114,18 +179,26 @@ export default function HabitCreator({
 
   const ADMIN_EMAIL = "hemmings.nacho@gmail.com";
   const TEST_EMAIL = "test@test.com";
-  const freshSimulateFree = typeof localStorage !== "undefined" && localStorage.getItem("dayclose_simulate_free") === "true";
-  
-  const effectiveIsPrivileged = 
-    userPlan === "pro" || 
-    currentUserEmail === ADMIN_EMAIL || 
+  const freshSimulateFree =
+    typeof localStorage !== "undefined" &&
+    localStorage.getItem("dayclose_simulate_free") === "true";
+
+  const effectiveIsPrivileged =
+    userPlan === "pro" ||
+    currentUserEmail === ADMIN_EMAIL ||
     (currentUserEmail === TEST_EMAIL && !freshSimulateFree);
 
   useEffect(() => {
     if (!userId) return;
     const loadUserData = async () => {
-      const { data: profile } = await supabase.from("profiles").select("plan").eq("id", userId).maybeSingle();
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("plan")
+        .eq("id", userId)
+        .maybeSingle();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setUserPlan(profile?.plan === "pro" ? "pro" : "free");
       setCurrentUserEmail(user?.email || "");
     };
@@ -141,7 +214,9 @@ export default function HabitCreator({
         setSelectedColor(habitToEdit.color || COLORS[0]);
         setSelectedIcon(habitToEdit.icon || ICONS[0]);
         setMiniHabits(normalizeMiniHabits(habitToEdit.mini_habits));
-        setShowMiniHabits(normalizeMiniHabits(habitToEdit.mini_habits).length > 0);
+        setShowMiniHabits(
+          normalizeMiniHabits(habitToEdit.mini_habits).length > 0,
+        );
       } else {
         setTitle("");
         setSelectedDays(["L", "M", "X", "J", "V"]);
@@ -170,10 +245,12 @@ export default function HabitCreator({
 
         const newFreq = selectedDays.length === 0 ? ALL_DAYS : selectedDays;
         const maxPerDay = ALL_DAYS.reduce((max, day) => {
-          const existingCount = (existingHabits || []).filter(h =>
-            normalizeFreq(h.frequency).includes(day)
+          const existingCount = (existingHabits || []).filter((h) =>
+            normalizeFreq(h.frequency).includes(day),
           ).length;
-          const countWithNew = newFreq.includes(day) ? existingCount + 1 : existingCount;
+          const countWithNew = newFreq.includes(day)
+            ? existingCount + 1
+            : existingCount;
           return Math.max(max, countWithNew);
         }, 0);
 
@@ -193,14 +270,17 @@ export default function HabitCreator({
         icon: selectedIcon,
         is_active: true,
         mini_habits: miniHabits.map((h) => ({
-            title: h.title.trim(),
-            icon: h.icon,
-            color: h.color,
-          })),
+          title: h.title.trim(),
+          icon: h.icon,
+          color: h.color,
+        })),
       };
 
       if (habitToEdit) {
-        await supabase.from("habits").update(habitData).eq("id", habitToEdit.id);
+        await supabase
+          .from("habits")
+          .update(habitData)
+          .eq("id", habitToEdit.id);
       } else {
         await supabase.from("habits").insert(habitData);
       }
@@ -215,7 +295,11 @@ export default function HabitCreator({
 
   const handleAddMiniHabit = () => {
     // Si no es Pro y está intentando añadir (no editar) y ya llegó al límite de 2
-    if (!effectiveIsPrivileged && editingMiniIndex === null && miniHabits.length >= FREE_MINI_HABITS_LIMIT) {
+    if (
+      !effectiveIsPrivileged &&
+      editingMiniIndex === null &&
+      miniHabits.length >= FREE_MINI_HABITS_LIMIT
+    ) {
       setShowProModal(true);
       return;
     }
@@ -232,7 +316,12 @@ export default function HabitCreator({
         ),
       );
     } else {
-      setMiniHabits((prev) => [...prev, { title: value, icon: miniHabitIcon, color: miniHabitColor }].slice(0, 15));
+      setMiniHabits((prev) =>
+        [
+          ...prev,
+          { title: value, icon: miniHabitIcon, color: miniHabitColor },
+        ].slice(0, 15),
+      );
     }
     setMiniHabitInput("");
     setEditingMiniIndex(null);
@@ -291,16 +380,26 @@ export default function HabitCreator({
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              {habitToEdit ? <Palette className="text-blue-400" size={20} /> : <Sparkles className="text-yellow-400" size={20} />}
+              {habitToEdit ? (
+                <Palette className="text-blue-400" size={20} />
+              ) : (
+                <Sparkles className="text-yellow-400" size={20} />
+              )}
               <span>{habitToEdit ? t("edit_habit") : t("new_habit")}</span>
             </h2>
             <div className="flex gap-2">
               {habitToEdit && (
-                <button onClick={handleDelete} className="p-2 bg-red-900/30 rounded-full text-red-400 hover:bg-red-900/50 transition-colors">
+                <button
+                  onClick={handleDelete}
+                  className="p-2 bg-red-900/30 rounded-full text-red-400 hover:bg-red-900/50 transition-colors"
+                >
                   <Trash2 size={20} />
                 </button>
               )}
-              <button onClick={onClose} className="p-2 bg-neutral-700 rounded-full text-neutral-300 hover:text-white">
+              <button
+                onClick={onClose}
+                className="p-2 bg-neutral-700 rounded-full text-neutral-300 hover:text-white"
+              >
                 <X size={20} />
               </button>
             </div>
@@ -309,9 +408,13 @@ export default function HabitCreator({
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Título e Icono principal */}
             <div className="space-y-2">
-              <label className="text-xs font-black text-neutral-500 uppercase tracking-widest">{t("habit_name_label")}</label>
+              <label className="text-xs font-black text-neutral-500 uppercase tracking-widest">
+                {t("habit_name_label")}
+              </label>
               <div className="flex gap-3">
-                <div className={`h-14 w-14 flex items-center justify-center rounded-2xl text-3xl shadow-inner border border-white/5 ${selectedColor}`}>
+                <div
+                  className={`h-14 w-14 flex items-center justify-center rounded-2xl text-3xl shadow-inner border border-white/5 ${selectedColor}`}
+                >
                   {selectedIcon}
                 </div>
                 <input
@@ -338,14 +441,22 @@ export default function HabitCreator({
                   <div>
                     <p className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
                       {t("mini_habits_title")}
-                      {!effectiveIsPrivileged && miniHabits.length >= FREE_MINI_HABITS_LIMIT && <Lock size={10} className="text-neutral-500" />}
+                      {!effectiveIsPrivileged &&
+                        miniHabits.length >= FREE_MINI_HABITS_LIMIT && (
+                          <Lock size={10} className="text-neutral-500" />
+                        )}
                     </p>
                     <p className="text-[10px] font-bold text-neutral-500">
-                      {!effectiveIsPrivileged ? `Gratis: máx 2 por hábito` : t("mini_habits_hint")}
+                      {!effectiveIsPrivileged
+                        ? t("free_limit_hint", { n: FREE_MINI_HABITS_LIMIT })
+                        : t("mini_habits_hint")}
                     </p>
                   </div>
                 </div>
-                <ChevronDown size={18} className={`text-neutral-500 transition-transform ${showMiniHabits ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  size={18}
+                  className={`text-neutral-500 transition-transform ${showMiniHabits ? "rotate-180" : ""}`}
+                />
               </button>
 
               {showMiniHabits && (
@@ -358,22 +469,53 @@ export default function HabitCreator({
                       placeholder={t("mini_habits_placeholder")}
                       className="flex-1 bg-neutral-900 border border-white/5 rounded-xl px-4 py-2 text-sm text-white focus:outline-none"
                     />
-                    <button type="button" onClick={handleAddMiniHabit} className="px-4 py-2 bg-white text-black text-xs font-black rounded-xl">
-                      {editingMiniIndex !== null ? t("mini_habits_update") : t("mini_habits_add")}
+                    <button
+                      type="button"
+                      onClick={handleAddMiniHabit}
+                      className="px-4 py-2 bg-white text-black text-xs font-black rounded-xl"
+                    >
+                      {editingMiniIndex !== null
+                        ? t("mini_habits_update")
+                        : t("mini_habits_add")}
                     </button>
                   </div>
-                  
+
                   {miniHabits.map((item, index) => (
-                    <div key={index} className="flex items-center gap-3 bg-neutral-800/50 p-2 rounded-xl border border-white/5">
-                      <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${item.color}`}>{item.icon}</div>
-                      <span className="flex-1 text-xs font-bold text-neutral-300">{item.title}</span>
-                      <button type="button" onClick={() => {
-                        setMiniHabitInput(item.title);
-                        setMiniHabitIcon(item.icon);
-                        setMiniHabitColor(item.color);
-                        setEditingMiniIndex(index);
-                      }} className="text-neutral-500 p-1"><Settings size={14}/></button>
-                      <button type="button" onClick={() => setMiniHabits(prev => prev.filter((_, i) => i !== index))} className="text-neutral-500 p-1"><X size={14}/></button>
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 bg-neutral-800/50 p-2 rounded-xl border border-white/5"
+                    >
+                      <div
+                        className={`h-8 w-8 rounded-lg flex items-center justify-center ${item.color}`}
+                      >
+                        {item.icon}
+                      </div>
+                      <span className="flex-1 text-xs font-bold text-neutral-300">
+                        {item.title}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMiniHabitInput(item.title);
+                          setMiniHabitIcon(item.icon);
+                          setMiniHabitColor(item.color);
+                          setEditingMiniIndex(index);
+                        }}
+                        className="text-neutral-500 p-1"
+                      >
+                        <Settings size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMiniHabits((prev) =>
+                            prev.filter((_, i) => i !== index),
+                          )
+                        }
+                        className="text-neutral-500 p-1"
+                      >
+                        <X size={14} />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -387,18 +529,26 @@ export default function HabitCreator({
               </label>
               <div className="grid grid-cols-6 gap-2 bg-neutral-900/60 p-3 rounded-[2rem] border border-white/5 max-h-40 overflow-y-auto custom-scrollbar">
                 {ICONS.map((icon, index) => {
-                  const isLocked = !effectiveIsPrivileged && index >= FREE_ICONS_LIMIT;
+                  const isLocked =
+                    !effectiveIsPrivileged && index >= FREE_ICONS_LIMIT;
                   return (
                     <button
                       key={index}
                       type="button"
                       onClick={() => handleSelectIcon(icon, index)}
                       className={`relative flex h-11 w-11 items-center justify-center rounded-2xl text-xl transition-all ${
-                        selectedIcon === icon ? "bg-white/10 ring-2 ring-white" : "hover:bg-white/5"
+                        selectedIcon === icon
+                          ? "bg-white/10 ring-2 ring-white"
+                          : "hover:bg-white/5"
                       } ${isLocked ? "opacity-30" : ""}`}
                     >
                       {icon}
-                      {isLocked && <Lock size={10} className="absolute bottom-1 right-1 text-white/50" />}
+                      {isLocked && (
+                        <Lock
+                          size={10}
+                          className="absolute bottom-1 right-1 text-white/50"
+                        />
+                      )}
                     </button>
                   );
                 })}
@@ -419,13 +569,18 @@ export default function HabitCreator({
                       type="button"
                       onClick={() => {
                         if (selectedDays.includes(day.id)) {
-                          if (selectedDays.length > 1) setSelectedDays(prev => prev.filter(d => d !== day.id));
+                          if (selectedDays.length > 1)
+                            setSelectedDays((prev) =>
+                              prev.filter((d) => d !== day.id),
+                            );
                         } else {
-                          setSelectedDays(prev => [...prev, day.id]);
+                          setSelectedDays((prev) => [...prev, day.id]);
                         }
                       }}
                       className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black transition-all ${
-                        isSelected ? "bg-white text-black shadow-lg" : "text-neutral-500"
+                        isSelected
+                          ? "bg-white text-black shadow-lg"
+                          : "text-neutral-500"
                       }`}
                     >
                       {day.label}
@@ -442,17 +597,27 @@ export default function HabitCreator({
               </label>
               <div className="flex gap-3 justify-center bg-neutral-900/60 p-4 rounded-2xl border border-white/5">
                 {COLORS.map((color, index) => {
-                  const isLocked = !effectiveIsPrivileged && index >= FREE_COLORS_LIMIT;
+                  const isLocked =
+                    !effectiveIsPrivileged && index >= FREE_COLORS_LIMIT;
                   return (
                     <button
                       key={index}
                       type="button"
                       onClick={() => handleSelectColor(color, index)}
                       className={`relative w-9 h-9 rounded-full ${color} transition-all ${
-                        selectedColor === color ? "ring-2 ring-white scale-110" : isLocked ? "opacity-30" : "opacity-60"
+                        selectedColor === color
+                          ? "ring-2 ring-white scale-110"
+                          : isLocked
+                            ? "opacity-30"
+                            : "opacity-60"
                       }`}
                     >
-                      {isLocked && <Lock size={10} className="absolute inset-0 m-auto text-white/50" />}
+                      {isLocked && (
+                        <Lock
+                          size={10}
+                          className="absolute inset-0 m-auto text-white/50"
+                        />
+                      )}
                     </button>
                   );
                 })}
@@ -465,7 +630,17 @@ export default function HabitCreator({
               disabled={loading || !title}
               className="w-full bg-white text-black font-black py-5 rounded-[1.5rem] text-lg hover:opacity-90 disabled:opacity-30 transition-all flex items-center justify-center gap-2 shadow-2xl"
             >
-              {loading ? t("saving") : habitToEdit ? <><Save size={20} /> {t("save_changes_btn")}</> : <><Check size={20} /> {t("create_habit_btn")}</>}
+              {loading ? (
+                t("saving")
+              ) : habitToEdit ? (
+                <>
+                  <Save size={20} /> {t("save_changes_btn")}
+                </>
+              ) : (
+                <>
+                  <Check size={20} /> {t("create_habit_btn")}
+                </>
+              )}
             </button>
           </form>
         </MotionDiv>
