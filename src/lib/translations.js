@@ -467,7 +467,6 @@ export const translations = {
     insights_day_fri: "Viernes",
     insights_day_sat: "Sábado",
 
-    // ── CommunityHub: Check-in y Círculo (ES) ─────────────────────────────────────
     community_circle_title: "Tu círculo",
     community_circle_label: "personas activas hoy",
     community_circle_desc:
@@ -480,6 +479,40 @@ export const translations = {
     community_checkin_done_desc: "Ya marcaste tu presencia hoy",
     community_checkin_done_badge: "Hecho",
     community_features_title: "Funciones de comunidad",
+
+    community_moments_feed_title: "Momentos activos",
+
+    community_challenge_cta: "Comenzar",
+    community_challenge_done_title: "¡Reto completado!",
+    community_challenge_done_desc: "7 días seguidos. ¡Increíble constancia!",
+
+    community_support_modal_title: "Enviar apoyo a",
+    community_support_sent: "¡Apoyo enviado!",
+    community_support_cancel: "Cancelar",
+    community_support_no_friends: "Sin amigos aún",
+
+    community_moment_cta: "Compartir",
+    community_moment_active_title: "Tu momento activo",
+    community_moment_modal_title: "Compartir un momento",
+    community_moment_modal_subtitle: "Desaparece en 24 horas",
+    community_moment_placeholder: "Una pequeña victoria de hoy...",
+    community_moment_cancel: "Cancelar",
+    community_moment_publish: "Publicar",
+
+    friends_sent_success: "¡Solicitud enviada!",
+    friends_sent_success_desc: "La aceptarán pronto. Cierra automáticamente...",
+    friends_sent_title: "Enviadas",
+    friends_pending_badge: "Pendiente",
+    friends_decline: "Rechazar",
+
+    // ── FriendsSection: mensajes de error amigables (ES) ─────────────────────────
+    friends_error_duplicate: "Ya has enviado una invitación a este correo.",
+    friends_error_not_found: "No encontramos ese usuario. Revisa el email.",
+    friends_sent_title: "Enviadas",
+    friends_pending_badge: "Pendiente",
+    friends_sent_success: "¡Invitación enviada!",
+    friends_sent_success_desc: "Se notificará cuando la acepten. Cerrando...",
+    friends_decline: "Rechazar",
   },
   en: {
     // Auth & General
@@ -940,7 +973,6 @@ export const translations = {
     insights_day_fri: "Friday",
     insights_day_sat: "Saturday",
 
-    // ── CommunityHub: Check-in and Circle (EN) ────────────────────────────────────
     community_circle_title: "Your circle",
     community_circle_label: "people active today",
     community_circle_desc: "Users who checked in within the last 24 h",
@@ -952,5 +984,40 @@ export const translations = {
     community_checkin_done_desc: "You already marked your presence today",
     community_checkin_done_badge: "Done",
     community_features_title: "Community features",
+
+    community_moments_feed_title: "Active moments",
+
+    community_challenge_cta: "Start",
+    community_challenge_done_title: "Challenge complete!",
+    community_challenge_done_desc: "7 days in a row. Incredible consistency!",
+
+    community_support_modal_title: "Send support to",
+    community_support_sent: "Support sent!",
+    community_support_cancel: "Cancel",
+    community_support_no_friends: "No friends yet",
+
+    community_moment_cta: "Share",
+    community_moment_active_title: "Your active moment",
+    community_moment_modal_title: "Share a moment",
+    community_moment_modal_subtitle: "Disappears in 24 hours",
+    community_moment_placeholder: "A small win from today...",
+    community_moment_cancel: "Cancel",
+    community_moment_publish: "Publish",
+
+    friends_sent_success: "Request sent!",
+    friends_sent_success_desc: "They'll accept soon. Closing automatically...",
+    friends_sent_title: "Sent",
+    friends_pending_badge: "Pending",
+    friends_decline: "Decline",
+
+    // ── FriendsSection: friendly error messages (EN) ─────────────────────────────
+    friends_error_duplicate: "You've already sent an invitation to this email.",
+    friends_error_not_found: "We couldn't find that user. Check the email.",
+    friends_sent_title: "Sent",
+    friends_pending_badge: "Pending",
+    friends_sent_success: "Invitation sent!",
+    friends_sent_success_desc:
+      "They'll be notified when they accept. Closing...",
+    friends_decline: "Decline",
   },
 };
