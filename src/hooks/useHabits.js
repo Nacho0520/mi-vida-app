@@ -30,6 +30,13 @@ export function getTodayDateString() {
   return new Date().toISOString().split('T')[0]
 }
 
+// ── [NUEVO] Devuelve la fecha de ayer en formato YYYY-MM-DD ───────────────────
+function getYesterdayDateString() {
+  const d = new Date()
+  d.setDate(d.getDate() - 1)
+  return d.toISOString().split('T')[0]
+}
+
 function normalizeFrequency(value) {
   if (!value) return []
   if (Array.isArray(value)) return value
@@ -89,6 +96,8 @@ function normalizeMiniHabits(value) {
 export function useHabits({ session, mode }) {
   const [habits, setHabits] = useState([])
   const [todayLogs, setTodayLogs] = useState([])
+  // ── [NUEVO] Estado para el resumen de ayer ────────────────────────────────
+  const [yesterdaySummary, setYesterdaySummary] = useState(null)
 
   const fetchTodayLogs = useCallback(async () => {
     if (!session) return
@@ -101,6 +110,29 @@ export function useHabits({ session, mode }) {
       .lte('created_at', `${today}T23:59:59.999Z`)
     if (error) console.error('[useHabits] Error cargando daily_logs de hoy:', error.message)
     setTodayLogs(data || [])
+  }, [session])
+
+  // ── [NUEVO] Carga el resumen del día anterior (habit_id IS NULL) ──────────
+  const fetchYesterdaySummary = useCallback(async () => {
+    if (!session) return
+    const yesterday = getYesterdayDateString()
+    const { data, error } = await supabase
+      .from('daily_logs')
+      .select('score, mood, created_at')
+      .eq('user_id', session.user.id)
+      .is('habit_id', null)                              // registro de resumen diario
+      .gte('created_at', `${yesterday}T00:00:00.000Z`)
+      .lte('created_at', `${yesterday}T23:59:59.999Z`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      console.error('[useHabits] Error cargando resumen de ayer:', error.message)
+      return
+    }
+    // data puede ser null si el usuario no cerró el día ayer — es un caso válido
+    setYesterdaySummary(data || null)
   }, [session])
 
   useEffect(() => {
@@ -117,11 +149,24 @@ export function useHabits({ session, mode }) {
       }
       if (data) {
         const todayCode = getTodayFrequencyCode()
+        const todayDate = new Date()
+        todayDate.setHours(0, 0, 0, 0)
+
         const filtered = data.filter((habit) => {
+          // ── [NUEVO] Filtro de Modo Pausa ────────────────────────────────────
+          // Si el hábito tiene paused_until y hoy es anterior a esa fecha,
+          // no debe aparecer en la revisión de hoy.
+          if (habit.paused_until) {
+            const pausedUntil = new Date(habit.paused_until)
+            pausedUntil.setHours(0, 0, 0, 0)
+            if (todayDate < pausedUntil) return false
+          }
+          // ── Filtro de frecuencia (comportamiento original) ─────────────────
           const freq = normalizeFrequency(habit.frequency)
           if (!freq || freq.length === 0) return true
           return freq.includes(todayCode)
         })
+
         setHabits(filtered.map((h, i) => ({
           ...h,
           icon: h.icon || getDefaultIconForTitle(h.title, i),
@@ -139,6 +184,13 @@ export function useHabits({ session, mode }) {
     }
   }, [session, habits, fetchTodayLogs, mode])
 
+  // ── [NUEVO] Cargar el resumen de ayer al montar (solo una vez por sesión) ─
+  useEffect(() => {
+    if (session && mode !== 'tutorial') {
+      fetchYesterdaySummary()
+    }
+  }, [session, mode, fetchYesterdaySummary])
+
   // Hábitos filtrados por Hard Day Mode
   const reviewHabits = useMemo(() => {
     try {
@@ -154,5 +206,13 @@ export function useHabits({ session, mode }) {
     }
   }, [habits])
 
-  return { habits, todayLogs, reviewHabits, fetchTodayLogs }
+  return {
+    habits,
+    todayLogs,
+    reviewHabits,
+    fetchTodayLogs,
+    // ── [NUEVO] ────────────────────────────────────────────────────────────
+    yesterdaySummary,       // { score, mood } | null
+    fetchYesterdaySummary,  // función manual por si se necesita refrescar
+  }
 }

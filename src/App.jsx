@@ -90,6 +90,7 @@ function DashboardLayout({
   fetchTodayLogs,
   weeklyGoals,
   refreshWeeklyGoals,
+  yesterdaySummary, // Recibido correctamente
 }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("home");
@@ -179,10 +180,11 @@ function DashboardLayout({
               onUpgrade={() => setProModalOpen(true)}
               onResetToday={fetchTodayLogs}
               weeklyGoals={weeklyGoals}
+              yesterdaySummary={yesterdaySummary}
             />
           </div>
 
-          {/* 2. Stats (Lazy) — Análisis Inteligente integrado aquí */}
+          {/* 2. Stats */}
           <div
             style={{ width: effectiveWidth }}
             className="shrink-0 overflow-y-auto"
@@ -203,7 +205,7 @@ function DashboardLayout({
             </Suspense>
           </div>
 
-          {/* 3. Community (Lazy) */}
+          {/* 3. Community */}
           <div
             style={{ width: effectiveWidth }}
             className="shrink-0 overflow-y-auto"
@@ -213,7 +215,7 @@ function DashboardLayout({
             </Suspense>
           </div>
 
-          {/* 4. More Features / Apps (Lazy) ── Estética Unificada ── */}
+          {/* 4. More Features */}
           <div
             style={{ width: effectiveWidth }}
             className="shrink-0 overflow-y-auto"
@@ -263,6 +265,7 @@ export default function App() {
     isWhitelisted,
     checkWhitelist,
   } = useSession();
+
   const isTestAccount = useMemo(
     () => session?.user?.email === import.meta.env.VITE_TEST_EMAIL,
     [session],
@@ -279,17 +282,25 @@ export default function App() {
     markUpdateSeen,
     resetUpdateSeen,
   } = useAppSettings({ session, loadingSession, language });
+
   const mode = location.pathname === "/review" ? "reviewing" : "dashboard";
-  const { habits, todayLogs, fetchTodayLogs } = useHabits({ session, mode });
+
+  // FIX: Extraer yesterdaySummary del hook
+  const { habits, todayLogs, fetchTodayLogs, yesterdaySummary } = useHabits({
+    session,
+    mode,
+  });
+
   const { effectiveIsPro, handleToggleTestPro } = useProPlan({
     session,
     isTestAccount,
+    isAdmin: effectiveIsAdmin,
   });
 
   const [proModalOpen, setProModalOpen] = useState(false);
   const [updateOpen, setUpdateOpen] = useState(false);
 
-  // ── Lógica de Sincronización de Metas Semanales ─────────────────────────────
+  // Lógica de Metas Semanales
   const [weeklyGoals, setWeeklyGoals] = useState([]);
 
   const refreshWeeklyGoals = useCallback(async () => {
@@ -317,7 +328,7 @@ export default function App() {
     refreshWeeklyGoals();
   }, [refreshWeeklyGoals]);
 
-  // Redirecciones y mantenimiento
+  // Redirecciones
   useEffect(() => {
     if (
       session &&
@@ -432,6 +443,7 @@ export default function App() {
               todayLogs={todayLogs}
               session={session}
               onReviewComplete={fetchTodayLogs}
+              yesterdaySummary={yesterdaySummary} // Ahora sí está definido
             />
           }
         />
@@ -452,6 +464,7 @@ export default function App() {
               fetchTodayLogs={fetchTodayLogs}
               weeklyGoals={weeklyGoals}
               refreshWeeklyGoals={refreshWeeklyGoals}
+              yesterdaySummary={yesterdaySummary} // Ahora sí está definido
               handleResetTutorial={async () => {
                 await supabase.auth.updateUser({
                   data: { has_finished_tutorial: false },
