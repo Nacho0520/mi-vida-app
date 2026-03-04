@@ -134,7 +134,7 @@ function DashboardLayout({
       <div className="flex-1 flex flex-col overflow-hidden w-full" ref={tabRef}>
         <MotionDiv
           className="flex h-full"
-          style={{ x }}
+          style={{ x, touchAction: 'pan-y' }}
           drag="x"
           dragDirectionLock
           dragConstraints={{
@@ -220,7 +220,6 @@ function DashboardLayout({
           <div
             style={{ width: effectiveWidth }}
             className="shrink-0 overflow-y-auto"
-            onPointerDownCapture={(e) => e.stopPropagation()}
           >
             <div className="w-full max-w-md mx-auto px-6 pt-6 pb-32 space-y-6">
               <Suspense fallback={<RouteFallback />}>
