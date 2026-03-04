@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
-import { X, Globe, Loader2, Zap, CheckCircle2, Key } from "lucide-react";
+import { X, Globe, Loader2, Zap, CheckCircle2, Key, Bell, BellOff, BellRing } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { supabase } from "../lib/supabaseClient";
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+}
 
 export default function SettingsModal({
   isOpen,
@@ -14,6 +21,11 @@ export default function SettingsModal({
   const { t, language, switchLanguage } = useLanguage();
   const [profileLoading, setProfileLoading] = useState(true);
   const [resolvedPlan, setResolvedPlan] = useState(null);
+  const [notifPermission, setNotifPermission] = useState(() => {
+    if (typeof Notification === "undefined") return "unsupported";
+    return Notification.permission;
+  });
+  const [notifRequesting, setNotifRequesting] = useState(false);
 
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
   const isIOS = /iPhone|iPad|iPod/i.test(ua);
@@ -27,6 +39,46 @@ export default function SettingsModal({
           t("push_android_step3"),
         ]
       : [t("push_generic_step1"), t("push_generic_step2")];
+
+  const requestNotifPermission = async () => {
+    if (typeof Notification === "undefined") return;
+    setNotifRequesting(true);
+    try {
+      const permission = await Notification.requestPermission();
+      setNotifPermission(permission);
+      if (permission === "granted") {
+        const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        if (
+          VAPID_PUBLIC_KEY &&
+          !VAPID_PUBLIC_KEY.includes("PEGA_AQUI") &&
+          "serviceWorker" in navigator &&
+          "PushManager" in window
+        ) {
+          const registration = await navigator.serviceWorker.ready;
+          let subscription = await registration.pushManager.getSubscription();
+          if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+            });
+          }
+          await supabase.from("push_subscriptions").upsert(
+            {
+              user_id: user?.id,
+              subscription: subscription.toJSON(),
+              language,
+              app_version: import.meta.env.VITE_APP_VERSION || null,
+            },
+            { onConflict: "user_id" }
+          );
+        }
+      }
+    } catch (err) {
+      console.error("[Push] Error desde ajustes:", err.message);
+    } finally {
+      setNotifRequesting(false);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen || !user?.id) return;
@@ -170,24 +222,79 @@ export default function SettingsModal({
               </p>
             )}
           </div>
+          {/* ── Estado y botón de notificaciones ───────────────── */}
           <div className="bg-neutral-900/50 p-4 rounded-xl border border-neutral-800/60">
-            <p className="text-xs text-neutral-400 mb-2 font-semibold">
-              {t("push_steps_title")}
-            </p>
-            <div className="premium-divider">
-              {quickSteps.map((step, index) => (
-                <div
-                  key={`${step}-${index}`}
-                  className="flex items-start gap-2 text-[11px] text-neutral-400"
-                >
-                  <span className="h-5 w-5 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-[9px] font-bold text-neutral-500">
-                    {index + 1}
-                  </span>
-                  <span className="leading-relaxed">{step}</span>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                {notifPermission === "granted" ? (
+                  <BellRing size={13} className="text-emerald-400" />
+                ) : notifPermission === "denied" ? (
+                  <BellOff size={13} className="text-red-400" />
+                ) : (
+                  <Bell size={13} className="text-neutral-400" />
+                )}
+                <span className="text-xs font-semibold text-neutral-300">
+                  {t("notif_label")}
+                </span>
+              </div>
+
+              {notifPermission === "granted" && (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                  {t("notif_enabled")}
+                </span>
+              )}
+              {notifPermission === "denied" && (
+                <span className="px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/20 text-red-400 text-[10px] font-bold uppercase tracking-wider">
+                  {t("notif_denied")}
+                </span>
+              )}
+              {notifPermission === "unsupported" && (
+                <span className="px-2 py-0.5 rounded-full bg-neutral-700/60 border border-white/5 text-neutral-500 text-[10px] font-bold uppercase tracking-wider">
+                  {t("notif_unsupported")}
+                </span>
+              )}
             </div>
+
+            {notifPermission === "denied" && (
+              <p className="text-neutral-500 text-[10px] leading-relaxed mt-2">
+                {t("notif_denied_hint")}
+              </p>
+            )}
+
+            {notifPermission === "default" && (
+              <button
+                type="button"
+                onClick={requestNotifPermission}
+                disabled={notifRequesting}
+                className="w-full flex items-center justify-center gap-2 mt-3 bg-neutral-700 hover:bg-neutral-600 text-white text-sm font-bold py-3 rounded-xl active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Bell size={14} />
+                {notifRequesting ? t("notif_requesting") : t("notif_enable_btn")}
+              </button>
+            )}
           </div>
+
+          {/* ── Pasos de instalación manual ─────────────────────── */}
+          {notifPermission !== "granted" && (
+            <div className="bg-neutral-900/50 p-4 rounded-xl border border-neutral-800/60">
+              <p className="text-xs text-neutral-400 mb-2 font-semibold">
+                {t("push_steps_title")}
+              </p>
+              <div className="premium-divider">
+                {quickSteps.map((step, index) => (
+                  <div
+                    key={`${step}-${index}`}
+                    className="flex items-start gap-2 text-[11px] text-neutral-400"
+                  >
+                    <span className="h-5 w-5 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-[9px] font-bold text-neutral-500">
+                      {index + 1}
+                    </span>
+                    <span className="leading-relaxed">{step}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

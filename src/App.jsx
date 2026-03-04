@@ -19,7 +19,7 @@ import { motion, useMotionValue, animate } from "framer-motion";
 // ── Imports SÍNCRONOS ─────────────────────────────────────────────────────────
 import Dashboard from "./components/Dashboard";
 import ReviewScreen from "./components/ReviewScreen";
-import Tutorial from "./components/Tutorial";
+import OnboardingRitual from "./components/OnboardingRitual";
 import Dock from "./components/Dock";
 import BlockedScreen from "./components/BlockedScreen";
 import MaintenanceScreen from "./components/MaintenanceScreen";
@@ -422,7 +422,7 @@ export default function App() {
         <Route
           path="/tutorial"
           element={
-            <Tutorial
+            <OnboardingRitual
               user={session.user}
               onComplete={async () => {
                 await supabase.auth.updateUser({
