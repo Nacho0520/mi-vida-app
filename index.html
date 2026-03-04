@@ -1,18 +1,38 @@
 <!doctype html>
-<html lang="es"> <head>
+<html lang="es">
+  <head>
     <meta charset="UTF-8" />
-    
+
     <link rel="icon" type="image/png" href="/pwa-192x192.png" />
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> 
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#171717" />
 
-    <title>DayClose</title>
-    
-    <meta name="description" content="DayClose — Cierra tu día con intención." />
+    <title>DayClose — Cierra tu día con intención</title>
+
+    <meta name="description" content="El ritual nocturno que cierra tu mente, no solo tu día. Desliza tus hábitos, añade una nota, pon nota a tu día. En menos de 10 segundos." />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DayClose" />
+    <meta property="og:title" content="DayClose — Tu mente merece un cierre." />
+    <meta property="og:description" content="El ritual nocturno en menos de 10 segundos. Desliza tus hábitos, añade una nota, pon nota a tu día. Y desconecta de verdad." />
+    <meta property="og:image" content="/pwa-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="DayClose — Tu mente merece un cierre." />
+    <meta name="twitter:description" content="El ritual nocturno en menos de 10 segundos. Sin app store. Se instala en tu pantalla de inicio." />
+    <meta name="twitter:image" content="/pwa-512x512.png" />
+
+    <!-- PWA -->
     <meta name="apple-mobile-web-app-title" content="DayClose" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="/manifest.webmanifest" />
   </head>
   <body>
     <div id="root"></div>

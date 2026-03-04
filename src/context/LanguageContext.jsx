@@ -1,22 +1,14 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext } from "react";
 import { translations } from "../lib/translations";
 
 const LanguageContext = createContext();
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState("es");
-
-  useEffect(() => {
-    // 1. Mirar si ya eligió idioma antes
-    const savedLang = localStorage.getItem("appLanguage");
-    if (savedLang) {
-      setLanguage(savedLang);
-    } else {
-      // 2. Si no, detectar el del navegador
-      const browserLang = navigator.language.startsWith("es") ? "es" : "en";
-      setLanguage(browserLang);
-    }
-  }, []);
+  const [language, setLanguage] = useState(() => {
+    const saved = localStorage.getItem("appLanguage");
+    if (saved) return saved;
+    return navigator.language?.startsWith("es") ? "es" : "en";
+  });
 
   const switchLanguage = (lang) => {
     // Reset swipe tutorial for new language so user sees it in correct language

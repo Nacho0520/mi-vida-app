@@ -18,8 +18,6 @@ import { motion, useMotionValue, animate } from "framer-motion";
 
 // ── Imports SÍNCRONOS ─────────────────────────────────────────────────────────
 import Dashboard from "./components/Dashboard";
-import Auth from "./components/Auth";
-import LandingPage from "./components/LandingPage";
 import ReviewScreen from "./components/ReviewScreen";
 import Tutorial from "./components/Tutorial";
 import Dock from "./components/Dock";
@@ -31,6 +29,8 @@ import UpdateShowcase from "./components/UpdateShowcase";
 import ProModal from "./components/ProModal";
 
 // ── Imports LAZY ─────────────────────────────────────────────────────────────
+const LandingPage = lazy(() => import("./components/LandingPage"));
+const Auth = lazy(() => import("./components/Auth"));
 const AdminPanel = lazy(() => import("./components/AdminPanel"));
 const History = lazy(() => import("./components/History"));
 const Stats = lazy(() => import("./components/Stats"));

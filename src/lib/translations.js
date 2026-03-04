@@ -56,14 +56,19 @@ export const translations = {
       "Tu dispositivo no soporta notificaciones push. Reinstala la app desde Safari.",
 
     // Landing Page
-    landing_badge: "Tu mejor versión empieza al cerrar el día",
+    landing_badge: "El ritual que cierra tu mente, no solo tu día.",
+    landing_h1_line1: "Tu mente merece",
+    landing_h1_line2: "un cierre.",
     landing_desc:
-      "DayClose es el rastreador de hábitos minimalista diseñado para personas que buscan claridad, no distracciones.",
-    landing_cta: "Empezar ahora",
-    landing_pwa_hint: "Instalable en iOS & Android",
+      "Cada noche, en menos de 10 segundos: desliza tus hábitos, añade una nota, pon nota a tu día. Y desconecta de verdad.",
+    landing_cta: "Empieza gratis — sin tarjeta",
+    landing_pwa_hint: "Sin app store. Se instala en tu pantalla de inicio.",
+    landing_how_title: "Así funciona.",
+    landing_how_sub: "En menos de 10 segundos cada noche.",
+    landing_social_proof: "personas cerraron su día ayer",
     feature_1_title: "Interfaz Zero-Friction",
     feature_1_desc:
-      "Diseñada para que completes tus hábitos en menos de 10 segundos.",
+      "Desliza cada hábito — completado o no. Sin formularios, sin texto. Tu ritual cabe en 10 segundos.",
     feature_2_title: "Estadísticas Visuales",
     feature_2_desc:
       "Mapas de calor y rachas que te motivan a no romper la cadena.",
@@ -608,14 +613,19 @@ export const translations = {
       "Your device doesn't support push notifications. Reinstall from Safari.",
 
     // Landing Page
-    landing_badge: "Your best version starts at day close",
+    landing_badge: "The ritual that closes your mind, not just your day.",
+    landing_h1_line1: "Your mind deserves",
+    landing_h1_line2: "a proper close.",
     landing_desc:
-      "DayClose is the minimalist habit tracker designed for people seeking clarity, not distractions.",
-    landing_cta: "Start now",
-    landing_pwa_hint: "Installable on iOS & Android",
+      "Every night, in under 10 seconds: swipe through your habits, drop a note, rate your day. Then actually disconnect.",
+    landing_cta: "Start free — no card required",
+    landing_pwa_hint: "No app store. Installs straight to your home screen.",
+    landing_how_title: "Here's how it works.",
+    landing_how_sub: "Under 10 seconds every night.",
+    landing_social_proof: "people closed their day yesterday",
     feature_1_title: "Zero-Friction Interface",
     feature_1_desc:
-      "Designed for you to complete your habits in less than 10 seconds.",
+      "Swipe each habit — done or not. No forms, no typing. Your ritual fits in 10 seconds.",
     feature_2_title: "Visual Statistics",
     feature_2_desc: "Heatmaps and streaks that motivate you to keep the chain.",
     feature_3_title: "Total Privacy",

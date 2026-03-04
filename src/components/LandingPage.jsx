@@ -1,9 +1,14 @@
+import { lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import {
-  CheckCircle2, Zap, BarChart3, Smartphone, ArrowRight,
-  Moon, Flame, StickyNote, Star, Globe, Shield
+  Zap, BarChart3, Smartphone, ArrowRight,
+  Moon, Star, Globe, Shield
 } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
+import LiveCounter from './LiveCounter'
+import PWAInstallBanner from './PWAInstallBanner'
+
+const SwipeDemo = lazy(() => import('./SwipeDemo'))
 
 // ── Animaciones reutilizables ─────────────────────────────────────────────────
 const fadeUp = {
@@ -28,32 +33,6 @@ const staggerContainer = {
 const ONCE = { once: true, amount: 0.2 }
 
 // ── Sub-componentes puros ─────────────────────────────────────────────────────
-function MockHabitCard({ emoji, label, done, delay }) {
-  return (
-    <motion.div
-      variants={fadeUp}
-      transition={{ delay }}
-      className={`flex items-center justify-between px-5 py-4 rounded-2xl border ${
-        done
-          ? 'bg-emerald-500/10 border-emerald-500/20'
-          : 'bg-neutral-800/60 border-white/5'
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <span className="text-2xl">{emoji}</span>
-        <span className={`text-sm font-bold ${done ? 'text-white' : 'text-neutral-400'}`}>
-          {label}
-        </span>
-      </div>
-      {done ? (
-        <CheckCircle2 size={20} className="text-emerald-400 shrink-0" />
-      ) : (
-        <div className="w-5 h-5 rounded-full border-2 border-white/10 shrink-0" />
-      )}
-    </motion.div>
-  )
-}
-
 function FeatureCard({ icon, color, title, desc }) {
   const colorMap = {
     violet:  'bg-violet-500/10 border-violet-500/20',
@@ -77,31 +56,6 @@ function FeatureCard({ icon, color, title, desc }) {
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function LandingPage({ onGetStarted }) {
   const { t, language, switchLanguage } = useLanguage()
-
-  // Textos del mockup — localizados a través de t() donde hay clave, inline donde es dato
-  const mockupData = {
-    today:     language === 'es' ? 'Hoy'              : 'Today',
-    myHabits:  language === 'es' ? 'Mis hábitos'      : 'My habits',
-    noteLabel: language === 'es' ? 'Nota del día'      : "Today's note",
-    noteText:  language === 'es'
-      ? '"Hoy fue un día retador pero di lo mejor de mí. Mañana sigo."'
-      : '"Today was challenging, but I gave my best. Tomorrow I keep going."',
-    habits: language === 'es'
-      ? [
-          { emoji: '💧', label: 'Tomar agua',    done: true  },
-          { emoji: '🧘', label: 'Meditación',    done: true  },
-          { emoji: '📚', label: 'Leer 20 min',   done: false },
-          { emoji: '🏃', label: 'Ejercicio',     done: false },
-        ]
-      : [
-          { emoji: '💧', label: 'Drink water',   done: true  },
-          { emoji: '🧘', label: 'Meditation',    done: true  },
-          { emoji: '📚', label: 'Read 20 min',   done: false },
-          { emoji: '🏃', label: 'Exercise',      done: false },
-        ],
-    preview:  language === 'es' ? 'Vista previa de la app' : 'App preview',
-    progress: '2/4',
-  }
 
   // Stats trust bar — ahora con Shield de lucide en lugar de emoji de lock
   const stats = [
@@ -166,21 +120,10 @@ export default function LandingPage({ onGetStarted }) {
               {t('landing_badge')}
             </motion.span>
 
-            {/* Headline — textos en translations.js cuando existen, inline para el salto de línea estilístico */}
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 leading-[0.9]">
-              {language === 'es' ? (
-                <>
-                  Finaliza tu día
-                  <br />
-                  <span className="text-neutral-500">con éxito.</span>
-                </>
-              ) : (
-                <>
-                  Close your day
-                  <br />
-                  <span className="text-neutral-500">with success.</span>
-                </>
-              )}
+              {t('landing_h1_line1')}
+              <br />
+              <span className="text-neutral-500">{t('landing_h1_line2')}</span>
             </h1>
 
             <p className="text-base md:text-lg text-neutral-400 mb-10 max-w-xl mx-auto font-medium leading-relaxed">
@@ -188,95 +131,58 @@ export default function LandingPage({ onGetStarted }) {
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col items-center justify-center gap-4">
               <button
                 onClick={onGetStarted}
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-black font-black text-base flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-2xl shadow-white/10"
               >
                 {t('landing_cta')} <ArrowRight size={18} />
               </button>
-              <div className="flex items-center gap-2 text-neutral-500 text-sm font-semibold">
-                <Smartphone size={15} />
+              <div className="flex items-center gap-2 text-neutral-600 text-xs font-semibold">
+                <Smartphone size={13} />
                 {t('landing_pwa_hint')}
               </div>
+            </div>
+
+            {/* Social proof dinámico */}
+            <div className="mt-8">
+              <LiveCounter language={language} />
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ── App Mockup ─────────────────────────────────────────────────── */}
+      {/* ── SwipeDemo — "Así funciona" ──────────────────────────────────── */}
       <section className="px-6 pb-28">
         <div className="max-w-md mx-auto">
-          <motion.p
-            variants={fadeIn}
+          <motion.div
+            variants={fadeUp}
             initial="hidden"
             whileInView="visible"
             viewport={ONCE}
-            className="text-center text-[10px] font-black uppercase tracking-[0.25em] text-neutral-600 mb-5"
+            className="text-center mb-10"
           >
-            {mockupData.preview}
-          </motion.p>
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-neutral-600">
+              {t('landing_how_title')}
+            </span>
+            <h2 className="text-2xl md:text-3xl font-black tracking-tighter mt-2 text-white">
+              {t('landing_how_sub')}
+            </h2>
+          </motion.div>
 
           <motion.div
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
             viewport={ONCE}
-            className="relative rounded-[3rem] border border-white/10 bg-neutral-800/40 p-5 shadow-[0_0_80px_rgba(139,92,246,0.08)]"
           >
-            {/* Cabecera del mockup */}
-            <div className="flex items-center justify-between mb-6 px-1">
-              <div>
-                <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">{mockupData.today}</p>
-                <p className="text-lg font-black text-white tracking-tight leading-none">{mockupData.myHabits}</p>
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="w-6 h-6 rounded-full border-2 border-white/20 border-t-white animate-spin" />
               </div>
-              <div className="flex items-center gap-1.5 bg-neutral-700/50 rounded-full px-3 py-1.5 border border-white/5">
-                <Flame size={13} className="text-orange-400" />
-                <span className="text-xs font-black text-white">12</span>
-              </div>
-            </div>
-
-            {/* Hábitos */}
-            <motion.div
-              className="space-y-3"
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={ONCE}
-            >
-              {mockupData.habits.map((h, i) => (
-                <MockHabitCard key={i} emoji={h.emoji} label={h.label} done={h.done} delay={i * 0.08} />
-              ))}
-            </motion.div>
-
-            {/* Nota del día */}
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={ONCE}
-              className="mt-4 p-4 rounded-2xl bg-neutral-900/60 border border-white/5"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <StickyNote size={13} className="text-violet-400" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">{mockupData.noteLabel}</span>
-              </div>
-              <p className="text-xs text-neutral-400 font-medium italic leading-relaxed">{mockupData.noteText}</p>
-            </motion.div>
-
-            {/* Barra de progreso */}
-            <div className="mt-4 flex items-center gap-3">
-              <div className="flex-1 h-1.5 bg-neutral-700 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: '50%' }}
-                  viewport={ONCE}
-                  transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
-                  className="h-full bg-emerald-500 rounded-full"
-                />
-              </div>
-              <span className="text-[10px] font-black text-neutral-500">{mockupData.progress}</span>
-            </div>
+            }>
+              <SwipeDemo />
+            </Suspense>
           </motion.div>
         </div>
       </section>
@@ -375,6 +281,9 @@ export default function LandingPage({ onGetStarted }) {
           <span className="text-xs font-black italic tracking-tight text-neutral-600">DAYCLOSE</span>
         </div>
       </footer>
+
+      {/* ── Banner de instalación PWA (fixed bottom, solo móvil) ─────── */}
+      <PWAInstallBanner language={language} />
     </div>
   )
 }
