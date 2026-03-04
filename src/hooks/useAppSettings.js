@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
-const CURRENT_SOFTWARE_VERSION = '2.0.0'
+const CURRENT_SOFTWARE_VERSION = '2.1.0'
 
 /**
  * Gestiona la configuración global de la app:

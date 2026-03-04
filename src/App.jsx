@@ -55,7 +55,7 @@ import { useHabits } from "./hooks/useHabits";
 import { useProPlan } from "./hooks/useProPlan";
 import { usePushSubscription } from "./hooks/usePushSubscription";
 
-const CURRENT_SOFTWARE_VERSION = "2.1.0";
+const CURRENT_SOFTWARE_VERSION = "2.1.1";
 const TABS = ["home", "stats", "community", "apps"];
 const MotionDiv = motion.div;
 
@@ -400,7 +400,7 @@ export default function App() {
         user={session.user}
         onProActivated={() => window.location.reload()}
       />
-      <TopBanner onOpenUpdates={() => setUpdateOpen(true)} />
+      <TopBanner onOpenUpdates={() => setUpdateOpen(true)} updateAvailable={updateAvailable} />
       <UpdateShowcase
         isOpen={updateOpen}
         onClose={() => {
